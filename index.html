@@ -26,7 +26,16 @@
 .layout.order-mode #items,.layout.order-mode .section-title,.layout.order-mode #add{display:none!important}
 .layout.order-mode .editor .help{margin:6px 0 0}
 .order-form .paper-inner{padding:7mm}
-.order-form .order-titlebar{display:flex;justify-content:space-between;align-items:center;gap:5mm;border-bottom:2px solid #222;padding-bottom:2mm}
+.order-letterhead{display:flex;justify-content:space-between;align-items:center;gap:3mm;border-bottom:1px solid #888;padding-bottom:1.5mm;margin-bottom:1.5mm}
+.order-letterhead strong{font-size:21px;letter-spacing:.05em;white-space:nowrap}
+.order-letterhead>div{font-size:11.5px;line-height:1.45;text-align:right}
+.order-delivery-reply{margin-top:3mm;border:1px solid #555;font-size:11px;padding:1.5mm 2mm}
+.order-reply-title{font-size:12px;font-weight:700;border-bottom:1px solid #aaa;padding-bottom:1mm;margin-bottom:1.2mm}
+.order-reply-row{display:flex;align-items:center;flex-wrap:wrap;gap:.5mm;min-height:6mm;line-height:1.5}
+.reply-write-line{display:inline-block;border-bottom:1px solid #555;min-width:13mm;height:4mm;vertical-align:bottom;flex-shrink:0}
+.reply-write-line.small{min-width:10mm}.reply-write-line.short{min-width:6mm}.reply-write-line.grow{flex:1;min-width:14mm}
+.order-reply-foot{text-align:right;font-size:10.5px;margin-top:1mm}
+.order-form .order-titlebar{display:flex;justify-content:space-between;align-items:center;gap:5mm;border-bottom:2px solid #222;padding-bottom:1mm}
 .order-titlebar strong{font-size:23px;letter-spacing:.16em}
 .order-titlebar>div{display:flex;align-items:center;white-space:nowrap;font-size:12px}
 .order-titlebar input{width:38mm!important;white-space:nowrap}
@@ -38,7 +47,7 @@
 .order-numbers input,.order-numbers select{flex:1;width:60%;min-width:0}
 .order-addresses{display:grid;grid-template-columns:1fr 1fr;gap:2.5mm;margin:2mm 0 4mm}
 .order-address-table{border-collapse:collapse;width:100%;table-layout:fixed;font-size:11px}
-.order-address-table th,.order-address-table td{border:1px solid #666;height:6.5mm;padding:0;vertical-align:middle}
+.order-address-table th,.order-address-table td{border:1px solid #666;height:5.6mm;padding:0;vertical-align:middle}
 .order-address-table th{width:25mm;text-align:left;background:#f3f3f3;padding-left:1.5mm;white-space:nowrap}
 .order-form .doc-items{font-size:12px}
 .order-form .doc-items th{padding:1.2mm .8mm}
@@ -75,7 +84,7 @@
 <h2>帳票の入力・編集</h2>
 <div class="field-grid">
 <div class="field order-picker"><label for="type">帳票の種類</label><select id="type"><option value="order">発注書（A4縦）</option><option value="delivery">納品書（A4縦）</option><option value="invoice">請求書（A4縦）</option></select></div>
-<div class="field order-picker"><label for="rep">担当営業</label><select id="rep"><option>太田</option><option>会野</option><option>藤井</option><option>長谷</option><option>恩田</option><option>社長</option></select></div>
+<div class="field order-picker"><label for="rep">担当営業</label><select id="rep"><option>大田</option><option>会野</option><option>藤井</option><option>長谷</option><option>恩田</option><option>社長</option></select></div>
 <div class="field"><label for="number">帳票番号</label><input id="number" data-field="number" autocomplete="off" placeholder="例：T-2026-001"></div>
 <div class="field"><label for="date">作成日</label><input type="date" id="date" data-field="date"></div>
 <div class="field wide"><label for="school">学校名（仮の情報で確認）</label><input id="school" data-field="school" autocomplete="off" placeholder="例：○○市立△△中学校"></div>
@@ -113,10 +122,10 @@
 <script>
 (function(){
 "use strict";
-var reps=["太田","会野","藤井","長谷","恩田","社長"];
+var reps=["大田","会野","藤井","長谷","恩田","社長"];
 var keys=["number","date","school","schoolContact","schoolTel","className","operator","contactTel","maker","orderClass","makerCode","makerAddress","makerTel","makerFax","makerContact","reference","serviceDate","tax","memo"];
 var today=new Date(),localDate=today.getFullYear()+"-"+String(today.getMonth()+1).padStart(2,"0")+"-"+String(today.getDate()).padStart(2,"0");
-var s={type:"order",rep:"太田",number:"",date:localDate,school:"",schoolContact:"",schoolTel:"",className:"",operator:"",contactTel:"06-6997-6030",maker:"",orderClass:"学校直送",makerCode:"",makerAddress:"",makerTel:"",makerFax:"",makerContact:"",reference:"",serviceDate:"",tax:"10",memo:"",items:[{sku:"",name:"",spec:"",qty:"",unit:"個",price:"",note:""}]};
+var s={type:"order",rep:"大田",number:"",date:localDate,school:"",schoolContact:"",schoolTel:"",className:"",operator:"",contactTel:"06-6997-6030",maker:"",orderClass:"学校直送",makerCode:"",makerAddress:"",makerTel:"",makerFax:"",makerContact:"",reference:"",serviceDate:"",tax:"10",memo:"",items:[{sku:"",name:"",spec:"",qty:"",unit:"個",price:"",note:""}]};
 var titles={order:"発注書",delivery:"納品書",invoice:"請求書"};
 function byId(id){return document.getElementById(id);}
 function escapeText(v){return String(v==null?"":v).replace(/[&<>"']/g,function(ch){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch];});}
@@ -184,6 +193,7 @@ function orderMarkup(){
   fieldRow('問い合わせ',f("contactTel","問い合わせ電話番号"))
  ].join("");
  return '<div class="paper-inner">'+
+ '<div class="order-letterhead"><strong>株式会社タナカ</strong><div>大阪府守口市南寺方東通3-8-6<div>TEL 06-6997-6030　FAX 06-6997-6035</div></div></div>'+
  '<div class="order-titlebar"><strong>発 注 書</strong><div>発注日：'+f("date","発注日","YYYY-MM-DD")+'</div></div>'+
  '<div class="order-numbers"><span>発注番号：'+f("number","発注番号")+'</span><span>担当営業：'+sel("rep","担当営業",reps)+'</span><span>発注・作成者：'+f("operator","発注・作成者")+'</span></div>'+
  '<div class="order-addresses"><table class="order-address-table"><tbody>'+maker+'</tbody></table><table class="order-address-table"><tbody>'+school+'</tbody></table></div>'+
@@ -192,6 +202,7 @@ function orderMarkup(){
  '<tbody>'+orderRows()+'</tbody></table>'+
  '<div class="order-after"><span id="orderSummary">'+orderSummary()+'</span><button type="button" data-add-order>＋ 商品を追加</button></div>'+
  '<div class="order-memo"><label>備考・連絡事項：</label><textarea aria-label="備考・連絡事項" data-field="memo">'+escapeText(s.memo)+'</textarea></div>'+
+ '<section class="order-delivery-reply" aria-label="納期回答欄"><div class="order-reply-title">納期回答欄（発注先記入・FAX返信用）</div><div class="order-reply-row">回答日：<span class="reply-write-line small"></span>年<span class="reply-write-line short"></span>月<span class="reply-write-line short"></span>日　　納品予定日：<span class="reply-write-line small"></span>年<span class="reply-write-line short"></span>月<span class="reply-write-line short"></span>日頃</div><div class="order-reply-row">出荷予定：□ 一括　□ 分納　□ 未定　　欠品・分納など：<span class="reply-write-line grow"></span></div><div class="order-reply-foot">返信先FAX：06-6997-6035</div></section>'+
  '<div class="order-contact">株式会社タナカ　TEL：06-6997-6030　FAX：06-6997-6035　／　担当：<span id="orderStaffLabel">'+escapeText(s.rep)+'</span></div>'+
  '<div class="watermark">試作帳票・正式な注文／納品／請求には使用しないでください</div>'+
  '</div>';
@@ -288,11 +299,11 @@ byId("items").addEventListener("input",function(e){var t=e.target,i=Number(t.dat
 byId("items").addEventListener("click",function(e){var b=e.target.closest("[data-remove]");if(!b)return;var i=Number(b.dataset.remove);s.items.splice(i,1);if(!s.items.length)s.items.push({sku:"",name:"",spec:"",qty:"",unit:"個",price:"",note:""});renderRows();render();});
 byId("add").addEventListener("click",function(){if(s.items.length>=40){alert("試作では明細は40行までです。");return;}s.items.push({sku:"",name:"",spec:"",qty:"",unit:"個",price:"",note:""});renderRows();render();});
 byId("print").addEventListener("click",function(){window.print();});
-byId("clear").addEventListener("click",function(){if(!confirm("入力内容を初期化します。よろしいですか？"))return;s.type="order";s.rep="太田";keys.forEach(function(k){s[k]="";});s.date=localDate;s.contactTel="06-6997-6030";s.orderClass="学校直送";s.tax="10";s.items=[{sku:"",name:"",spec:"",qty:"",unit:"個",price:"",note:""}];sync();});
+byId("clear").addEventListener("click",function(){if(!confirm("入力内容を初期化します。よろしいですか？"))return;s.type="order";s.rep="大田";keys.forEach(function(k){s[k]="";});s.date=localDate;s.contactTel="06-6997-6030";s.orderClass="学校直送";s.tax="10";s.items=[{sku:"",name:"",spec:"",qty:"",unit:"個",price:"",note:""}];sync();});
 byId("sample").addEventListener("click",function(){if(!confirm("今の入力内容を架空のサンプルに置き換えます。よろしいですか？"))return;s.school="○○市立△△中学校";s.maker="○○教材株式会社";s.schoolContact="教材担当";s.className="1年1組";s.schoolTel="";s.operator=s.rep;s.number="SAMPLE-001";s.items=[{sku:"A-001",name:"教材サンプルA",spec:"A4",qty:"40",unit:"組",price:"350",note:"美術"},{sku:"B-002",name:"教材サンプルB",spec:"青",qty:"10",unit:"個",price:"280",note:"予備"}];sync();});
 byId("download").addEventListener("click",function(){var blob=new Blob([JSON.stringify({prototypeVersion:1,data:s},null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="tanaka_form_"+s.type+"_"+(s.date||"draft")+".json";a.click();setTimeout(function(){URL.revokeObjectURL(url);},1000);});
 byId("loadButton").addEventListener("click",function(){byId("load").click();});
-byId("load").addEventListener("change",function(){var file=this.files[0];this.value="";if(!file)return;if(file.size>250000){alert("読み込み可能なファイルは250KBまでです。");return;}var reader=new FileReader();reader.onload=function(){try{var obj=JSON.parse(reader.result);if(obj.prototypeVersion!==1||!obj.data||!Array.isArray(obj.data.items)||obj.data.items.length>40)throw Error("形式が異なります。");var d=obj.data;var next=Object.assign({},s);keys.forEach(function(k){if(typeof d[k]==="string")next[k]=d[k].slice(0,1000);});next.type=titles[d.type]?d.type:"order";next.rep=reps.indexOf(d.rep)>=0?d.rep:"太田";next.items=d.items.map(function(it){var o={};["sku","name","spec","qty","unit","price","note"].forEach(function(k){o[k]=typeof it[k]==="string"?it[k].slice(0,1000):"";});return o;});if(!next.items.length)next.items=[{sku:"",name:"",spec:"",qty:"",unit:"個",price:"",note:""}];if(!confirm("現在の入力内容を読み込んだ内容に置き換えます。よろしいですか？"))return;s=next;sync();}catch(err){alert("読み込めませんでした。試作で保存したJSONファイルか確認してください。");}};reader.readAsText(file);});
+byId("load").addEventListener("change",function(){var file=this.files[0];this.value="";if(!file)return;if(file.size>250000){alert("読み込み可能なファイルは250KBまでです。");return;}var reader=new FileReader();reader.onload=function(){try{var obj=JSON.parse(reader.result);if(obj.prototypeVersion!==1||!obj.data||!Array.isArray(obj.data.items)||obj.data.items.length>40)throw Error("形式が異なります。");var d=obj.data;var next=Object.assign({},s);keys.forEach(function(k){if(typeof d[k]==="string")next[k]=d[k].slice(0,1000);});next.type=titles[d.type]?d.type:"order";next.rep=reps.indexOf(d.rep)>=0?d.rep:"大田";next.items=d.items.map(function(it){var o={};["sku","name","spec","qty","unit","price","note"].forEach(function(k){o[k]=typeof it[k]==="string"?it[k].slice(0,1000):"";});return o;});if(!next.items.length)next.items=[{sku:"",name:"",spec:"",qty:"",unit:"個",price:"",note:""}];if(!confirm("現在の入力内容を読み込んだ内容に置き換えます。よろしいですか？"))return;s=next;sync();}catch(err){alert("読み込めませんでした。試作で保存したJSONファイルか確認してください。");}};reader.readAsText(file);});
 window.addEventListener("resize",fitPaper);sync();
 })();
 </script>
