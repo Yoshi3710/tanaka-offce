@@ -41,6 +41,9 @@
 .order-numbers input,.order-numbers select{flex:1;width:60%;min-width:0}
 .order-addresses{display:grid;grid-template-columns:1fr 1fr;gap:2.5mm;margin:2mm 0 4mm}
 .order-address-heading{font-size:13px;font-weight:700;background:#edf1f4;border:1px solid #666;border-bottom:0;padding:1mm 2mm}
+.order-maker-heading{display:flex;align-items:center;gap:2mm;min-height:10mm;font-size:17px}
+.order-maker-heading span{flex-shrink:0}
+.order-form .order-maker-heading input{min-width:0;flex:1;width:100%;font-size:17px;font-weight:700}
 .order-address-table{border-collapse:collapse;width:100%;table-layout:fixed;font-size:11px}
 .order-address-table th,.order-address-table td{border:1px solid #666;height:5.6mm;padding:0;vertical-align:middle}
 .order-address-table th{width:25mm;text-align:left;background:#f3f3f3;padding-left:1.5mm;white-space:nowrap}
@@ -179,9 +182,6 @@ function orderMarkup(){
  var f=formField,sel=formSelect;
  function fieldRow(label,inner){return '<tr><th>'+label+'</th><td>'+inner+'</td></tr>';}
  var maker=[
-  fieldRow('発注先名',f("maker","発注先名","メーカー名・仕入先名")),
-  fieldRow('ご担当者',f("makerContact","発注先担当者")),
-  fieldRow('住所',f("makerAddress","発注先住所")),
   fieldRow('発注先電話番号',f("makerTel","発注先電話番号")),
   fieldRow('FAX',f("makerFax","発注先FAX")),
   fieldRow('取引先コード',f("makerCode","取引先コード"))
@@ -196,7 +196,7 @@ function orderMarkup(){
  return '<div class="paper-inner">'+
  '<div class="order-letterhead"><div class="order-heading"><strong>発 注 書</strong><div>発注日：'+f("date","発注日","YYYY-MM-DD")+'</div></div><div class="order-company"><strong>株式会社タナカ</strong><div>大阪府守口市南寺方東通3-8-6</div><div>TEL 06-6997-6030　FAX 06-6997-6035</div></div></div>'+
  '<div class="order-numbers"><span>発注番号：'+f("number","発注番号")+'</span><span>担当営業：'+sel("rep","担当営業",reps)+'</span><span>発注・作成者：'+f("operator","発注・作成者")+'</span></div>'+
- '<div class="order-addresses"><div class="order-address-block"><div class="order-address-heading">発注先（メーカー・仕入先）</div><table class="order-address-table"><tbody>'+maker+'</tbody></table></div><div class="order-address-block"><div class="order-address-heading">納品先（学校）</div><table class="order-address-table"><tbody>'+school+'</tbody></table></div></div>'+
+ '<div class="order-addresses"><div class="order-address-block"><div class="order-address-heading order-maker-heading"><span>発注先</span>'+f("maker","発注先","発注先を入力")+'</div><table class="order-address-table"><tbody>'+maker+'</tbody></table></div><div class="order-address-block"><div class="order-address-heading">納品先（学校）</div><table class="order-address-table"><tbody>'+school+'</tbody></table></div></div>'+
  '<table class="doc-items order-items"><colgroup><col style="width:5%"><col style="width:12%"><col style="width:27%"><col style="width:11%"><col style="width:8%"><col style="width:25%"><col style="width:12%"></colgroup>'+
  '<thead><tr><th>№</th><th>品番</th><th>商品名</th><th>規格・色</th><th>数量</th><th>摘要・備考</th><th>納品日</th></tr></thead>'+
  '<tbody>'+orderRows()+'</tbody></table>'+
