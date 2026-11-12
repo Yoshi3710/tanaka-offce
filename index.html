@@ -49,7 +49,6 @@
 .order-form .doc-items td{padding:0!important;min-height:10mm;height:auto}
 .order-form .doc-items td input{min-height:9mm;font-size:12px;padding:1mm}
 .order-form .doc-items td textarea{display:block;width:100%;min-height:9mm;height:9mm;overflow:hidden;resize:none;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.4;padding:1mm;font-size:12px}
-.order-form .doc-items td input[data-col="deliveryDate"]{border-bottom:1px solid #777;border-radius:0;font-size:11px}
 .order-form .doc-items .order-row-no{font-size:11px;text-align:center;white-space:nowrap}
 .order-row-no button{font-size:11px;font-weight:400;padding:0 3px;color:#a13d3d;border:0;background:transparent;vertical-align:middle}
 .order-after{display:flex;align-items:center;justify-content:flex-end;gap:6mm;margin-top:2mm;font-size:12px;font-weight:700}
@@ -63,7 +62,6 @@
  .order-form input::placeholder{color:transparent!important}
  .order-form input,.order-form select,.order-form textarea{outline:0!important;background:transparent!important;border:0!important}
  .order-form .order-memo textarea{border:1px solid #888!important}
- .order-form .doc-items td input[data-col="deliveryDate"]{border-bottom:1px solid #777!important}
  .order-form .order-addresses th{print-color-adjust:exact;-webkit-print-color-adjust:exact}
  .order-form .doc-items thead{display:table-header-group}
 }
@@ -160,13 +158,12 @@ function formSelect(k,label,options){
 }
 function orderRows(){
  var rows=[],total=Math.max(5,s.items.length);
- var cols=[["sku","品番"],["name","商品名"],["spec","規格・色"],["qty","数量"],["note","摘要・備考"],["deliveryDate","納期回答日"]];
+ var cols=[["sku","品番"],["name","商品名"],["spec","規格・色"],["qty","数量"],["note","摘要・備考"]];
  for(var i=0;i<total;i++){
-  var it=s.items[i]||{sku:"",name:"",spec:"",qty:"",note:"",deliveryDate:""};
+  var it=s.items[i]||{sku:"",name:"",spec:"",qty:"",note:""};
   var tds=cols.map(function(c){
    var attrs=' data-row="'+i+'" data-col="'+c[0]+'" aria-label="'+(i+1)+'行目 '+c[1]+'"';
-   if(c[0]==="name"||c[0]==="note"||c[0]==="spec")return '<td><textarea rows="1"'+attrs+'>'+escapeText(it[c[0]]||"")+'</textarea></td>';
-   return '<td><input type="text"'+attrs+' value="'+escapeText(it[c[0]]||"")+'"'+(c[0]==="qty"?' inputmode="decimal"':'')+(c[0]==="deliveryDate"?' placeholder="年/月/日"':'')+' autocomplete="off"></td>';
+   return '<td><textarea rows="1"'+attrs+(c[0]==="qty"?' inputmode="decimal"':'')+' autocomplete="off">'+escapeText(it[c[0]]||"")+'</textarea></td>';
   }).join("");
   rows.push('<tr><td class="order-row-no">'+(i+1)+'<button type="button" data-remove-order="'+i+'" aria-label="'+(i+1)+'行目を削除" title="この行を削除">×</button></td>'+tds+'</tr>');
  }
@@ -197,8 +194,8 @@ function orderMarkup(){
  '<div class="order-letterhead"><div class="order-heading"><strong>発 注 書</strong><div>発注日：'+f("date","発注日","YYYY-MM-DD")+'</div></div><div class="order-company"><strong>株式会社タナカ</strong><div>大阪府守口市南寺方東通3-8-6</div><div>TEL 06-6997-6030　FAX 06-6997-6035</div></div></div>'+
  '<div class="order-numbers"><span>発注番号：'+f("number","発注番号")+'</span><span>担当営業：'+sel("rep","担当営業",reps)+'</span><span>発注・作成者：'+f("operator","発注・作成者")+'</span></div>'+
  '<div class="order-addresses"><div class="order-address-block"><div class="order-address-heading">発注先（メーカー・仕入先）</div><table class="order-address-table"><tbody>'+maker+'</tbody></table></div><div class="order-address-block"><div class="order-address-heading">納品先（学校）</div><table class="order-address-table"><tbody>'+school+'</tbody></table></div></div>'+
- '<table class="doc-items order-items"><colgroup><col style="width:5%"><col style="width:12%"><col style="width:27%"><col style="width:11%"><col style="width:8%"><col style="width:25%"><col style="width:12%"></colgroup>'+
- '<thead><tr><th>№</th><th>品番</th><th>商品名</th><th>規格・色</th><th>数量</th><th>摘要・備考</th><th>納期回答日</th></tr></thead>'+
+ '<table class="doc-items order-items"><colgroup><col style="width:5%"><col style="width:14%"><col style="width:30%"><col style="width:13%"><col style="width:8%"><col style="width:30%"></colgroup>'+
+ '<thead><tr><th>№</th><th>品番</th><th>商品名</th><th>規格・色</th><th>数量</th><th>摘要・備考</th></tr></thead>'+
  '<tbody>'+orderRows()+'</tbody></table>'+
  '<div class="order-after"><span id="orderSummary">'+orderSummary()+'</span><button type="button" data-add-order>＋ 商品を追加</button></div>'+
  '<div class="order-memo"><label>備考・連絡事項：</label><textarea aria-label="備考・連絡事項" data-field="memo">'+escapeText(s.memo)+'</textarea></div>'+
@@ -311,7 +308,7 @@ byId("clear").addEventListener("click",function(){if(!confirm("入力内容を�
 byId("sample").addEventListener("click",function(){if(!confirm("今の入力内容を架空のサンプルに置き換えます。よろしいですか？"))return;s.school="○○市立△△中学校";s.maker="○○教材株式会社";s.schoolContact="教材担当";s.className="1年1組";s.schoolTel="";s.operator=s.rep;s.number="SAMPLE-001";s.items=[{sku:"A-001",name:"教材サンプルA",spec:"A4",qty:"40",unit:"組",price:"350",note:"美術"},{sku:"B-002",name:"教材サンプルB",spec:"青",qty:"10",unit:"個",price:"280",note:"予備"}];sync();});
 byId("download").addEventListener("click",function(){var blob=new Blob([JSON.stringify({prototypeVersion:1,data:s},null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="tanaka_form_"+s.type+"_"+(s.date||"draft")+".json";a.click();setTimeout(function(){URL.revokeObjectURL(url);},1000);});
 byId("loadButton").addEventListener("click",function(){byId("load").click();});
-byId("load").addEventListener("change",function(){var file=this.files[0];this.value="";if(!file)return;if(file.size>250000){alert("読み込み可能なファイルは250KBまでです。");return;}var reader=new FileReader();reader.onload=function(){try{var obj=JSON.parse(reader.result);if(obj.prototypeVersion!==1||!obj.data||!Array.isArray(obj.data.items)||obj.data.items.length>40)throw Error("形式が異なります。");var d=obj.data;var next=Object.assign({},s);keys.forEach(function(k){if(typeof d[k]==="string")next[k]=d[k].slice(0,1000);});next.type=titles[d.type]?d.type:"order";next.rep=reps.indexOf(d.rep)>=0?d.rep:"大田";next.items=d.items.map(function(it){var o={};["sku","name","spec","qty","unit","price","note","deliveryDate"].forEach(function(k){o[k]=typeof it[k]==="string"?it[k].slice(0,1000):"";});return o;});if(!next.items.length)next.items=[{sku:"",name:"",spec:"",qty:"",unit:"個",price:"",note:""}];if(!confirm("現在の入力内容を読み込んだ内容に置き換えます。よろしいですか？"))return;s=next;sync();}catch(err){alert("読み込めませんでした。試作で保存したJSONファイルか確認してください。");}};reader.readAsText(file);});
+byId("load").addEventListener("change",function(){var file=this.files[0];this.value="";if(!file)return;if(file.size>250000){alert("読み込み可能なファイルは250KBまでです。");return;}var reader=new FileReader();reader.onload=function(){try{var obj=JSON.parse(reader.result);if(obj.prototypeVersion!==1||!obj.data||!Array.isArray(obj.data.items)||obj.data.items.length>40)throw Error("形式が異なります。");var d=obj.data;var next=Object.assign({},s);keys.forEach(function(k){if(typeof d[k]==="string")next[k]=d[k].slice(0,1000);});next.type=titles[d.type]?d.type:"order";next.rep=reps.indexOf(d.rep)>=0?d.rep:"大田";next.items=d.items.map(function(it){var o={};["sku","name","spec","qty","unit","price","note"].forEach(function(k){o[k]=typeof it[k]==="string"?it[k].slice(0,1000):"";});return o;});if(!next.items.length)next.items=[{sku:"",name:"",spec:"",qty:"",unit:"個",price:"",note:""}];if(!confirm("現在の入力内容を読み込んだ内容に置き換えます。よろしいですか？"))return;s=next;sync();}catch(err){alert("読み込めませんでした。試作で保存したJSONファイルか確認してください。");}};reader.readAsText(file);});
 window.addEventListener("resize",fitPaper);sync();
 })();
 </script>
