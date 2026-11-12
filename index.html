@@ -181,6 +181,7 @@ function orderMarkup(){
   fieldRow('発注先名',f("maker","発注先名","メーカー名・仕入先名")),
   fieldRow('ご担当者',f("makerContact","発注先担当者")),
   fieldRow('住所',f("makerAddress","発注先住所")),
+  fieldRow('発注先電話番号',f("makerTel","発注先電話番号")),
   fieldRow('FAX',f("makerFax","発注先FAX")),
   fieldRow('取引先コード',f("makerCode","取引先コード"))
  ].join("");
@@ -189,8 +190,7 @@ function orderMarkup(){
   fieldRow('学校担当',f("schoolContact","学校担当者")),
   fieldRow('学校TEL',f("schoolTel","学校の電話番号")),
   fieldRow('学年・組',f("className","学年・組")),
-  fieldRow('発注区分',sel("orderClass","発注区分",["学校直送","タナカ納入","その他"])),
-  fieldRow('発注先電話番号',f("makerTel","発注先電話番号"))
+  fieldRow('発注区分',sel("orderClass","発注区分",["学校直送","タナカ納入","その他"]))
  ].join("");
  return '<div class="paper-inner">'+
  '<div class="order-letterhead"><strong>株式会社タナカ</strong><div>大阪府守口市南寺方東通3-8-6<div>TEL 06-6997-6030　FAX 06-6997-6035</div></div></div>'+
