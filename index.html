@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0b5aa5">
+<title>タナカ 社員用帳票プロトタイプ｜発注書・納品書・請求書</title>
+<style>
+:root{font-family:"Yu Gothic","Meiryo","Noto Sans JP",system-ui,sans-serif;color:#152535;background:#edf3f8}
+*{box-sizing:border-box}body{margin:0}button,input,select,textarea{font:inherit}button{cursor:pointer;border:1px solid #8fa8bd;border-radius:6px;background:#fff;padding:9px 12px;color:#133e61;font-weight:700}button:hover{background:#e9f2f9}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid #287ac0;outline-offset:2px}
+.head{background:#fff;border-bottom:1px solid #bfd0df;padding:12px max(16px,calc((100vw - 1500px)/2));display:flex;gap:14px;align-items:center;flex-wrap:wrap}.head img{width:148px;height:auto;object-fit:contain}.head h1{font-size:20px;line-height:1.25;margin:0}.head p{font-size:12px;color:#4c6479;margin:3px 0 0}.trial{margin-left:auto;border:1px solid #aa7941;color:#76541f;background:#fff7e9;font-size:12px;font-weight:700;padding:5px 9px;border-radius:4px}
+.notice{max-width:1500px;margin:12px auto 0;padding:9px 14px;background:#fff8df;border:1px solid #eed59b;border-radius:7px;font-size:13px}.layout{max-width:1500px;margin:12px auto 25px;padding:0 12px;display:grid;grid-template-columns:minmax(325px,440px) minmax(0,1fr);gap:12px;align-items:start}.panel{background:white;border:1px solid #c7d5e0;border-radius:9px;box-shadow:0 2px 8px #1b45600c;min-width:0}.editor{padding:16px}.panel h2{font-size:17px;margin:0 0 12px}.actions{display:flex;gap:7px;flex-wrap:wrap}.actions button.primary{background:#0b5aa5;color:white;border-color:#0b5aa5}.actions button.primary:hover{background:#064881}.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.field{min-width:0}.field.wide{grid-column:1/-1}.field label{display:block;font-size:12px;font-weight:700;color:#40576a;margin:0 0 3px}.field input,.field select,.field textarea{width:100%;padding:8px;border:1px solid #b9c9d5;border-radius:5px;background:#fff;min-width:0;color:#172c3a}.field textarea{min-height:52px;resize:vertical}.section-title{font-size:13px;font-weight:700;border-bottom:1px solid #c7d5e0;margin:16px 0 9px;padding-bottom:5px;display:flex;justify-content:space-between;align-items:center}.section-title small{font-size:11px;color:#607587;font-weight:400}
+.item{background:#f6f9fb;border:1px solid #d4e0e9;border-radius:7px;padding:9px;margin:0 0 9px}.item-top{display:flex;gap:8px;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:12px;font-weight:700}.item-top button{font-size:12px;padding:4px 8px;color:#874242;border-color:#dbb0b0}.items .field-grid{gap:7px}.item .field label{font-size:11px}.item .field input{font-size:13px;padding:6px}
+.sheet-panel{padding:12px;min-width:0}.sheet-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 9px}.sheet-top h2{margin:0}.sheet-wrap{background:#dfe7ec;padding:12px;min-height:440px;overflow:hidden;border:1px solid #d0dce5;border-radius:6px;text-align:center}
+.paper{width:190mm;min-height:277mm;background:white;margin:0 auto;text-align:left;color:#111;box-shadow:0 3px 14px #20344125;padding:0;font-family:"Yu Gothic",Meiryo,sans-serif;display:block;overflow:visible}.paper.landscape{width:277mm;min-height:190mm}.paper-inner{padding:7mm 7mm 6mm}.print-h{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:2.5mm}.print-h img{width:43mm;height:auto;object-fit:contain;object-position:left center}.print-org{font-size:10px;text-align:right;line-height:1.45}.print-title{text-align:center;font-weight:700;letter-spacing:.3em;font-size:23px;border-top:2px solid #111;border-bottom:2px solid #111;padding:3px 0;margin:2mm 0 4mm}.print-head{display:grid;grid-template-columns:minmax(0,1fr) 53mm;gap:6mm;align-items:start}.print-head .dest{font-size:18px;font-weight:700;border-bottom:1px solid #222;min-height:12mm;padding:5px 0 2px;overflow-wrap:anywhere}.print-head .sub{font-size:10.5px;margin-top:2mm}.print-meta{border-collapse:collapse;width:100%;font-size:10.5px}.print-meta th,.print-meta td{border:1px solid #333;padding:2.2mm;text-align:left;vertical-align:middle}.print-meta th{background:#f3f3f3;font-weight:600;width:25mm;white-space:nowrap}.print-meta td{overflow-wrap:anywhere}.intro{font-size:10.5px;margin:3mm 0 2mm}.info-table{width:100%;border-collapse:collapse;margin-top:3mm;font-size:10.5px;table-layout:fixed}.info-table th,.info-table td{border:1px solid #333;padding:2mm 1.9mm;text-align:left;vertical-align:top;overflow-wrap:anywhere}.info-table th{background:#f3f3f3;font-weight:700;white-space:nowrap}.info-table td:nth-child(2n){line-height:1.3}.info-table .tight{padding:1.2mm 1.6mm}.table-title{font-size:12px;font-weight:700;margin:4mm 0 1mm}.doc-items{width:100%;border-collapse:collapse;font-size:10.5px;table-layout:fixed}.doc-items th,.doc-items td{border:1px solid #333;padding:2mm 1.4mm;vertical-align:middle;overflow-wrap:anywhere}.doc-items thead th{background:#f2f2f2;font-weight:700;white-space:nowrap;text-align:center}.doc-items td.num{text-align:right;font-variant-numeric:tabular-nums}.doc-items td.mid{text-align:center}.totals{margin:3mm 0 0 auto;width:68mm;border-collapse:collapse;font-size:11px}.totals th,.totals td{border:1px solid #333;padding:2mm 2.5mm}.totals th{text-align:left;background:#f3f3f3}.totals td{text-align:right;font-variant-numeric:tabular-nums}.totals .grand{font-size:14px;font-weight:700}.order-summary{margin-top:2mm;font-weight:700;text-align:right;font-size:11px}.note-print{white-space:pre-wrap;overflow-wrap:anywhere;font-size:10.5px;line-height:1.55;margin-top:3mm;padding:2mm 0}.footnote{margin-top:4mm;border-top:1px solid #aaa;padding-top:2mm;display:flex;justify-content:space-between;gap:5mm;font-size:9.5px}.footnote b{font-weight:700}.watermark{font-size:10px;letter-spacing:0.02em;text-align:right;color:#555;margin-top:3mm}.muted{color:#5f7380}.help{font-size:12px;color:#476070;line-height:1.6}.hidden{display:none!important}
+@media(max-width:1040px){.layout{grid-template-columns:1fr}.editor{order:1}.sheet-panel{order:2}}@media(max-width:650px){.head{padding:9px 13px}.head img{width:110px}.head h1{font-size:17px}.trial{margin-left:0}.layout{padding:0 8px}.editor{padding:12px}.field-grid{gap:8px}.sheet-wrap{padding:6px;min-height:250px}.sheet-panel{padding:7px}.sheet-top{padding:5px}.actions button{padding:8px}.print-h img{width:40mm}}
+@page{size:A4 portrait;margin:10mm}
+@media print{html,body{background:#fff!important;margin:0!important;padding:0!important}.head,.notice,.editor,.sheet-top{display:none!important}.layout{display:block!important;max-width:none!important;margin:0!important;padding:0!important}.panel,.sheet-panel{display:block!important;border:0!important;padding:0!important;box-shadow:none!important}.sheet-wrap{background:#fff!important;margin:0!important;padding:0!important;overflow:visible!important;border:0!important;min-height:0!important}.paper,.paper.landscape{width:100%!important;min-height:0!important;margin:0!important;padding:0!important;border:0!important;box-shadow:none!important;zoom:1!important}.paper-inner{padding:0!important}.print-title{print-color-adjust:exact;-webkit-print-color-adjust:exact}.info-table th,.doc-items th,.print-meta th,.totals th{print-color-adjust:exact;-webkit-print-color-adjust:exact}.doc-items tr{break-inside:avoid}button{display:none!important}}
+</style>
+<style id="pageRule">@page{size:A4 portrait;margin:10mm}</style>
+</head>
+<body>
+<header class="head">
+<img src="assets/logo.webp" alt="株式会社タナカ ロゴ">
+<div><h1>帳票作成プロトタイプ</h1><p>発注書・納品書・請求書／担当営業別入力・A4印刷</p></div>
+<span class="trial">確認用・発注／送信機能なし</span>
+</header>
+<div class="notice" role="status">このページは帳票のレイアウト確認用です。実在の学校・児童生徒・取引先の個人情報を入力しないでください。入力内容の自動送信・サーバー保存は行いません。</div>
+<main class="layout">
+<section class="panel editor" aria-label="帳票編集">
+<h2>帳票の入力・編集</h2>
+<div class="field-grid">
+<div class="field"><label for="type">帳票の種類</label><select id="type"><option value="order">発注書（A4横）</option><option value="delivery">納品書（A4縦）</option><option value="invoice">請求書（A4縦）</option></select></div>
+<div class="field"><label for="rep">担当営業</label><select id="rep"><option>太田</option><option>会野</option><option>藤井</option><option>長谷</option><option>恩田</option><option>社長</option></select></div>
+<div class="field"><label for="number">帳票番号</label><input id="number" data-field="number" autocomplete="off" placeholder="例：T-2026-001"></div>
+<div class="field"><label for="date">作成日</label><input type="date" id="date" data-field="date"></div>
+<div class="field wide"><label for="school">学校名（仮の情報で確認）</label><input id="school" data-field="school" autocomplete="off" placeholder="例：○○市立△△中学校"></div>
+<div class="field"><label for="schoolContact">学校のご担当者</label><input id="schoolContact" data-field="schoolContact" autocomplete="off" placeholder="例：担当の先生"></div>
+<div class="field"><label for="schoolTel">学校TEL</label><input id="schoolTel" data-field="schoolTel" inputmode="tel" autocomplete="off"></div>
+<div class="field"><label for="className">学年・組／所属</label><input id="className" data-field="className" autocomplete="off" placeholder="例：1年1組"></div>
+<div class="field"><label for="operator">発注・作成者</label><input id="operator" data-field="operator" autocomplete="off" placeholder="例：担当営業名"></div>
+<div class="field"><label for="contactTel">問い合わせTEL</label><input id="contactTel" data-field="contactTel" inputmode="tel" autocomplete="off"></div>
+<div class="field wide order-only"><label for="maker">発注先メーカー名</label><input id="maker" data-field="maker" autocomplete="off" placeholder="例：○○教材株式会社"></div>
+<div class="field order-only"><label for="orderClass">発注区分</label><select id="orderClass" data-field="orderClass"><option>学校直送</option><option>タナカ納入</option><option>その他</option></select></div>
+<div class="field order-only"><label for="makerCode">メーカー／取引先コード（任意）</label><input id="makerCode" data-field="makerCode" autocomplete="off"></div>
+<div class="field other-only"><label for="reference">参照注文番号（任意）</label><input id="reference" data-field="reference" autocomplete="off"></div>
+<div class="field other-only"><label for="serviceDate">納品日・対象日（任意）</label><input id="serviceDate" data-field="serviceDate" autocomplete="off" type="date"></div>
+<div class="field invoice-only"><label for="tax">消費税率（%）</label><input id="tax" data-field="tax" type="number" step="1" min="0" max="100"></div>
+<div class="field wide"><label for="memo">備考・連絡事項</label><textarea id="memo" data-field="memo" placeholder="必要な事項のみ入力"></textarea></div>
+</div>
+<div class="section-title">商品明細 <small>明細は自由に追加・削除できます</small></div>
+<div id="items" class="items"></div>
+<div class="actions"><button id="add" type="button">＋ 明細を追加</button><button id="sample" type="button">架空の入力例を表示</button></div>
+<div class="section-title">印刷・確認用操作</div>
+<div class="actions">
+<button class="primary" type="button" id="print">印刷／PDF保存</button>
+<button type="button" id="download">入力データ保存（JSON）</button>
+<button type="button" id="loadButton">JSON読み込み</button>
+<button type="button" id="clear">初期化</button>
+<input id="load" class="hidden" type="file" accept=".json,application/json">
+</div>
+<p class="help">PDF保存は印刷画面で「PDFに保存」を選択してください。JSONは利用者が自分の端末に保存する試作用データです。サイトには保存されません。共用PCでは個人情報を残さないようにしてください。</p>
+</section>
+<section class="panel sheet-panel" aria-label="帳票プレビュー">
+<div class="sheet-top"><h2>印刷プレビュー</h2><span id="formatLabel" class="muted">発注書／A4横</span></div>
+<div class="sheet-wrap" id="sheetWrap"><article id="paper" class="paper landscape" aria-label="A4帳票"></article></div>
+</section>
+</main>
+<script>
+(function(){
+"use strict";
+var reps=["太田","会野","藤井","長谷","恩田","社長"];
+var keys=["number","date","school","schoolContact","schoolTel","className","operator","contactTel","maker","orderClass","makerCode","reference","serviceDate","tax","memo"];
+var today=new Date(),localDate=today.getFullYear()+"-"+String(today.getMonth()+1).padStart(2,"0")+"-"+String(today.getDate()).padStart(2,"0");
+var s={type:"order",rep:"太田",number:"",date:localDate,school:"",schoolContact:"",schoolTel:"",className:"",operator:"",contactTel:"06-6997-6030",maker:"",orderClass:"学校直送",makerCode:"",reference:"",serviceDate:"",tax:"10",memo:"",items:[{sku:"",name:"",spec:"",qty:"",unit:"個",price:"",note:""}]};
+var titles={order:"発注書",delivery:"納品書",invoice:"請求書"};
+function byId(id){return document.getElementById(id);}
+function escapeText(v){return String(v==null?"":v).replace(/[&<>"']/g,function(ch){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch];});}
+function fmtDate(s){if(!s)return "（未入力）";var a=s.split("-");return a.length===3?a[0]+"年"+Number(a[1])+"月"+Number(a[2])+"日":escapeText(s);}
+function number(v){var n=Number(v);return Number.isFinite(n)?n:0;}
+function yen(v){return Math.round(v).toLocaleString("ja-JP");}
+function rowItem(i,item){
+ var fields=[["sku","品番"],["name","商品名"],["spec","規格・色など"],["qty","数量"],["unit","単位"],["price","単価（円）"],["note","備考"]];
+ return '<div class="item"><div class="item-top"><span>明細 '+(i+1)+'</span><button type="button" data-remove="'+i+'">削除</button></div><div class="field-grid">'+fields.map(function(f){
+  var isPrice=f[0]==="price",isQty=f[0]==="qty",value=escapeText(item[f[0]]);
+  return '<div class="field '+(f[0]==="name"||f[0]==="note"?"wide":"")+' '+(isPrice?"price-field":"")+'"><label for="r'+i+f[0]+'">'+f[1]+'</label><input id="r'+i+f[0]+'" data-row="'+i+'" data-col="'+f[0]+'" value="'+value+'" '+(isQty||isPrice?'inputmode="decimal"':'')+' autocomplete="off"></div>';
+ }).join("")+'</div></div>';
+}
+function renderRows(){
+ byId("items").innerHTML=s.items.map(rowItem).join("");
+ document.querySelectorAll(".price-field").forEach(function(el){el.classList.toggle("hidden",s.type==="order");});
+}
+function lineItems(){
+ return s.items.map(function(it,i){
+ var qty=number(it.qty),amount=qty*number(it.price);
+ var cells='<td class="mid" style="width:7%">'+(i+1)+'</td><td style="width:14%">'+escapeText(it.sku)+'</td><td style="width:30%">'+escapeText(it.name)+'</td><td style="width:15%">'+escapeText(it.spec)+'</td><td class="num" style="width:9%">'+(it.qty===""?"":escapeText(it.qty))+'</td><td class="mid" style="width:7%">'+escapeText(it.unit)+'</td>';
+ if(s.type!=="order") cells+='<td class="num">'+(it.price===""?"":yen(number(it.price)))+'</td><td class="num">'+(it.qty===""||it.price===""?"":yen(amount))+'</td>';
+ cells+='<td>'+escapeText(it.note)+'</td>';
+ return '<tr>'+cells+'</tr>';
+ }).join("");
+}
+function invoiceTotal(){return s.items.reduce(function(a,it){return a+number(it.qty)*number(it.price);},0);}
+function render(){
+ document.querySelectorAll(".order-only").forEach(function(el){el.classList.toggle("hidden",s.type!=="order");});
+ document.querySelectorAll(".other-only").forEach(function(el){el.classList.toggle("hidden",s.type==="order");});
+ document.querySelectorAll(".invoice-only").forEach(function(el){el.classList.toggle("hidden",s.type!=="invoice");});
+ var title=titles[s.type],isOrder=s.type==="order",isInvoice=s.type==="invoice";
+ var headDest=isOrder?s.maker:s.school;
+ var table1=isOrder?
+ [["発注区分",s.orderClass],["納品先",s.school],["学校担当",s.schoolContact],["学年・組",s.className],["学校TEL",s.schoolTel],["取引先コード",s.makerCode]]:
+ [["学校担当",s.schoolContact],["学年・組",s.className],["学校TEL",s.schoolTel],["参照注文番号",s.reference],["納品日・対象日",fmtDate(s.serviceDate)]];
+ var table2=[["担当営業",s.rep],["発注・作成者",s.operator],["問い合わせTEL",s.contactTel]];
+ var show=function(v){return escapeText(v||"—");};
+ var cells=function(a){return a.map(function(p){return '<tr><th>'+escapeText(p[0])+'</th><td>'+show(p[1])+'</td></tr>';}).join("");};
+ var columns=isOrder?'<colgroup><col width="6%"><col width="14%"><col width="31%"><col width="16%"><col width="9%"><col width="7%"><col width="17%"></colgroup>':
+ '<colgroup><col width="5%"><col width="11%"><col width="26%"><col width="12%"><col width="7%"><col width="6%"><col width="10%"><col width="11%"><col width="12%"></colgroup>';
+ var headers='<th>№</th><th>品番</th><th>商品名</th><th>規格・色</th><th>数量</th><th>単位</th>'+(isOrder?'':'<th>単価</th><th>金額</th>')+'<th>摘要・備考</th>';
+ var subtotal=invoiceTotal(),taxRate=Math.min(100,Math.max(0,number(s.tax))),tax=Math.floor(subtotal*taxRate/100);
+ var totals=isOrder?'<div class="order-summary">合計数量： '+yen(s.items.reduce(function(a,it){return a+number(it.qty);},0))+' 点</div>':
+ '<table class="totals"><tr><th>小計</th><td>¥ '+yen(subtotal)+'</td></tr>'+
+ (isInvoice?'<tr><th>消費税（'+escapeText(taxRate)+'%）</th><td>¥ '+yen(tax)+'</td></tr>':'')+
+ '<tr class="grand"><th>'+(isInvoice?'ご請求金額':'納品金額')+'</th><td>¥ '+yen(subtotal+(isInvoice?tax:0))+'</td></tr></table>';
+ var note=s.memo?'<div class="note-print"><b>備考</b>：'+escapeText(s.memo)+'</div>':'';
+ var intro=isOrder?'下記の内容にて発注いたします。':isInvoice?'下記の通り、ご請求申し上げます。':'下記の通り納品いたします。';
+ byId("paper").className="paper"+(isOrder?" landscape":"");
+ byId("paper").innerHTML='<div class="paper-inner">'+
+ '<div class="print-h"><img src="assets/logo.webp" alt="株式会社タナカ"><div class="print-org"><b>株式会社タナカ</b><div>大阪府守口市南寺方東通3-8-6</div><div>TEL 06-6997-6030 ／ FAX 06-6997-6035</div></div></div>'+
+ '<div class="print-title">'+title+'</div>'+
+ '<div class="print-head"><div><div class="dest">'+(headDest?escapeText(headDest):"（宛先未入力）")+'　御中</div><div class="sub">'+(isOrder?'メーカー・仕入先への発注用':'学校提出用')+' ／ ご確認をお願いいたします。</div></div>'+
+ '<table class="print-meta"><tr><th>'+title+'番号</th><td>'+show(s.number)+'</td></tr><tr><th>作成日</th><td>'+fmtDate(s.date)+'</td></tr></table></div>'+
+ '<div class="intro">'+intro+'</div>'+
+ '<div style="display:grid;grid-template-columns:1.2fr .8fr;gap:3mm"><table class="info-table">'+cells(table1)+'</table><table class="info-table">'+cells(table2)+'</table></div>'+
+ '<div class="table-title">明細</div><table class="doc-items">'+columns+'<thead><tr>'+headers+'</tr></thead><tbody>'+lineItems()+'</tbody></table>'+
+ totals+note+'<div class="footnote"><span>お問い合わせ：<b>株式会社タナカ</b> ／ '+show(s.contactTel)+'</span><span>担当営業：'+escapeText(s.rep)+'　作成者：'+show(s.operator)+'</span></div>'+
+ '<div class="watermark">試作帳票・正式な注文／納品／請求には使用しないでください</div></div>';
+ byId("formatLabel").textContent=title+"／A4"+(isOrder?"横":"縦");
+ byId("pageRule").textContent="@page{size:A4 "+(isOrder?"landscape":"portrait")+";margin:10mm}";
+ fitPaper();
+}
+function fitPaper(){
+ var paper=byId("paper"),wrap=byId("sheetWrap");
+ paper.style.zoom="1";
+ var mmToPx=96/25.4,base=(s.type==="order"?277:190)*mmToPx;
+ var scale=Math.min(1,Math.max(.25,(wrap.clientWidth-24)/base));
+ paper.style.zoom=String(scale);
+}
+function sync(){
+ byId("type").value=s.type;byId("rep").value=s.rep;
+ keys.forEach(function(k){byId(k).value=s[k]||"";});
+ renderRows();render();
+}
+byId("type").addEventListener("change",function(){s.type=this.value;renderRows();render();});
+byId("rep").addEventListener("change",function(){s.rep=this.value;render();});
+keys.forEach(function(k){byId(k).addEventListener("input",function(){s[k]=this.value;render();});});
+byId("items").addEventListener("input",function(e){var t=e.target,i=Number(t.dataset.row),k=t.dataset.col;if(k&&s.items[i]){s.items[i][k]=t.value;render();}});
+byId("items").addEventListener("click",function(e){var b=e.target.closest("[data-remove]");if(!b)return;var i=Number(b.dataset.remove);s.items.splice(i,1);if(!s.items.length)s.items.push({sku:"",name:"",spec:"",qty:"",unit:"個",price:"",note:""});renderRows();render();});
+byId("add").addEventListener("click",function(){if(s.items.length>=40){alert("試作では明細は40行までです。");return;}s.items.push({sku:"",name:"",spec:"",qty:"",unit:"個",price:"",note:""});renderRows();render();});
+byId("print").addEventListener("click",function(){window.print();});
+byId("clear").addEventListener("click",function(){if(!confirm("入力内容を初期化します。よろしいですか？"))return;s.type="order";s.rep="太田";keys.forEach(function(k){s[k]="";});s.date=localDate;s.contactTel="06-6997-6030";s.orderClass="学校直送";s.tax="10";s.items=[{sku:"",name:"",spec:"",qty:"",unit:"個",price:"",note:""}];sync();});
+byId("sample").addEventListener("click",function(){if(!confirm("今の入力内容を架空のサンプルに置き換えます。よろしいですか？"))return;s.school="○○市立△△中学校";s.maker="○○教材株式会社";s.schoolContact="教材担当";s.className="1年1組";s.schoolTel="";s.operator="太田";s.number="SAMPLE-001";s.items=[{sku:"A-001",name:"教材サンプルA",spec:"A4",qty:"40",unit:"組",price:"350",note:"美術"},{sku:"B-002",name:"教材サンプルB",spec:"青",qty:"10",unit:"個",price:"280",note:"予備"}];sync();});
+byId("download").addEventListener("click",function(){var blob=new Blob([JSON.stringify({prototypeVersion:1,data:s},null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="tanaka_form_"+s.type+"_"+(s.date||"draft")+".json";a.click();setTimeout(function(){URL.revokeObjectURL(url);},1000);});
+byId("loadButton").addEventListener("click",function(){byId("load").click();});
+byId("load").addEventListener("change",function(){var file=this.files[0];this.value="";if(!file)return;if(file.size>250000){alert("読み込み可能なファイルは250KBまでです。");return;}var reader=new FileReader();reader.onload=function(){try{var obj=JSON.parse(reader.result);if(obj.prototypeVersion!==1||!obj.data||!Array.isArray(obj.data.items)||obj.data.items.length>40)throw Error("形式が異なります。");var d=obj.data;var next=Object.assign({},s);keys.forEach(function(k){if(typeof d[k]==="string")next[k]=d[k].slice(0,1000);});next.type=titles[d.type]?d.type:"order";next.rep=reps.indexOf(d.rep)>=0?d.rep:"太田";next.items=d.items.map(function(it){var o={};["sku","name","spec","qty","unit","price","note"].forEach(function(k){o[k]=typeof it[k]==="string"?it[k].slice(0,1000):"";});return o;});if(!next.items.length)next.items=[{sku:"",name:"",spec:"",qty:"",unit:"個",price:"",note:""}];if(!confirm("現在の入力内容を読み込んだ内容に置き換えます。よろしいですか？"))return;s=next;sync();}catch(err){alert("読み込めませんでした。試作で保存したJSONファイルか確認してください。");}};reader.readAsText(file);});
+window.addEventListener("resize",fitPaper);sync();
+})();
+</script>
+</body>
+</html>
