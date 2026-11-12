@@ -160,7 +160,7 @@ function formSelect(k,label,options){
 }
 function orderRows(){
  var rows=[],total=Math.max(5,s.items.length);
- var cols=[["sku","品番"],["name","商品名"],["spec","規格・色"],["qty","数量"],["note","摘要・備考"],["deliveryDate","納期回答日"]];
+ var cols=[["sku","品番"],["name","商品名"],["spec","規格・色"],["qty","数量"],["note","摘要・備考"],["deliveryDate","納品日"]];
  for(var i=0;i<total;i++){
   var it=s.items[i]||{sku:"",name:"",spec:"",qty:"",note:"",deliveryDate:""};
   var tds=cols.map(function(c){
@@ -198,7 +198,7 @@ function orderMarkup(){
  '<div class="order-numbers"><span>発注番号：'+f("number","発注番号")+'</span><span>担当営業：'+sel("rep","担当営業",reps)+'</span><span>発注・作成者：'+f("operator","発注・作成者")+'</span></div>'+
  '<div class="order-addresses"><div class="order-address-block"><div class="order-address-heading">発注先（メーカー・仕入先）</div><table class="order-address-table"><tbody>'+maker+'</tbody></table></div><div class="order-address-block"><div class="order-address-heading">納品先（学校）</div><table class="order-address-table"><tbody>'+school+'</tbody></table></div></div>'+
  '<table class="doc-items order-items"><colgroup><col style="width:5%"><col style="width:12%"><col style="width:27%"><col style="width:11%"><col style="width:8%"><col style="width:25%"><col style="width:12%"></colgroup>'+
- '<thead><tr><th>№</th><th>品番</th><th>商品名</th><th>規格・色</th><th>数量</th><th>摘要・備考</th><th>納期回答日</th></tr></thead>'+
+ '<thead><tr><th>№</th><th>品番</th><th>商品名</th><th>規格・色</th><th>数量</th><th>摘要・備考</th><th>納品日</th></tr></thead>'+
  '<tbody>'+orderRows()+'</tbody></table>'+
  '<div class="order-after"><span id="orderSummary">'+orderSummary()+'</span><button type="button" data-add-order>＋ 商品を追加</button></div>'+
  '<div class="order-memo"><label>備考・連絡事項：</label><textarea aria-label="備考・連絡事項" data-field="memo">'+escapeText(s.memo)+'</textarea></div>'+
