@@ -76,6 +76,14 @@
  .order-form .order-addresses th{print-color-adjust:exact;-webkit-print-color-adjust:exact}
  .order-form .doc-items thead{display:table-header-group}
 }
+
+/* 見積書：発注書の共通スタイルを使用し、列・メーカー欄だけ調整 */
+.quote-form .quote-maker-heading span{font-size:12px;letter-spacing:0}
+.order-form.quote-form .quote-maker-heading input{font-size:14px;padding:1.2mm;min-width:0}
+.quote-form .quote-items td textarea[data-col="price"]{text-align:right}
+.quote-form .quote-amount{padding:1mm!important;text-align:right;font-size:12px;vertical-align:middle;overflow-wrap:anywhere}
+.quote-form .quote-totals{margin:3mm 0 0 auto;max-width:100%;table-layout:fixed}
+.quote-form .quote-totals td{overflow-wrap:anywhere}
 </style>
 <style id="pageRule">@page{size:A4 portrait;margin:10mm}</style>
 </head>
@@ -142,7 +150,7 @@ function escapeText(v){return String(v==null?"":v).replace(/[&<>"']/g,function(c
 function fmtDate(s){if(!s)return "（未入力）";var a=s.split("-");return a.length===3?a[0]+"年"+Number(a[1])+"月"+Number(a[2])+"日":escapeText(s);}
 function number(v){var n=Number(v);return Number.isFinite(n)?n:0;}
 function yen(v){return Math.round(v).toLocaleString("ja-JP");}
-function rowItem(i,item){
+function rowItem(item,i){
  var fields=[["sku","品番"],["name","商品名"],["spec","規格・色など"],["qty","数量"],["unit","単位"],["price","単価（円）"],["note","備考"]];
  return '<div class="item"><div class="item-top"><span>明細 '+(i+1)+'</span><button type="button" data-remove="'+i+'">削除</button></div><div class="field-grid">'+fields.map(function(f){
   var isPrice=f[0]==="price",isQty=f[0]==="qty",value=escapeText(item[f[0]]);
@@ -213,6 +221,87 @@ function orderMarkup(){
  '<div class="watermark">試作帳票・正式な注文／納品／請求には使用しないでください</div>'+
  '</div>';
 }
+
+/* 見積書：発注書と同じA4縦の帳票へ直接入力 */
+function quoteMoney(){
+ var subtotal=0,qtyTotal=0,invalid=false;
+ s.items.forEach(function(it){
+  var hasAny=["sku","name","spec","qty","price","note"].some(function(k){return String(it[k]||"").trim()!=="";});
+  if(!hasAny)return;
+  var qty=Number(it.qty),price=Number(it.price);
+  if(!String(it.qty||"").trim()||!String(it.price||"").trim()||!Number.isFinite(qty)||!Number.isFinite(price)||qty<=0||price<0){invalid=true;return;}
+  subtotal+=qty*price;qtyTotal+=qty;
+ });
+ var rate=Number(s.tax);
+ if(s.tax===""||!Number.isFinite(rate)||rate<0||rate>100)invalid=true;
+ var tax=invalid?0:Math.floor(subtotal*rate/100);
+ return {subtotal:subtotal,tax:tax,total:subtotal+tax,qty:qtyTotal,invalid:invalid};
+}
+function quoteAmount(it){
+ var hasAny=["sku","name","spec","qty","price","note"].some(function(k){return String(it[k]||"").trim()!=="";});
+ if(!hasAny)return "";
+ var qty=Number(it.qty),price=Number(it.price);
+ if(!String(it.qty||"").trim()||!String(it.price||"").trim()||!Number.isFinite(qty)||!Number.isFinite(price)||qty<=0||price<0)return "要確認";
+ return "¥ "+yen(qty*price);
+}
+function quoteRows(){
+ var rows=[],n=Math.max(5,s.items.length);
+ var cols=[["sku","品番"],["name","商品名"],["spec","規格・色"],["qty","数量"],["price","単価"],["note","摘要・備考"]];
+ for(var i=0;i<n;i++){
+  var it=s.items[i]||{sku:"",name:"",spec:"",qty:"",price:"",note:""};
+  var cells=cols.map(function(c){
+   return '<td><textarea rows="1" data-row="'+i+'" data-col="'+c[0]+'" aria-label="'+(i+1)+'行目 '+c[1]+'"'+(c[0]==="qty"||c[0]==="price"?' inputmode="decimal"':'')+' autocomplete="off">'+escapeText(it[c[0]]||"")+'</textarea></td>';
+  });
+  rows.push('<tr><td class="order-row-no">'+(i+1)+'<button type="button" data-remove-order="'+i+'" aria-label="'+(i+1)+'行目を削除" title="この行を削除">×</button></td>'+
+   cells.slice(0,5).join("")+'<td class="quote-amount" id="quoteAmount'+i+'">'+quoteAmount(it)+'</td>'+cells[5]+'</tr>');
+ }
+ return rows.join("");
+}
+function quoteTotalsMarkup(){
+ var m=quoteMoney(),money=function(n){return m.invalid?"要確認":"¥ "+yen(n);};
+ return '<table class="totals quote-totals" aria-label="お見積金額"><tbody>'+
+  '<tr><th>小計</th><td id="quoteSubtotal">'+money(m.subtotal)+'</td></tr>'+
+  '<tr><th id="quoteTaxLabel">消費税（'+escapeText(s.tax)+'%）</th><td id="quoteTax">'+money(m.tax)+'</td></tr>'+
+  '<tr class="grand"><th>お見積金額</th><td id="quoteGrand">'+money(m.total)+'</td></tr></tbody></table>';
+}
+function refreshQuoteMoney(){
+ if(s.type!=="quote")return;
+ var m=quoteMoney(),money=function(n){return m.invalid?"要確認":"¥ "+yen(n);};
+ function set(id,v){var el=byId(id);if(el)el.textContent=v;}
+ for(var i=0;i<Math.max(5,s.items.length);i++){
+  set("quoteAmount"+i,s.items[i]?quoteAmount(s.items[i]):"");
+ }
+ set("quoteSubtotal",money(m.subtotal));set("quoteTax",money(m.tax));set("quoteGrand",money(m.total));
+ set("quoteTaxLabel","消費税（"+s.tax+"%）");set("quoteQuantity",m.invalid?"要確認":yen(m.qty));
+}
+function quoteMarkup(){
+ var f=formField,sel=formSelect;
+ function fieldRow(label,inner){return '<tr><th>'+label+'</th><td>'+inner+'</td></tr>';}
+ var school=[
+  fieldRow('住所','<textarea id="quoteSchoolAddress" rows="2" data-field="schoolAddress" aria-label="お見積先住所" placeholder="〒000-0000　都道府県・市区町村・番地">'+escapeText(s.schoolAddress)+'</textarea>'),
+  fieldRow('ご担当者',f("schoolContact","お見積先ご担当者")),
+  fieldRow('電話番号',f("schoolTel","学校電話番号"))
+ ].join("");
+ var conditions=[
+  fieldRow('学年・組',f("className","学年・組")),
+  fieldRow('見積有効期限',f("quoteExpiry","見積有効期限","YYYY-MM-DD")),
+  fieldRow('消費税率（%）',f("tax","消費税率","10"))
+ ].join("");
+ var m=quoteMoney();
+ return '<div class="paper-inner">'+
+  '<div class="order-letterhead"><div class="order-heading"><strong>見 積 書</strong><div>見積日：'+f("date","見積日","YYYY-MM-DD")+'</div></div><div class="order-company"><strong>株式会社タナカ</strong><div>大阪府守口市南寺方東通3-8-6</div><div>TEL 06-6997-6030　FAX 06-6997-6035</div></div></div>'+
+  '<div class="order-numbers"><span>見積番号：'+f("quoteNumber","見積番号")+'</span><span>担当営業：'+sel("rep","担当営業",reps)+'</span><span>作成者：'+f("operator","作成者")+'</span></div>'+
+  '<div class="order-addresses"><div class="order-address-block"><div class="order-address-heading order-school-heading"><span>お見積先</span>'+f("school","見積先学校名","学校名")+'</div><table class="order-address-table"><tbody>'+school+'</tbody></table></div>'+
+  '<div class="order-address-block"><div class="order-address-heading order-maker-heading quote-maker-heading"><span>メーカー名（発売元）</span>'+f("maker","メーカー名（発売元）","メーカー名")+'</div><table class="order-address-table"><tbody>'+conditions+'</tbody></table></div></div>'+
+  '<table class="doc-items order-items quote-items"><colgroup><col style="width:5%"><col style="width:12%"><col style="width:24%"><col style="width:12%"><col style="width:8%"><col style="width:11%"><col style="width:12%"><col style="width:16%"></colgroup>'+
+  '<thead><tr><th>№</th><th>品番</th><th>商品名</th><th>規格・色</th><th>数量</th><th>単価</th><th>金額</th><th>摘要・備考</th></tr></thead>'+
+  '<tbody>'+quoteRows()+'</tbody></table>'+
+  '<div class="order-after"><span>数量合計：<span id="quoteQuantity">'+(m.invalid?"要確認":yen(m.qty))+'</span></span><button type="button" data-add-order>＋ 商品を追加</button></div>'+
+  quoteTotalsMarkup()+
+  '<div class="order-memo"><label>備考・連絡事項：</label><textarea aria-label="備考・連絡事項" data-field="memo">'+escapeText(s.memo)+'</textarea></div>'+
+  '<div class="order-contact">株式会社タナカ　TEL：06-6997-6030　FAX：06-6997-6035　／　担当：<span id="orderStaffLabel">'+escapeText(s.rep)+'</span></div>'+
+  '<div class="watermark">試作帳票・正式な見積には使用しないでください</div></div>';
+}
 function render(){
  document.querySelectorAll(".order-only").forEach(function(el){el.classList.toggle("hidden",s.type!=="order");});
  document.querySelectorAll(".other-only").forEach(function(el){el.classList.toggle("hidden",s.type==="order");});
@@ -221,11 +310,19 @@ function render(){
  document.querySelectorAll(".not-quote").forEach(function(el){el.classList.toggle("hidden",s.type==="quote");});
  document.querySelectorAll(".delivery-invoice-only").forEach(function(el){el.classList.toggle("hidden",s.type!=="delivery"&&s.type!=="invoice");});
  var title=titles[s.type],isOrder=s.type==="order",isInvoice=s.type==="invoice",isQuote=s.type==="quote";
- byId("mainLayout").classList.toggle("order-mode",isOrder);
+ byId("mainLayout").classList.toggle("order-mode",isOrder||isQuote);
  if(isOrder){
   byId("paper").className="paper order-form";
   byId("paper").innerHTML=orderMarkup();
   byId("formatLabel").textContent="発注書／A4縦";
+  byId("pageRule").textContent="@page{size:A4 portrait;margin:10mm}";
+  fitPaper();
+  return;
+ }
+ if(isQuote){
+  byId("paper").className="paper order-form quote-form";
+  byId("paper").innerHTML=quoteMarkup();
+  byId("formatLabel").textContent="見積書／A4縦";
   byId("pageRule").textContent="@page{size:A4 portrait;margin:10mm}";
   fitPaper();
   return;
@@ -264,7 +361,7 @@ function render(){
  fitPaper();
 }
 function fitOrderTextareas(){
- if(s.type!=="order")return;
+ if(s.type!=="order"&&s.type!=="quote")return;
  byId("paper").querySelectorAll('textarea[data-col]:not([data-col="deliveryDate"]),textarea[data-field="schoolAddress"]').forEach(function(el){
   el.style.height="auto";
   el.style.height=el.scrollHeight+"px";
@@ -293,6 +390,7 @@ byId("paper").addEventListener("input",function(e){
   else{
    s[k]=t.value;var linked=byId(k);if(linked)linked.value=t.value;
    if(k==="schoolAddress"){t.style.height="auto";t.style.height=t.scrollHeight+"px";}
+   if(k==="tax"&&s.type==="quote")refreshQuoteMoney();
   }
  }else if(col!==undefined&&ri!==undefined){
   var i=Number(ri);
@@ -300,6 +398,7 @@ byId("paper").addEventListener("input",function(e){
   s.items[i][col]=t.value;
   if(t.tagName==="TEXTAREA"&&col!=="deliveryDate"){t.style.height="auto";t.style.height=t.scrollHeight+"px";}
   if(col==="qty"){var summary=byId("orderSummary");if(summary)summary.textContent=orderSummary();}
+  if(s.type==="quote"&&(col==="qty"||col==="price"))refreshQuoteMoney();
  }
 });
 byId("paper").addEventListener("click",function(e){
