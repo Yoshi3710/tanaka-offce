@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#11548a">
+<title>社員用受発注管理｜株式会社タナカ（試作）</title>
+<style>
+:root{font-family:"Yu Gothic","Meiryo",system-ui,sans-serif;color:#182d40;background:#f3f6fa}
+*{box-sizing:border-box}body{margin:0}button,input,select,textarea{font:inherit}button{cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible{outline:2px solid #2875b4;outline-offset:2px}
+.mast{background:#fff;border-bottom:1px solid #cbd8e3}.mast-inner{max-width:1200px;margin:auto;padding:13px 18px;display:flex;align-items:center;gap:18px}
+.mast img{width:144px;height:auto}.mast h1{font-size:21px;margin:0}.mast p{font-size:12px;color:#5c6e80;margin:3px 0 0}
+.tag{margin-left:auto;background:#eaf1f8;color:#154c79;border:1px solid #b4cce0;border-radius:5px;padding:5px 9px;font-weight:700;font-size:12px}
+.shell{max-width:1200px;margin:auto;padding:15px 18px 30px}
+.notice{border:1px solid #e4cd92;background:#fff9e8;padding:11px 14px;border-radius:5px;font-size:13px;line-height:1.65}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.tabs button,.tabs a{border:1px solid #a9bdcd;background:#fff;border-radius:5px;text-decoration:none;color:#1c4360;padding:9px 14px;font-weight:700;font-size:14px}
+.tabs button[aria-selected=true]{background:#124f80;color:white;border-color:#124f80}
+.view[hidden],.hidden{display:none!important}
+h2{font-size:19px;margin:0 0 10px}h3{font-size:16px;margin:0 0 9px}p{line-height:1.55}.hint{font-size:12px;color:#5a7080;margin:7px 0}
+.panel{background:#fff;border:1px solid #cbd6df;border-radius:7px;padding:17px;margin-bottom:13px}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:0 0 13px}
+.stat{background:#fff;border:1px solid #cbd6df;border-radius:6px;padding:14px}.stat b{display:block;font-size:25px;margin-top:4px}.stat span{font-size:12px;color:#526b7d}
+.filters{display:flex;align-items:end;gap:12px;flex-wrap:wrap;margin-bottom:12px}.filters label{min-width:140px;flex:1}
+label{display:block;font-size:13px;font-weight:700}input,select,textarea{border:1px solid #a9bdca;border-radius:4px;background:#fff;color:#172d42;padding:8px 9px;width:100%;min-width:0;margin-top:5px}
+textarea{min-height:70px;resize:vertical;line-height:1.55;overflow-wrap:anywhere}
+.primary{border:1px solid #124f80;border-radius:4px;background:#124f80;color:#fff;padding:9px 16px;font-weight:700}.secondary{border:1px solid #9eb4c8;background:#fff;border-radius:4px;color:#124f80;padding:9px 13px;font-weight:700}
+.actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:14px}
+table{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}th,td{border-bottom:1px solid #dbe3ea;padding:10px 7px;text-align:left;vertical-align:middle;overflow-wrap:anywhere}th{background:#edf3f7;color:#234c6e;font-size:12px}
+td button{border:1px solid #abc2d4;border-radius:4px;background:#fff;padding:5px 8px;color:#174e77;white-space:nowrap}
+.text-muted{color:#657787;font-size:12px}.pill{display:inline-block;background:#eaf2f9;border-radius:4px;padding:3px 8px;font-size:12px;white-space:nowrap}
+.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.fields .full{grid-column:1/-1}
+.detail{border:1px solid #a6c4db;background:#f5faff;border-radius:5px;padding:14px;margin-top:14px}
+.detail dl{display:grid;grid-template-columns:130px 1fr;gap:7px 13px;font-size:13px;margin:10px 0}.detail dt{font-weight:700}.detail dd{margin:0;overflow-wrap:anywhere}
+.master-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.master-list{max-height:360px;overflow:auto}.master-list button{white-space:normal;text-align:left}
+.footer{margin-top:22px;font-size:12px;color:#526a7c;text-align:right}
+@media(max-width:700px){.mast-inner{flex-wrap:wrap;gap:8px}.mast h1{font-size:18px}.tag{margin-left:0}.stats{grid-template-columns:repeat(2,1fr)}.fields,.master-grid{grid-template-columns:1fr}.shell{padding:10px}.panel{padding:12px}.filters label{min-width:100%}
+table thead{display:none}table,tbody,tr,td{display:block;width:100%}table tr{border:1px solid #d4e0ea;border-radius:4px;margin-bottom:8px;padding:7px}table td{display:flex;gap:8px;align-items:flex-start;border:0;padding:5px 3px}table td:before{content:attr(data-label);flex:0 0 90px;color:#506a7e;font-weight:700}td button{white-space:normal}.detail dl{grid-template-columns:90px 1fr}}
+@media print{.mast,.notice,.tabs,.filters,.actions,.footer,.master-grid,#entryView,#masterView{display:none!important}.shell{max-width:none;padding:0}.panel{box-shadow:none;border:0}.stat{border:1px solid #bbb}}
+</style>
+</head>
+<body>
+<header class="mast"><div class="mast-inner">
+<img src="assets/logo.webp" alt="株式会社タナカ">
+<div><h1>社員用 受発注管理</h1><p>担当営業別の案件管理・手動受付・取引先マスター</p></div>
+<span class="tag">構成確認用・試作</span>
+</div></header>
+<main class="shell">
+<div class="notice"><strong>公開試作です。</strong> 実在する学校・取引先・先生の個人情報、正式な注文内容は入力しないでください。入力・変更は<strong>この画面を開いている間だけ</strong>保持され、再読み込みで消えます。ログイン・サーバー保存・実際の発注・送信はありません。</div>
+<nav class="tabs" aria-label="社員用メニュー">
+<button type="button" data-view="listView" aria-selected="true">案件一覧</button>
+<button type="button" data-view="entryView" aria-selected="false">手動受付（試作）</button>
+<button type="button" data-view="masterView" aria-selected="false">学校・発注先マスター</button>
+<a href="index.html">帳票作成（仮承認版）</a>
+<a href="https://yoshi3710.github.io/tanaka-school-shop/" target="_blank" rel="noopener noreferrer">学校向けサイト</a>
+</nav>
+<section id="listView" class="view">
+<h2>案件一覧・進行状況</h2><p class="hint">FAX・電話・訪問・ウェブを一括管理するための画面構成です。表示データはすべて架空の例です。「すべて」は本部からの一覧確認イメージです（権限制御ではありません）。</p>
+<div class="stats" aria-label="案件数"><div class="stat"><span>表示中の案件</span><b id="totalCount">0</b></div><div class="stat"><span>受付・確認中</span><b id="pendingCount">0</b></div><div class="stat"><span>見積対応</span><b id="quoteCount">0</b></div><div class="stat"><span>発注以降</span><b id="orderCount">0</b></div></div>
+<section class="panel">
+<div class="filters"><label>担当営業<select id="repFilter"><option value="all">すべて（本部表示）</option></select></label><label>進行状況<select id="statusFilter"><option value="all">すべて</option></select></label><label>学校名・案件番号で検索<input id="searchInput" autocomplete="off" placeholder="架空の学校名・DEMO番号"></label></div>
+<table aria-label="架空の案件一覧"><thead><tr><th style="width:13%">仮番号・受付日</th><th style="width:25%">学校名</th><th style="width:12%">受付方法</th><th style="width:12%">担当営業</th><th style="width:15%">依頼区分</th><th style="width:14%">進行状況</th><th style="width:9%">確認</th></tr></thead><tbody id="caseRows"></tbody></table>
+<p id="noCases" class="hint hidden">該当する案件はありません。</p><div id="caseDetail" class="detail" hidden></div>
+</section>
+</section>
+<section id="entryView" class="view" hidden>
+<h2>FAX・電話・訪問等の手動受付</h2>
+<div class="panel">
+<p class="hint">架空の案件を一時的に追加し、案件一覧に反映する操作を試せます。正式受付・帳票連動・サーバー保存はまだありません。</p>
+<form id="entryForm"><div class="fields">
+<label>学校名（架空の例のみ）<input id="caseSchool" list="schoolDatalist" required maxlength="80" placeholder="例：架空・みどり中学校"><datalist id="schoolDatalist"></datalist></label>
+<label>担当営業<select id="caseRep" required></select></label>
+<label>受付方法<select id="caseMethod"><option>FAX</option><option>電話</option><option>訪問</option><option>ウェブ</option><option>その他</option></select></label>
+<label>依頼区分<select id="caseKind"><option>見積依頼</option><option>注文</option></select></label>
+<label>数量（参考）<input id="caseQuantity" type="number" min="1" max="99999" value="1" required></label>
+<label>マスターの照合結果<input id="caseMasterNote" readonly placeholder="登録済みなら表示"></label>
+<label class="full">教材・依頼内容（架空の内容のみ）<textarea id="caseNote" maxlength="400" required placeholder="例：美術教材、1年生用 40点"></textarea></label>
+</div><div class="actions"><button class="primary" type="submit">試作案件を一覧に追加</button><button class="secondary" type="reset">入力をクリア</button></div></form>
+</div>
+</section>
+<section id="masterView" class="view" hidden>
+<h2>学校・発注先マスター</h2>
+<p class="hint">一度登録した学校・メーカーの情報から、将来の見積・注文・納品・請求への自動入力を行うための基礎画面です。現在は架空データの登録・修正だけを試せます。</p>
+<div class="master-grid"><section class="panel">
+<h3>マスターの登録・修正（試作）</h3>
+<form id="masterForm"><div class="fields">
+<label>登録する区分<select id="masterType"><option value="school">学校</option><option value="supplier">発注先</option></select></label>
+<label>名称（架空の例のみ）<input id="masterName" maxlength="80" required placeholder="架空の名称"></label>
+<label class="school-only">郵便番号<input id="masterZip" maxlength="12" placeholder="000-0000"></label>
+<label class="school-only">住所<input id="masterAddress" maxlength="180" placeholder="架空の住所"></label>
+<label>電話番号<input id="masterPhone" maxlength="32" placeholder="000-0000-0000"></label>
+<label class="supplier-only hidden">FAX<input id="masterFax" maxlength="32"></label>
+<label class="supplier-only hidden">取引先コード<input id="masterCode" maxlength="35"></label>
+<label class="school-only">担当営業<select id="masterRep"></select></label>
+</div><div class="actions"><button class="primary" type="submit" id="masterSubmit">この画面に仮登録</button><button class="secondary" type="button" id="masterClear">新規入力に戻す</button></div>
+<p class="hint" id="masterEditLabel" role="status">このマスターはサーバーには保存されません。</p></form>
+</section><section class="panel">
+<h3>登録された架空マスター</h3><label>表示区分<select id="masterFilter"><option value="school">学校</option><option value="supplier">発注先</option></select></label>
+<div class="master-list"><table aria-label="登録済み架空マスター"><thead><tr><th style="width:38%">名称</th><th>住所・連絡先</th><th style="width:19%">編集</th></tr></thead><tbody id="masterRows"></tbody></table></div>
+<p class="hint">実運用では本部の共有データベースで管理し、権限・変更履歴・重複チェックを設けます。</p>
+</section></div>
+</section>
+<div class="footer">株式会社タナカ｜社員用受発注管理（構成確認の試作）｜実データの登録・送信なし</div>
+</main>
+<script>
+(function(){
+"use strict";
+var reps=["大田","会野","藤井","長谷","恩田","社長"];
+var statuses=["受付","確認中","見積対応","発注準備","メーカー発注済","出荷情報待ち","納品処理","請求処理","完了"];
+var cases=[
+ {id:"DEMO-001",date:"2026-11-12",school:"架空・みどり中学校",rep:"大田",method:"FAX",kind:"見積依頼",qty:40,note:"美術教材　1年1組分",status:"確認中"},
+ {id:"DEMO-002",date:"2026-11-12",school:"架空・さくら小学校",rep:"恩田",method:"電話",kind:"注文",qty:30,note:"図工教材　30点",status:"発注準備"},
+ {id:"DEMO-003",date:"2026-11-13",school:"架空・青空中学校",rep:"藤井",method:"訪問",kind:"注文",qty:50,note:"教材セット　50組",status:"出荷情報待ち"}
+];
+var schoolMasters=[
+ {name:"架空・みどり中学校",zip:"000-0000",address:"架空県サンプル市1-2-3",phone:"000-0000-0001",rep:"大田"},
+ {name:"架空・さくら小学校",zip:"000-0000",address:"架空県サンプル市4-5-6",phone:"000-0000-0002",rep:"恩田"}
+];
+var supplierMasters=[
+ {name:"架空・教材メーカーA",phone:"000-0000-0101",fax:"000-0000-0102",code:"DEMO-A"}
+];
+var masterIndex=-1;
+function $(id){return document.getElementById(id);}
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(x){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[x];});}
+function option(value,text){return '<option value="'+esc(value)+'">'+esc(text||value)+'</option>';}
+function view(id){
+ document.querySelectorAll(".view").forEach(function(el){el.hidden=el.id!==id;});
+ document.querySelectorAll(".tabs button").forEach(function(el){el.setAttribute("aria-selected",el.dataset.view===id?"true":"false");});
+ $("caseDetail").hidden=true;
+}
+document.querySelectorAll(".tabs button").forEach(function(btn){btn.addEventListener("click",function(){view(btn.dataset.view);if(btn.dataset.view==="masterView")renderMasters();});});
+["repFilter","caseRep","masterRep"].forEach(function(id){
+ $(id).innerHTML+=(id==="repFilter"?"":'')+reps.map(function(r){return option(r,r);}).join("");
+});
+$("statusFilter").innerHTML+=statuses.map(function(st){return option(st,st);}).join("");
+function filtered(){
+ var rep=$("repFilter").value,status=$("statusFilter").value,q=$("searchInput").value.trim().toLowerCase();
+ return cases.filter(function(c){
+  return (rep==="all"||c.rep===rep)&&(status==="all"||c.status===status)&&(!q||(c.school+" "+c.id).toLowerCase().includes(q));
+ });
+}
+function showDetail(id){
+ var c=cases.find(function(row){return row.id===id;});if(!c)return;
+ var div=$("caseDetail");div.hidden=false;
+ div.innerHTML='<h3>案件の内容（試作）　'+esc(c.id)+'</h3>'+
+ '<dl><dt>学校名</dt><dd>'+esc(c.school)+'</dd><dt>担当営業</dt><dd>'+esc(c.rep)+'</dd>'+
+ '<dt>受付方法・区分</dt><dd>'+esc(c.method)+' ／ '+esc(c.kind)+'</dd><dt>数量</dt><dd>'+esc(c.qty)+' 点</dd><dt>依頼内容</dt><dd>'+esc(c.note)+'</dd></dl>'+
+ '<div class="fields"><label>進行状況（画面内だけ）<select id="detailStatus">'+statuses.map(function(st){return '<option'+(c.status===st?' selected':'')+'>'+esc(st)+'</option>';}).join("")+'</select></label></div>'+
+ '<div class="actions"><button type="button" class="primary" id="applyStatus">状態を変更</button><button type="button" class="secondary" id="closeDetail">閉じる</button><a href="index.html">帳票作成（データ連動は未実装）</a></div>';
+ $("applyStatus").addEventListener("click",function(){c.status=$("detailStatus").value;renderCases();showDetail(c.id);});
+ $("closeDetail").addEventListener("click",function(){div.hidden=true;});
+}
+function renderCases(){
+ var data=filtered();$("totalCount").textContent=data.length;
+ $("pendingCount").textContent=data.filter(function(c){return ["受付","確認中"].includes(c.status)}).length;
+ $("quoteCount").textContent=data.filter(function(c){return c.status==="見積対応"}).length;
+ $("orderCount").textContent=data.filter(function(c){return !["受付","確認中","見積対応"].includes(c.status)}).length;
+ $("caseRows").innerHTML=data.map(function(c){
+ return '<tr><td data-label="仮番号・日付"><strong>'+esc(c.id)+'</strong><div class="text-muted">'+esc(c.date)+'</div></td>'+
+ '<td data-label="学校名">'+esc(c.school)+'</td><td data-label="受付方法">'+esc(c.method)+'</td><td data-label="担当営業">'+esc(c.rep)+'</td>'+
+ '<td data-label="依頼区分">'+esc(c.kind)+'</td><td data-label="進行状況"><span class="pill">'+esc(c.status)+'</span></td>'+
+ '<td data-label="確認"><button type="button" data-case="'+esc(c.id)+'">内容を見る</button></td></tr>';
+ }).join("");
+ $("noCases").classList.toggle("hidden",!!data.length);
+}
+$("caseRows").addEventListener("click",function(ev){var b=ev.target.closest("[data-case]");if(b)showDetail(b.dataset.case);});
+["repFilter","statusFilter","searchInput"].forEach(function(id){$(id).addEventListener("input",function(){renderCases();$("caseDetail").hidden=true;});});
+function updateCaseMaster(){
+ var val=$("caseSchool").value.trim(),hits=schoolMasters.filter(function(m){return m.name===val;});
+ $("caseMasterNote").value=hits.length===1?"登録済み（住所・TELあり）":"未登録または候補なし";
+}
+function updateSchoolOptions(){
+ $("schoolDatalist").innerHTML=schoolMasters.map(function(m){return '<option value="'+esc(m.name)+'"></option>';}).join("");
+}
+$("caseSchool").addEventListener("input",updateCaseMaster);
+$("entryForm").addEventListener("submit",function(ev){
+ ev.preventDefault();
+ var school=$("caseSchool").value.trim(),note=$("caseNote").value.trim(),q=Number($("caseQuantity").value);
+ if(!school||!note||!Number.isInteger(q)||q<1||q>99999){alert("入力内容をご確認ください。");return;}
+ if(!confirm("架空データの試作登録です。再読み込みで消去されます。追加しますか？"))return;
+ var id="DEMO-"+String(cases.length+1).padStart(3,"0");
+ cases.unshift({id:id,date:new Date().toLocaleDateString("sv-SE"),school:school,rep:$("caseRep").value,method:$("caseMethod").value,kind:$("caseKind").value,qty:q,note:note,status:"受付"});
+ this.reset();$("caseMasterNote").value="";$("repFilter").value="all";$("statusFilter").value="all";$("searchInput").value="";renderCases();view("listView");
+});
+$("entryForm").addEventListener("reset",function(){$("caseMasterNote").value="";});
+function masterData(){return $("masterType").value==="school"?schoolMasters:supplierMasters;}
+function toggleMasterFields(){
+ var school=$("masterType").value==="school";
+ document.querySelectorAll(".school-only").forEach(function(e){e.classList.toggle("hidden",!school);});
+ document.querySelectorAll(".supplier-only").forEach(function(e){e.classList.toggle("hidden",school);});
+ $("masterFilter").value=$("masterType").value;renderMasters();
+}
+function resetMaster(){
+ $("masterForm").reset();masterIndex=-1;$("masterSubmit").textContent="この画面に仮登録";$("masterEditLabel").textContent="このマスターはサーバーには保存されません。";toggleMasterFields();
+}
+function renderMasters(){
+ var type=$("masterFilter").value,arr=type==="school"?schoolMasters:supplierMasters;
+ $("masterRows").innerHTML=arr.map(function(m,i){
+ var detail=type==="school"?(m.zip+" "+m.address+"／"+m.phone):(m.phone+"／FAX "+m.fax+"／"+m.code);
+ return '<tr><td data-label="名称">'+esc(m.name)+'</td><td data-label="住所・連絡先">'+esc(detail)+'</td><td data-label="編集"><button type="button" data-master="'+i+'">内容を編集</button></td></tr>';
+ }).join("");
+ if(!arr.length)$("masterRows").innerHTML='<tr><td colspan="3">登録はありません。</td></tr>';
+}
+$("masterRows").addEventListener("click",function(ev){
+ var b=ev.target.closest("[data-master]");if(!b)return;
+ $("masterType").value=$("masterFilter").value;toggleMasterFields();
+ masterIndex=Number(b.dataset.master);var m=masterData()[masterIndex];if(!m)return;
+ $("masterName").value=m.name;$("masterPhone").value=m.phone;
+ ["zip","address","rep","fax","code"].forEach(function(k){var el=$("master"+k[0].toUpperCase()+k.slice(1));if(el)el.value=m[k]||"";});
+ $("masterSubmit").textContent="この画面で修正";$("masterEditLabel").textContent="編集中（保存はこの画面内だけです）";
+});
+$("masterType").addEventListener("change",function(){masterIndex=-1;toggleMasterFields();});
+$("masterFilter").addEventListener("change",renderMasters);
+$("masterClear").addEventListener("click",resetMaster);
+$("masterForm").addEventListener("submit",function(ev){
+ ev.preventDefault();var type=$("masterType").value,arr=masterData(),name=$("masterName").value.trim();
+ if(!name)return;
+ if(arr.some(function(m,i){return m.name===name&&i!==masterIndex;})){alert("同じ区分に同じ名前が登録されています。");return;}
+ if(!confirm("架空データのみの仮登録です。続けますか？"))return;
+ var m={name:name,phone:$("masterPhone").value.trim()};
+ if(type==="school"){m.zip=$("masterZip").value.trim();m.address=$("masterAddress").value.trim();m.rep=$("masterRep").value;}
+ else{m.fax=$("masterFax").value.trim();m.code=$("masterCode").value.trim();}
+ if(masterIndex<0)arr.push(m);else arr[masterIndex]=m;
+ updateSchoolOptions();resetMaster();$("masterFilter").value=type;renderMasters();
+});
+renderCases();renderMasters();updateSchoolOptions();
+})();
+</script>
+</body>
+</html>
