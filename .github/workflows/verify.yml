@@ -1,0 +1,31 @@
+name: Tanaka prototype regression checks
+
+on:
+  push:
+    paths:
+      - index.html
+      - staff.html
+      - tests/verify.cjs
+      - docs/CURRENT_SPEC.md
+      - .github/workflows/verify.yml
+  pull_request:
+    paths:
+      - index.html
+      - staff.html
+      - tests/verify.cjs
+      - docs/CURRENT_SPEC.md
+      - .github/workflows/verify.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Run dependency-free regression checks
+        run: node tests/verify.cjs
