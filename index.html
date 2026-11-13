@@ -52,7 +52,12 @@
 .order-form .doc-items th{padding:1.2mm .8mm}
 .order-form .doc-items td{padding:0!important;min-height:10mm;height:auto;vertical-align:middle}
 .order-form .doc-items td input{min-height:9mm;font-size:12px;padding:1mm}
-.order-form .doc-items td textarea{display:block;width:100%;min-height:9mm;height:9mm;overflow:hidden;resize:none;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.4;padding:1mm;font-size:12px}
+.order-form .doc-items td textarea{display:block;width:100%;min-height:9mm;height:9mm;overflow:hidden;resize:none;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.4;padding:calc(4.5mm - .7em) 1mm;font-size:12px}
+.order-form .doc-items td textarea[data-col="sku"],
+.order-form .doc-items td textarea[data-col="note"]{text-align:center}
+.order-form .doc-items td textarea[data-col="name"],
+.order-form .doc-items td textarea[data-col="spec"]{text-align:left}
+.order-form .doc-items td textarea[data-col="qty"]{text-align:right}
 .order-form .doc-items td textarea[data-col="deliveryDate"]{height:9mm;min-height:9mm;max-height:9mm;border:0;border-radius:0;font-size:12px;text-align:center;white-space:nowrap}
 .order-form .doc-items .order-row-no{font-size:12px;line-height:1.4;text-align:center;white-space:nowrap}
 .order-row-no button{font-size:11px;font-weight:400;padding:0 3px;color:#a13d3d;border:0;background:transparent;vertical-align:middle}
