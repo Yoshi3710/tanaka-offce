@@ -1,3 +1,13 @@
+> **現行仕様の確認先（2026-11-13更新）**  
+> このREADME本文は初期試作時の履歴です。以下の古い記述（例：発注書A4横／担当営業「太田」／帳票3種類／Pages無効）は、現在の仕様ではありません。  
+> **最新の決定事項：** [docs/CURRENT_SPEC.md](docs/CURRENT_SPEC.md)  
+> **本番Xserver移行・改善計画：** [docs/XSERVER_ROADMAP.md](docs/XSERVER_ROADMAP.md)  
+> **検証項目・未確認事項：** [docs/QA_CHECKLIST.md](docs/QA_CHECKLIST.md)  
+> **自動検証：** GitHub Actions「Tanaka prototype regression checks」（tests/verify.cjs）。  
+> 公開GitHub Pagesは試作用です。実際の学校・取引先情報や正式注文を入力しないでください。
+
+---
+ 
 # 株式会社タナカ 帳票作成プロトタイプ（確認用）
 
 社員専用受発注管理システムの構築に先立ち、**発注書／納品書／請求書のレイアウトだけを先行確認**するための静的試作です。
