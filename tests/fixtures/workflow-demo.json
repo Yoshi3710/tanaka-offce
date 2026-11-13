@@ -1,0 +1,202 @@
+{
+  "demo_only": true,
+  "description": "架空の学校・社員・商品による受注→分納→納品→請求の設計検証用。実在する個人情報なし。",
+  "users": [
+    {
+      "id": "u-ota",
+      "name": "大田",
+      "role": "sales"
+    },
+    {
+      "id": "u-onda",
+      "name": "恩田",
+      "role": "sales"
+    },
+    {
+      "id": "u-hq",
+      "name": "本部（架空）",
+      "role": "hq"
+    }
+  ],
+  "schools": [
+    {
+      "id": "s-a",
+      "name": "架空・青葉中学校"
+    },
+    {
+      "id": "s-b",
+      "name": "架空・白樺小学校"
+    }
+  ],
+  "school_assignments": [
+    {
+      "school_id": "s-a",
+      "user_id": "u-ota",
+      "active": true
+    },
+    {
+      "school_id": "s-b",
+      "user_id": "u-onda",
+      "active": true
+    }
+  ],
+  "cases": [
+    {
+      "id": "c-a",
+      "school_id": "s-a",
+      "rep_id": "u-ota",
+      "status": "出荷処理中"
+    },
+    {
+      "id": "c-b",
+      "school_id": "s-b",
+      "rep_id": "u-onda",
+      "status": "見積中"
+    }
+  ],
+  "case_tasks": [
+    {
+      "id": "t-1",
+      "case_id": "c-a",
+      "assignee_id": "u-ota",
+      "type": "メーカー納期確認",
+      "status": "未完了"
+    },
+    {
+      "id": "t-2",
+      "case_id": "c-b",
+      "assignee_id": "u-onda",
+      "type": "見積書作成",
+      "status": "未完了"
+    }
+  ],
+  "quote": {
+    "id": "q-a",
+    "case_id": "c-a",
+    "number": "Q-DEMO-001",
+    "revision": 1
+  },
+  "order": {
+    "id": "o-a",
+    "case_id": "c-a",
+    "number": "O-DEMO-001",
+    "quote_id": "q-a"
+  },
+  "order_lines": [
+    {
+      "id": "ol-a",
+      "order_id": "o-a",
+      "sku": "FAKE-001",
+      "quantity": 40,
+      "sale_unit_yen": 350
+    }
+  ],
+  "class_allocations": [
+    {
+      "line_id": "ol-a",
+      "grade": 1,
+      "class_name": "1組",
+      "quantity": 15
+    },
+    {
+      "line_id": "ol-a",
+      "grade": 1,
+      "class_name": "2組",
+      "quantity": 25
+    }
+  ],
+  "purchase_order": {
+    "id": "p-a",
+    "order_id": "o-a",
+    "supplier_id": "supplier-fake",
+    "number": "PO-DEMO-001"
+  },
+  "purchase_order_lines": [
+    {
+      "id": "pl-a",
+      "purchase_order_id": "p-a",
+      "order_line_id": "ol-a",
+      "quantity": 40,
+      "purchase_unit_yen": 200
+    }
+  ],
+  "shipment_lines": [
+    {
+      "id": "sh-a1",
+      "purchase_line_id": "pl-a",
+      "quantity": 15,
+      "shipment_id": "shipment-1"
+    },
+    {
+      "id": "sh-a2",
+      "purchase_line_id": "pl-a",
+      "quantity": 25,
+      "shipment_id": "shipment-2"
+    }
+  ],
+  "delivery_notes": [
+    {
+      "id": "d-a1",
+      "number": "D-DEMO-001",
+      "order_id": "o-a"
+    },
+    {
+      "id": "d-a2",
+      "number": "D-DEMO-002",
+      "order_id": "o-a"
+    }
+  ],
+  "delivery_lines": [
+    {
+      "id": "dl-a1",
+      "delivery_id": "d-a1",
+      "order_line_id": "ol-a",
+      "quantity": 15
+    },
+    {
+      "id": "dl-a2",
+      "delivery_id": "d-a2",
+      "order_line_id": "ol-a",
+      "quantity": 25
+    }
+  ],
+  "delivery_sources": [
+    {
+      "delivery_line_id": "dl-a1",
+      "shipment_line_id": "sh-a1",
+      "quantity": 15
+    },
+    {
+      "delivery_line_id": "dl-a2",
+      "shipment_line_id": "sh-a2",
+      "quantity": 25
+    }
+  ],
+  "invoice": {
+    "id": "i-a",
+    "number": "I-DEMO-001",
+    "order_id": "o-a",
+    "tax_rate_percent": 10
+  },
+  "invoice_lines": [
+    {
+      "id": "il-a",
+      "invoice_id": "i-a",
+      "order_line_id": "ol-a",
+      "quantity": 40,
+      "sale_unit_yen": 350
+    }
+  ],
+  "invoice_sources": [
+    {
+      "invoice_line_id": "il-a",
+      "delivery_line_id": "dl-a1",
+      "quantity": 15
+    },
+    {
+      "invoice_line_id": "il-a",
+      "delivery_line_id": "dl-a2",
+      "quantity": 25
+    }
+  ]
+}
