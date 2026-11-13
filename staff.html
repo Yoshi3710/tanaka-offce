@@ -30,6 +30,18 @@ table{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}th,t
 td button{border:1px solid #abc2d4;border-radius:4px;background:#fff;padding:5px 8px;color:#174e77;white-space:nowrap}
 .text-muted{color:#657787;font-size:12px}.pill{display:inline-block;background:#eaf2f9;border-radius:4px;padding:3px 8px;font-size:12px;white-space:nowrap}
 .fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.fields .full{grid-column:1/-1}
+.items-entry{border:1px solid #cbd6df;border-radius:5px;margin:14px 0 0;padding:12px;min-width:0}
+.items-entry legend{font-weight:700;padding:0 5px}
+.item-editor input{font-size:13px;padding:7px}
+.item-editor td{padding:7px 4px}
+.item-editor td input{margin:0}
+.item-editor td:last-child{text-align:center}
+.case-items{margin:9px 0 13px}
+.case-items th,.case-items td{font-size:12px}
+.case-history{list-style:none;margin:6px 0 12px;padding:0}
+.case-history li{padding:9px 0;border-bottom:1px solid #dae4ec;overflow-wrap:anywhere;font-size:13px}
+.case-history time{display:block;color:#526c80;font-size:11px}
+.case-items-empty{color:#627989;font-size:12px}
 .detail{border:1px solid #a6c4db;background:#f5faff;border-radius:5px;padding:14px;margin-top:14px}
 .detail dl{display:grid;grid-template-columns:130px 1fr;gap:7px 13px;font-size:13px;margin:10px 0}.detail dt{font-weight:700}.detail dd{margin:0;overflow-wrap:anywhere}
 .master-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}
@@ -76,7 +88,14 @@ table thead{display:none}table,tbody,tr,td{display:block;width:100%}table tr{bor
 <label>数量（参考）<input id="caseQuantity" type="number" min="1" max="99999" value="1" required></label>
 <label>マスターの照合結果<input id="caseMasterNote" readonly placeholder="登録済みなら表示"></label>
 <label class="full">教材・依頼内容（架空の内容のみ）<textarea id="caseNote" maxlength="400" required placeholder="例：美術教材、1年生用 40点"></textarea></label>
-</div><div class="actions"><button class="primary" type="submit">試作案件を一覧に追加</button><button class="secondary" type="reset">入力をクリア</button></div></form>
+</div>
+<fieldset class="items-entry"><legend>商品明細（入力できる範囲で登録）</legend>
+<p class="hint">急ぎの電話受付など、品名が未確定なら空欄のまま受付できます。入力した明細は案件詳細に表示します。</p>
+<table class="item-editor" aria-label="受付時の商品明細"><thead><tr><th>発注先</th><th>品番</th><th>商品名</th><th>学年・組</th><th>数量</th><th>摘要</th><th>削除</th></tr></thead><tbody id="caseItemRows"></tbody></table>
+<datalist id="supplierCandidates"></datalist>
+<div class="actions"><button class="secondary" type="button" id="addCaseItem">＋ 商品を追加</button><span class="hint">最大30行。数量（参考）と明細合計が異なる場合は確認表示します。</span></div>
+</fieldset>
+<div class="actions"><button class="primary" type="submit">試作案件を一覧に追加</button><button class="secondary" type="reset">入力をクリア</button></div></form>
 </div>
 </section>
 <section id="masterView" class="view" hidden>
@@ -109,9 +128,9 @@ table thead{display:none}table,tbody,tr,td{display:block;width:100%}table tr{bor
 var reps=["大田","会野","藤井","長谷","恩田","社長"];
 var statuses=["受付","確認中","見積対応","発注準備","メーカー発注済","出荷情報待ち","納品処理","請求処理","完了"];
 var cases=[
- {id:"DEMO-001",date:"2026-11-12",school:"架空・みどり中学校",rep:"大田",method:"FAX",kind:"見積依頼",qty:40,note:"美術教材　1年1組分",status:"確認中"},
- {id:"DEMO-002",date:"2026-11-12",school:"架空・さくら小学校",rep:"恩田",method:"電話",kind:"注文",qty:30,note:"図工教材　30点",status:"発注準備"},
- {id:"DEMO-003",date:"2026-11-13",school:"架空・青空中学校",rep:"藤井",method:"訪問",kind:"注文",qty:50,note:"教材セット　50組",status:"出荷情報待ち"}
+ {id:"DEMO-001",date:"2026-11-12",school:"架空・みどり中学校",rep:"大田",method:"FAX",kind:"見積依頼",qty:40,note:"美術教材　1年1組分",status:"確認中",items:[{supplier:"架空・教材メーカーA",sku:"A-001",name:"架空の図工教材",className:"1年1組",qty:40,memo:"サンプル"}],history:[{at:"2026-11-12",type:"受付",text:"FAXで見積依頼を仮受付"}]},
+ {id:"DEMO-002",date:"2026-11-12",school:"架空・さくら小学校",rep:"恩田",method:"電話",kind:"注文",qty:30,note:"図工教材　30点",status:"発注準備",items:[],history:[{at:"2026-11-12",type:"受付",text:"電話で注文を仮受付"}]},
+ {id:"DEMO-003",date:"2026-11-13",school:"架空・青空中学校",rep:"藤井",method:"訪問",kind:"注文",qty:50,note:"教材セット　50組",status:"出荷情報待ち",items:[],history:[{at:"2026-11-13",type:"受付",text:"訪問で注文を仮受付"}]}
 ];
 var schoolMasters=[
  {name:"架空・みどり中学校",zip:"000-0000",address:"架空県サンプル市1-2-3",phone:"000-0000-0001",rep:"大田"},
@@ -143,12 +162,49 @@ function filtered(){
 function showDetail(id){
  var c=cases.find(function(row){return row.id===id;});if(!c)return;
  var div=$("caseDetail");div.hidden=false;
+ var items=Array.isArray(c.items)?c.items:[], history=Array.isArray(c.history)?c.history:[];
+ var sum=items.reduce(function(n,it){return n+Number(it.qty||0);},0);
+ var difference=items.length&&sum!==Number(c.qty) ?
+  '<p class="hint" role="status">※ 参考数量 '+esc(c.qty)+' と明細合計 '+esc(sum)+' が異なります。発注前に確認してください。</p>':"";
+ var itemTable=items.length?
+  '<table class="case-items"><thead><tr><th>発注先</th><th>品番</th><th>商品名</th><th>学年・組</th><th>数量</th><th>摘要</th></tr></thead><tbody>'+
+  items.map(function(it){return '<tr><td data-label="発注先">'+esc(it.supplier)+'</td><td data-label="品番">'+esc(it.sku)+'</td><td data-label="商品名">'+esc(it.name)+'</td><td data-label="学年・組">'+esc(it.className)+'</td><td data-label="数量">'+esc(it.qty)+'</td><td data-label="摘要">'+esc(it.memo)+'</td></tr>';}).join("")+
+  '</tbody></table>'+difference:'<p class="case-items-empty">商品明細は未登録です。あとから確認が必要です。</p>';
+ var historyHtml=history.length?'<ul class="case-history">'+history.map(function(v){return '<li><time>'+esc(v.at)+'</time><b>'+esc(v.type)+'</b>　'+esc(v.text)+'</li>';}).join("")+'</ul>':
+  '<p class="case-items-empty">対応履歴はまだありません。</p>';
+ var school=schoolMasters.find(function(m){return m.name===c.school;});
+ var schoolInfo=school?'<dt>学校マスター</dt><dd>'+esc(school.zip)+'　'+esc(school.address)+' ／ TEL '+esc(school.phone)+'</dd>':
+  '<dt>学校マスター</dt><dd>未登録（学校名は手入力のまま）</dd>';
  div.innerHTML='<h3>案件の内容（試作）　'+esc(c.id)+'</h3>'+
- '<dl><dt>学校名</dt><dd>'+esc(c.school)+'</dd><dt>担当営業</dt><dd>'+esc(c.rep)+'</dd>'+
- '<dt>受付方法・区分</dt><dd>'+esc(c.method)+' ／ '+esc(c.kind)+'</dd><dt>数量</dt><dd>'+esc(c.qty)+' 点</dd><dt>依頼内容</dt><dd>'+esc(c.note)+'</dd></dl>'+
- '<div class="fields"><label>進行状況（画面内だけ）<select id="detailStatus">'+statuses.map(function(st){return '<option'+(c.status===st?' selected':'')+'>'+esc(st)+'</option>';}).join("")+'</select></label></div>'+
- '<div class="actions"><button type="button" class="primary" id="applyStatus">状態を変更</button><button type="button" class="secondary" id="closeDetail">閉じる</button><a href="index.html">帳票作成（データ連動は未実装）</a></div>';
- $("applyStatus").addEventListener("click",function(){c.status=$("detailStatus").value;renderCases();showDetail(c.id);});
+ '<dl><dt>学校名</dt><dd>'+esc(c.school)+'</dd>'+schoolInfo+'<dt>担当営業</dt><dd>'+esc(c.rep)+'</dd>'+
+ '<dt>受付方法・区分</dt><dd>'+esc(c.method)+' ／ '+esc(c.kind)+'</dd><dt>数量（参考）</dt><dd>'+esc(c.qty)+' 点</dd><dt>依頼内容</dt><dd>'+esc(c.note)+'</dd></dl>'+
+ '<h3>商品明細</h3>'+itemTable+
+ '<h3>対応履歴</h3>'+historyHtml+
+ '<div class="fields"><label>対応区分<select id="historyType"><option>学校連絡</option><option>メーカー連絡</option><option>出荷情報の確認</option><option>社内確認</option><option>その他</option></select></label>'+
+ '<label>進行状況（画面内だけ）<select id="detailStatus">'+statuses.map(function(st){return '<option'+(c.status===st?' selected':'')+'>'+esc(st)+'</option>';}).join("")+'</select></label>'+
+ '<label class="full">新しい対応履歴（架空の内容のみ）<textarea id="historyText" maxlength="400" placeholder="例：メーカーに納期を確認した。"></textarea></label></div>'+
+ '<div class="actions"><button type="button" class="primary" id="addHistory">対応履歴を追加</button>'+
+ '<button type="button" class="primary" id="applyStatus">状態を変更</button>'+
+ '<button type="button" class="secondary" id="closeDetail">閉じる</button>'+
+ '<a href="index.html">帳票作成（データ連動は未実装）</a></div>';
+ $("addHistory").addEventListener("click",function(){
+  var note=$("historyText").value.trim();
+  if(!note){alert("対応内容を入力してください。");return;}
+  if(!confirm("架空の対応履歴をこの画面内だけに追加しますか？"))return;
+  if(!Array.isArray(c.history))c.history=[];
+  if(c.history.length>=100){alert("試作では履歴100件までです。");return;}
+  c.history.push({at:new Date().toLocaleString("ja-JP"),type:$("historyType").value,text:note});
+  showDetail(c.id);
+ });
+ $("applyStatus").addEventListener("click",function(){
+  var next=$("detailStatus").value;
+  if(c.status!==next){
+   if(!Array.isArray(c.history))c.history=[];
+   c.history.push({at:new Date().toLocaleString("ja-JP"),type:"進行状況",text:c.status+" → "+next});
+   c.status=next;
+  }
+  renderCases();showDetail(c.id);
+ });
  $("closeDetail").addEventListener("click",function(){div.hidden=true;});
 }
 function renderCases(){
@@ -166,6 +222,49 @@ function renderCases(){
 }
 $("caseRows").addEventListener("click",function(ev){var b=ev.target.closest("[data-case]");if(b)showDetail(b.dataset.case);});
 ["repFilter","statusFilter","searchInput"].forEach(function(id){$(id).addEventListener("input",function(){renderCases();$("caseDetail").hidden=true;});});
+
+var entryItems=[];
+function blankItem(){return {supplier:"",sku:"",name:"",className:"",qty:"",memo:""};}
+function renderEntryItems(){
+ var rows=entryItems.length?entryItems:[blankItem()];
+ $("caseItemRows").innerHTML=rows.map(function(it,i){
+  var fields=[["supplier","発注先"],["sku","品番"],["name","商品名"],["className","学年・組"],["qty","数量"],["memo","摘要"]];
+  return '<tr>'+fields.map(function(f){
+   return '<td data-label="'+f[1]+'"><input data-item="'+i+'" data-key="'+f[0]+'" aria-label="'+(i+1)+'行目 '+f[1]+'"'+
+    (f[0]==="supplier"?' list="supplierCandidates"':'')+(f[0]==="qty"?' inputmode="numeric"':'')+
+    ' maxlength="'+(f[0]==="memo"?160:80)+'" value="'+esc(it[f[0]])+'"></td>';
+  }).join("")+
+  '<td data-label="削除"><button type="button" data-remove-item="'+i+'">削除</button></td></tr>';
+ }).join("");
+}
+function updateSupplierOptions(){
+ $("supplierCandidates").innerHTML=supplierMasters.map(function(m){return '<option value="'+esc(m.name)+'"></option>';}).join("");
+}
+$("caseItemRows").addEventListener("input",function(e){
+ var target=e.target,index=Number(target.dataset.item),key=target.dataset.key;
+ if(!Number.isInteger(index)||index<0||!key||!["supplier","sku","name","className","qty","memo"].includes(key))return;
+ while(entryItems.length<=index)entryItems.push(blankItem());
+ entryItems[index][key]=target.value;
+});
+$("caseItemRows").addEventListener("click",function(e){
+ var button=e.target.closest("[data-remove-item]");if(!button)return;
+ var index=Number(button.dataset.removeItem);if(index>=0&&index<entryItems.length)entryItems.splice(index,1);
+ renderEntryItems();
+});
+$("addCaseItem").addEventListener("click",function(){
+ if(entryItems.length>=30){alert("試作では明細30行までです。");return;}
+ if(!entryItems.length)entryItems.push(blankItem());
+ entryItems.push(blankItem());renderEntryItems();
+});
+function prepareEntryItems(){
+ var nonEmpty=entryItems.filter(function(it){return Object.keys(it).some(function(k){return String(it[k]).trim()!=="";});});
+ if(nonEmpty.length>30)return null;
+ for(var i=0;i<nonEmpty.length;i++){
+  var row=nonEmpty[i],q=Number(row.qty);
+  if(!row.name.trim()||!Number.isInteger(q)||q<1||q>99999)return null;
+ }
+ return nonEmpty.map(function(it){return {supplier:it.supplier.trim(),sku:it.sku.trim(),name:it.name.trim(),className:it.className.trim(),qty:Number(it.qty),memo:it.memo.trim()};});
+}
 function updateCaseMaster(){
  var val=$("caseSchool").value.trim(),hits=schoolMasters.filter(function(m){return m.name===val;});
  $("caseMasterNote").value=hits.length===1?"登録済み（住所・TELあり）":"未登録または候補なし";
@@ -178,12 +277,14 @@ $("entryForm").addEventListener("submit",function(ev){
  ev.preventDefault();
  var school=$("caseSchool").value.trim(),note=$("caseNote").value.trim(),q=Number($("caseQuantity").value);
  if(!school||!note||!Number.isInteger(q)||q<1||q>99999){alert("入力内容をご確認ください。");return;}
+ var items=prepareEntryItems();
+ if(items===null){alert("入力した商品明細には商品名と正しい数量（1～99999）が必要です。");return;}
  if(!confirm("架空データの試作登録です。再読み込みで消去されます。追加しますか？"))return;
  var id="DEMO-"+String(cases.length+1).padStart(3,"0");
- cases.unshift({id:id,date:new Date().toLocaleDateString("sv-SE"),school:school,rep:$("caseRep").value,method:$("caseMethod").value,kind:$("caseKind").value,qty:q,note:note,status:"受付"});
- this.reset();$("caseMasterNote").value="";$("repFilter").value="all";$("statusFilter").value="all";$("searchInput").value="";renderCases();view("listView");
+ cases.unshift({id:id,date:new Date().toLocaleDateString("sv-SE"),school:school,rep:$("caseRep").value,method:$("caseMethod").value,kind:$("caseKind").value,qty:q,note:note,status:"受付",items:items,history:[{at:new Date().toLocaleString("ja-JP"),type:"受付",text:$("caseMethod").value+"で"+$("caseKind").value+"を仮受付"}]});
+ this.reset();entryItems=[];renderEntryItems();$("caseMasterNote").value="";$("repFilter").value="all";$("statusFilter").value="all";$("searchInput").value="";renderCases();view("listView");
 });
-$("entryForm").addEventListener("reset",function(){$("caseMasterNote").value="";});
+$("entryForm").addEventListener("reset",function(){entryItems=[];renderEntryItems();$("caseMasterNote").value="";});
 function masterData(){return $("masterType").value==="school"?schoolMasters:supplierMasters;}
 function toggleMasterFields(){
  var school=$("masterType").value==="school";
@@ -222,9 +323,9 @@ $("masterForm").addEventListener("submit",function(ev){
  if(type==="school"){m.zip=$("masterZip").value.trim();m.address=$("masterAddress").value.trim();m.rep=$("masterRep").value;}
  else{m.fax=$("masterFax").value.trim();m.code=$("masterCode").value.trim();}
  if(masterIndex<0)arr.push(m);else arr[masterIndex]=m;
- updateSchoolOptions();resetMaster();$("masterFilter").value=type;renderMasters();
+ updateSchoolOptions();updateSupplierOptions();resetMaster();$("masterFilter").value=type;renderMasters();
 });
-renderCases();renderMasters();updateSchoolOptions();
+renderCases();renderMasters();updateSchoolOptions();updateSupplierOptions();renderEntryItems();
 })();
 </script>
 </body>
