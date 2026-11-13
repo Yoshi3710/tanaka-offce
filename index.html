@@ -190,6 +190,7 @@ function orderMarkup(){
  ].join("");
  var school=[
   fieldRow('住所','<textarea id="orderSchoolAddress" rows="2" data-field="schoolAddress" aria-label="納品先住所" placeholder="〒000-0000　都道府県・市区町村・番地">'+escapeText(s.schoolAddress)+'</textarea>'),
+  fieldRow('担当者名',f("schoolContact","納品先担当者名")),
   fieldRow('電話番号',f("schoolTel","学校電話番号"))
  ].join("");
  return '<div class="paper-inner">'+
