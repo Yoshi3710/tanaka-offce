@@ -6,14 +6,22 @@ on:
       - index.html
       - staff.html
       - tests/verify.cjs
+      - tests/check-data-model.cjs
+      - tests/fixtures/workflow-demo.json
       - docs/CURRENT_SPEC.md
+      - docs/DATA_MODEL_DRAFT.md
+      - docs/SALES_REP_WORKFLOW.md
       - .github/workflows/verify.yml
   pull_request:
     paths:
       - index.html
       - staff.html
       - tests/verify.cjs
+      - tests/check-data-model.cjs
+      - tests/fixtures/workflow-demo.json
       - docs/CURRENT_SPEC.md
+      - docs/DATA_MODEL_DRAFT.md
+      - docs/SALES_REP_WORKFLOW.md
       - .github/workflows/verify.yml
   workflow_dispatch:
 
@@ -28,4 +36,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Run dependency-free regression checks
-        run: node tests/verify.cjs
+        run: |
+          node tests/verify.cjs
+          node tests/check-data-model.cjs
