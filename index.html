@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#0b5aa5">
-<title>タナカ 社員用帳票プロトタイプ｜発注書・納品書・請求書</title>
+<title>タナカ 社員用帳票プロトタイプ｜発注書・見積書・納品書・請求書</title>
 <style>
 :root{font-family:"Yu Gothic","Meiryo","Noto Sans JP",system-ui,sans-serif;color:#152535;background:#edf3f8}
 *{box-sizing:border-box}body{margin:0}button,input,select,textarea{font:inherit}button{cursor:pointer;border:1px solid #8fa8bd;border-radius:6px;background:#fff;padding:9px 12px;color:#133e61;font-weight:700}button:hover{background:#e9f2f9}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid #287ac0;outline-offset:2px}
@@ -82,7 +82,7 @@
 <body>
 <header class="head">
 <img src="assets/logo.webp" alt="株式会社タナカ ロゴ">
-<div><h1>帳票作成プロトタイプ</h1><p>発注書・納品書・請求書／担当営業別入力・A4印刷</p></div>
+<div><h1>帳票作成プロトタイプ</h1><p>発注書・見積書・納品書・請求書／担当営業別入力・A4印刷</p></div>
 <span class="trial">確認用・発注／送信機能なし</span>
 </header>
 <div class="notice" role="status">このページは帳票のレイアウト確認用です。実在の学校・児童生徒・取引先の個人情報を入力しないでください。入力内容の自動送信・サーバー保存は行いません。</div>
@@ -90,9 +90,10 @@
 <section class="panel editor" aria-label="帳票編集">
 <h2>帳票の入力・編集</h2>
 <div class="field-grid">
-<div class="field order-picker"><label for="type">帳票の種類</label><select id="type"><option value="order">発注書（A4縦）</option><option value="delivery">納品書（A4縦）</option><option value="invoice">請求書（A4縦）</option></select></div>
+<div class="field order-picker"><label for="type">帳票の種類</label><select id="type"><option value="order">発注書（A4縦）</option><option value="quote">見積書（A4縦）</option><option value="delivery">納品書（A4縦）</option><option value="invoice">請求書（A4縦）</option></select></div>
 <div class="field order-picker"><label for="rep">担当営業</label><select id="rep"><option>大田</option><option>会野</option><option>藤井</option><option>長谷</option><option>恩田</option><option>社長</option></select></div>
-<div class="field"><label for="number">帳票番号</label><input id="number" data-field="number" autocomplete="off" placeholder="例：T-2026-001"></div>
+<div class="field not-quote"><label for="number">帳票番号</label><input id="number" data-field="number" autocomplete="off" placeholder="例：T-2026-001"></div>
+<div class="field quote-only hidden"><label for="quoteNumber">見積番号</label><input id="quoteNumber" data-field="quoteNumber" autocomplete="off" placeholder="例：Q-2026-001"></div>
 <div class="field"><label for="date">作成日</label><input type="date" id="date" data-field="date"></div>
 <div class="field wide"><label for="school">学校名（仮の情報で確認）</label><input id="school" data-field="school" autocomplete="off" placeholder="例：○○市立△△中学校"></div>
 <div class="field"><label for="schoolContact">学校のご担当者</label><input id="schoolContact" data-field="schoolContact" autocomplete="off" placeholder="例：担当の先生"></div>
@@ -103,9 +104,10 @@
 <div class="field wide order-only"><label for="maker">発注先メーカー名</label><input id="maker" data-field="maker" autocomplete="off" placeholder="例：○○教材株式会社"></div>
 <div class="field order-only"><label for="orderClass">発注区分</label><select id="orderClass" data-field="orderClass"><option>学校直送</option><option>タナカ納入</option><option>その他</option></select></div>
 <div class="field order-only"><label for="makerCode">メーカー／取引先コード（任意）</label><input id="makerCode" data-field="makerCode" autocomplete="off"></div>
-<div class="field other-only"><label for="reference">参照注文番号（任意）</label><input id="reference" data-field="reference" autocomplete="off"></div>
-<div class="field other-only"><label for="serviceDate">納品日・対象日（任意）</label><input id="serviceDate" data-field="serviceDate" autocomplete="off" type="date"></div>
+<div class="field other-only delivery-invoice-only"><label for="reference">参照注文番号（任意）</label><input id="reference" data-field="reference" autocomplete="off"></div>
+<div class="field other-only delivery-invoice-only"><label for="serviceDate">納品日・対象日（任意）</label><input id="serviceDate" data-field="serviceDate" autocomplete="off" type="date"></div>
 <div class="field invoice-only"><label for="tax">消費税率（%）</label><input id="tax" data-field="tax" type="number" step="1" min="0" max="100"></div>
+<div class="field quote-only hidden"><label for="quoteExpiry">見積有効期限（任意）</label><input id="quoteExpiry" type="date" data-field="quoteExpiry"></div>
 <div class="field wide"><label for="memo">備考・連絡事項</label><textarea id="memo" data-field="memo" placeholder="必要な事項のみ入力"></textarea></div>
 </div>
 <div class="section-title">商品明細 <small>明細は自由に追加・削除できます</small></div>
@@ -130,10 +132,10 @@
 (function(){
 "use strict";
 var reps=["大田","会野","藤井","長谷","恩田","社長"];
-var keys=["number","date","school","schoolAddress","schoolContact","schoolTel","className","operator","contactTel","maker","orderClass","makerCode","makerAddress","makerTel","makerFax","makerContact","reference","serviceDate","tax","memo"];
+var keys=["number","quoteNumber","quoteExpiry","date","school","schoolAddress","schoolContact","schoolTel","className","operator","contactTel","maker","orderClass","makerCode","makerAddress","makerTel","makerFax","makerContact","reference","serviceDate","tax","memo"];
 var today=new Date(),localDate=today.getFullYear()+"-"+String(today.getMonth()+1).padStart(2,"0")+"-"+String(today.getDate()).padStart(2,"0");
-var s={type:"order",rep:"大田",number:"",date:localDate,school:"",schoolAddress:"",schoolContact:"",schoolTel:"",className:"",operator:"",contactTel:"06-6997-6030",maker:"",orderClass:"学校直送",makerCode:"",makerAddress:"",makerTel:"",makerFax:"",makerContact:"",reference:"",serviceDate:"",tax:"10",memo:"",items:[{sku:"",name:"",spec:"",qty:"",unit:"個",price:"",note:""}]};
-var titles={order:"発注書",delivery:"納品書",invoice:"請求書"};
+var s={type:"order",rep:"大田",number:"",quoteNumber:"",quoteExpiry:"",date:localDate,school:"",schoolAddress:"",schoolContact:"",schoolTel:"",className:"",operator:"",contactTel:"06-6997-6030",maker:"",orderClass:"学校直送",makerCode:"",makerAddress:"",makerTel:"",makerFax:"",makerContact:"",reference:"",serviceDate:"",tax:"10",memo:"",items:[{sku:"",name:"",spec:"",qty:"",unit:"個",price:"",note:""}]};
+var titles={order:"発注書",quote:"見積書",delivery:"納品書",invoice:"請求書"};
 
 function byId(id){return document.getElementById(id);}
 function escapeText(v){return String(v==null?"":v).replace(/[&<>"']/g,function(ch){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch];});}
@@ -214,8 +216,11 @@ function orderMarkup(){
 function render(){
  document.querySelectorAll(".order-only").forEach(function(el){el.classList.toggle("hidden",s.type!=="order");});
  document.querySelectorAll(".other-only").forEach(function(el){el.classList.toggle("hidden",s.type==="order");});
- document.querySelectorAll(".invoice-only").forEach(function(el){el.classList.toggle("hidden",s.type!=="invoice");});
- var title=titles[s.type],isOrder=s.type==="order",isInvoice=s.type==="invoice";
+ document.querySelectorAll(".invoice-only").forEach(function(el){el.classList.toggle("hidden",s.type!=="invoice"&&s.type!=="quote");});
+ document.querySelectorAll(".quote-only").forEach(function(el){el.classList.toggle("hidden",s.type!=="quote");});
+ document.querySelectorAll(".not-quote").forEach(function(el){el.classList.toggle("hidden",s.type==="quote");});
+ document.querySelectorAll(".delivery-invoice-only").forEach(function(el){el.classList.toggle("hidden",s.type!=="delivery"&&s.type!=="invoice");});
+ var title=titles[s.type],isOrder=s.type==="order",isInvoice=s.type==="invoice",isQuote=s.type==="quote";
  byId("mainLayout").classList.toggle("order-mode",isOrder);
  if(isOrder){
   byId("paper").className="paper order-form";
@@ -229,6 +234,7 @@ function render(){
  var table1=isOrder?
  [["発注区分",s.orderClass],["納品先",s.school],["学校担当",s.schoolContact],["学年・組",s.className],["学校TEL",s.schoolTel],["取引先コード",s.makerCode]]:
  [["学校担当",s.schoolContact],["学年・組",s.className],["学校TEL",s.schoolTel],["参照注文番号",s.reference],["納品日・対象日",fmtDate(s.serviceDate)]];
+ if(isQuote)table1=[["学校担当",s.schoolContact],["学年・組",s.className],["学校TEL",s.schoolTel],["見積有効期限",s.quoteExpiry?fmtDate(s.quoteExpiry):"未設定"]];
  var table2=[["担当営業",s.rep],["発注・作成者",s.operator],["問い合わせTEL",s.contactTel]];
  var show=function(v){return escapeText(v||"—");};
  var cells=function(a){return a.map(function(p){return '<tr><th>'+escapeText(p[0])+'</th><td>'+show(p[1])+'</td></tr>';}).join("");};
@@ -238,21 +244,21 @@ function render(){
  var subtotal=invoiceTotal(),taxRate=Math.min(100,Math.max(0,number(s.tax))),tax=Math.floor(subtotal*taxRate/100);
  var totals=isOrder?'<div class="order-summary">合計数量： '+yen(s.items.reduce(function(a,it){return a+number(it.qty);},0))+' 点</div>':
  '<table class="totals"><tr><th>小計</th><td>¥ '+yen(subtotal)+'</td></tr>'+
- (isInvoice?'<tr><th>消費税（'+escapeText(taxRate)+'%）</th><td>¥ '+yen(tax)+'</td></tr>':'')+
- '<tr class="grand"><th>'+(isInvoice?'ご請求金額':'納品金額')+'</th><td>¥ '+yen(subtotal+(isInvoice?tax:0))+'</td></tr></table>';
+ (isInvoice||isQuote?'<tr><th>消費税（'+escapeText(taxRate)+'%）</th><td>¥ '+yen(tax)+'</td></tr>':'')+
+ '<tr class="grand"><th>'+(isQuote?'お見積金額':isInvoice?'ご請求金額':'納品金額')+'</th><td>¥ '+yen(subtotal+(isInvoice||isQuote?tax:0))+'</td></tr></table>';
  var note=s.memo?'<div class="note-print"><b>備考</b>：'+escapeText(s.memo)+'</div>':'';
- var intro=isOrder?'下記の内容にて発注いたします。':isInvoice?'下記の通り、ご請求申し上げます。':'下記の通り納品いたします。';
+ var intro=isOrder?'下記の内容にて発注いたします。':isQuote?'下記の通り、お見積り申し上げます。':isInvoice?'下記の通り、ご請求申し上げます。':'下記の通り納品いたします。';
  byId("paper").className="paper"+(isOrder?" landscape":"");
  byId("paper").innerHTML='<div class="paper-inner">'+
  '<div class="print-h"><img src="assets/logo.webp" alt="株式会社タナカ"><div class="print-org"><b>株式会社タナカ</b><div>大阪府守口市南寺方東通3-8-6</div><div>TEL 06-6997-6030 ／ FAX 06-6997-6035</div></div></div>'+
  '<div class="print-title">'+title+'</div>'+
  '<div class="print-head"><div><div class="dest">'+(headDest?escapeText(headDest):"（宛先未入力）")+'　御中</div><div class="sub">'+(isOrder?'メーカー・仕入先への発注用':'学校提出用')+' ／ ご確認をお願いいたします。</div></div>'+
- '<table class="print-meta"><tr><th>'+title+'番号</th><td>'+show(s.number)+'</td></tr><tr><th>作成日</th><td>'+fmtDate(s.date)+'</td></tr></table></div>'+
+ '<table class="print-meta"><tr><th>'+(isQuote?'見積番号':title+'番号')+'</th><td>'+show(isQuote?s.quoteNumber:s.number)+'</td></tr><tr><th>'+(isQuote?'見積日':'作成日')+'</th><td>'+fmtDate(s.date)+'</td></tr></table></div>'+
  '<div class="intro">'+intro+'</div>'+
  '<div style="display:grid;grid-template-columns:1.2fr .8fr;gap:3mm"><table class="info-table">'+cells(table1)+'</table><table class="info-table">'+cells(table2)+'</table></div>'+
  '<div class="table-title">明細</div><table class="doc-items">'+columns+'<thead><tr>'+headers+'</tr></thead><tbody>'+lineItems()+'</tbody></table>'+
  totals+note+'<div class="footnote"><span>お問い合わせ：<b>株式会社タナカ</b> ／ '+show(s.contactTel)+'</span><span>担当営業：'+escapeText(s.rep)+'　作成者：'+show(s.operator)+'</span></div>'+
- '<div class="watermark">試作帳票・正式な注文／納品／請求には使用しないでください</div></div>';
+ '<div class="watermark">'+(isQuote?'試作帳票・正式な見積には使用しないでください':'試作帳票・正式な注文／納品／請求には使用しないでください')+'</div></div>';
  byId("formatLabel").textContent=title+"／A4"+(isOrder?"横":"縦");
  byId("pageRule").textContent="@page{size:A4 "+(isOrder?"landscape":"portrait")+";margin:10mm}";
  fitPaper();
