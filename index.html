@@ -191,7 +191,7 @@ function orderMarkup(){
  var school=[
   fieldRow('住所（郵便番号含む）','<textarea id="orderSchoolAddress" rows="2" data-field="schoolAddress" aria-label="納品先住所（郵便番号含む）" placeholder="〒000-0000　都道府県・市区町村・番地">'+escapeText(s.schoolAddress)+'</textarea>'),
   fieldRow('電話番号',f("schoolTel","学校電話番号"))
- ];
+ ].join("");
  return '<div class="paper-inner">'+
  '<div class="order-letterhead"><div class="order-heading"><strong>発 注 書</strong><div>発注日：'+f("date","発注日","YYYY-MM-DD")+'</div></div><div class="order-company"><strong>株式会社タナカ</strong><div>大阪府守口市南寺方東通3-8-6</div><div>TEL 06-6997-6030　FAX 06-6997-6035</div></div></div>'+
  '<div class="order-numbers"><span>発注番号：'+f("number","発注番号")+'</span><span>担当営業：'+sel("rep","担当営業",reps)+'</span><span>発注・作成者：'+f("operator","発注・作成者")+'</span></div>'+
