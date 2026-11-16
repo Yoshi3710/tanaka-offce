@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#124f80">
+<title>担当営業ホーム｜株式会社タナカ（試作）</title>
+<style>
+:root{font-family:"Yu Gothic","Meiryo",system-ui,sans-serif;color:#182d40;background:#f3f6fa}
+*{box-sizing:border-box}body{margin:0}button,input,select,textarea{font:inherit}button{cursor:pointer}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid #2875b4;outline-offset:2px}
+[hidden]{display:none!important}h1,h2,h3,p{margin:0}h1{font-size:21px}h2{font-size:19px;margin:0 0 12px}h3{font-size:16px}p{line-height:1.6}a{color:#124f80}button{background:white;color:#124f80;border:1px solid #a9bdcd;border-radius:5px;padding:9px 12px;font-weight:700;line-height:1.4;white-space:normal}button:hover{background:#edf5fb}.primary{background:#124f80;color:white;border-color:#124f80}.primary:hover{background:#0e416a}
+.mast{background:#fff;border-bottom:1px solid #cbd8e3}.mast-inner{max-width:1120px;margin:auto;padding:12px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}.mast img{width:144px;height:auto}.mast p{font-size:12px;color:#526b7d}.shell{max-width:1120px;margin:auto;padding:16px 18px 28px}
+.demo{border:1px solid #e4cd92;background:#fff9e8;padding:10px 13px;border-radius:5px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:12px}.demo p{flex:1;min-width:0}.demo label{flex:0 1 190px}
+label{display:block;font-size:13px;font-weight:700;min-width:0}input,select,textarea{width:100%;min-width:0;border:1px solid #a9bdca;border-radius:4px;background:#fff;color:#172d42;padding:8px 9px;margin-top:5px}textarea{min-height:90px;resize:vertical;line-height:1.6;overflow-wrap:anywhere}
+.heading{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:20px 0 12px}.heading h2{margin:0;font-size:23px}.hint{font-size:12px;color:#526b7d;line-height:1.6}.tabs{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px}.tabs button[aria-selected=true]{background:#124f80;color:white;border-color:#124f80}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-bottom:14px}.stat{text-align:left;padding:12px;background:white;border:1px solid #cbd6df}.stat span{display:block;font-size:13px;color:#526b7d}.stat strong{display:block;font-size:25px;margin-top:4px;color:#124f80}.stat.alert strong{color:#a33b2e}.stat[aria-pressed=true]{border:2px solid #124f80;padding:11px;background:#edf5fb}
+.panel{border:1px solid #cbd6df;border-radius:7px;background:#fff;padding:16px;margin-bottom:13px;min-width:0}.panel-head,.actions{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}.panel-head{margin-bottom:8px}.panel-head h2{margin:0}
+.records{display:grid;gap:0}.record{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) minmax(0,105px) auto;align-items:center;gap:10px;padding:12px 0;border-top:1px solid #dbe3ea;min-width:0}.record>*{min-width:0;overflow-wrap:anywhere}.record strong{font-size:15px}.record p{font-size:13px}.small{font-size:12px;color:#526b7d}.due{font-size:13px}.late{color:#a33b2e;font-weight:700}.pill{display:inline-block;background:#edf3f7;color:#234c6e;padding:3px 7px;border-radius:4px;font-size:12px}.empty{padding:15px 0;color:#526b7d;font-size:14px}
+.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.full{grid-column:1/-1}.filters{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,220px);gap:12px;margin-bottom:12px}.school-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.school-card{border:1px solid #cbd6df;border-radius:5px;padding:13px;min-width:0;overflow-wrap:anywhere}.school-card h3{margin-bottom:7px}.school-card .actions{margin-top:10px}.school-card p{font-size:13px}
+.detail-meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:12px 0}.detail-meta div{border-bottom:1px solid #dbe3ea;padding:5px 0;min-width:0;overflow-wrap:anywhere}.detail-meta dt{font-size:12px;color:#526b7d}.detail-meta dd{margin:4px 0;font-size:14px;white-space:pre-wrap}.history{list-style:none;padding:0;margin:8px 0 14px}.history li{border-bottom:1px solid #dbe3ea;padding:7px 0;overflow-wrap:anywhere;white-space:pre-wrap;font-size:13px}.history time{display:block;color:#526b7d;font-size:11px}.feedback{min-height:1.6em;font-size:13px;color:#124f80;margin:8px 0;overflow-wrap:anywhere}.status-note{padding:8px;background:#edf3f7;font-size:13px;border-radius:4px;margin:10px 0}.report-links{display:flex;gap:12px;flex-wrap:wrap;font-size:13px;margin-top:15px}.footer{font-size:12px;color:#526b7d;margin:18px 0;overflow-wrap:anywhere}
+@media(max-width:640px){.shell{padding:12px}.mast-inner{padding:10px 12px;gap:9px}.mast img{width:116px}.mast h1{font-size:17px}.demo label{flex:1 1 100%}.heading h2{font-size:20px}.tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.tabs button{min-height:44px}.stats{gap:6px}.stat{padding:8px}.stat[aria-pressed=true]{padding:7px}.stat span{font-size:12px}.stat strong{font-size:22px}.panel{padding:12px}.record{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:7px}.record>div:first-child{grid-column:1/-1}.record button{min-height:40px}.fields,.school-grid,.filters,.detail-meta{grid-template-columns:minmax(0,1fr)}.actions button{min-height:42px}.primary{min-height:42px}}
+@media print{.mast,.demo,.tabs,.heading button,.stats,.actions,button,.filters,.report-links,.footer,.feedback,#entryView,.detail-edit{display:none!important}.shell{max-width:none;padding:0}.panel{border:0;padding:0}.record,.school-card{break-inside:avoid}.heading{margin:0 0 10px}body{background:#fff}}
+</style>
+</head>
+<body>
+<header class="mast"><div class="mast-inner"><img src="assets/logo.webp" alt="株式会社タナカ"><div><h1>担当営業ホーム</h1><p>社員用受発注管理・操作確認版</p></div></div></header>
+<main class="shell">
+<div class="demo"><p><strong>公開試作・架空データのみ。</strong> 本番のログインではありません。入力は画面内だけで、再読み込みで消えます。実際の学校・注文・個人情報は入力しないでください。</p><label>試作用の担当営業切替<select id="rep" aria-label="試作用の担当営業切替"></select></label></div>
+<div class="heading"><h2 id="greeting"></h2><button class="primary" type="button" data-open="entry">＋ 新規受付</button></div>
+<nav class="tabs" aria-label="担当営業メニュー">
+<button type="button" data-open="home" data-tab="home" aria-selected="true">今日の仕事</button>
+<button type="button" data-open="schools" data-tab="schools" aria-selected="false">自分の担当校</button>
+<button type="button" data-open="cases" data-tab="cases" aria-selected="false">自分の案件</button>
+<button type="button" data-open="entry" data-tab="entry" aria-selected="false">手動受付</button>
+</nav>
+<p class="feedback" id="feedback" role="status" aria-live="polite"></p>
+<section id="homeView">
+<div class="stats" aria-label="自分の作業件数">
+<button type="button" class="stat alert" data-task-filter="late" aria-pressed="false"><span>期限超過</span><strong id="lateCount">0</strong></button>
+<button type="button" class="stat" data-task-filter="today" aria-pressed="false"><span>本日の作業</span><strong id="todayCount">0</strong></button>
+<button type="button" class="stat" data-task-filter="all" aria-pressed="true"><span>未完了の仕事</span><strong id="openCount">0</strong></button>
+</div>
+<div class="panel"><div class="panel-head"><h2 id="taskTitle">未完了の仕事</h2><span class="hint">期限の近い順</span></div><div class="records" id="taskRows"></div></div>
+<div class="panel"><h2>最近の担当案件</h2><div class="records" id="recentRows"></div><div class="actions"><button type="button" data-open="cases">自分の案件をすべて見る</button></div></div>
+</section>
+<section id="schoolsView" hidden><div class="panel"><h2>自分の担当校</h2><label>学校名で探す<input id="schoolSearch" type="search" autocomplete="off" maxlength="80" placeholder="学校名"></label><div class="school-grid" id="schoolRows" style="margin-top:12px"></div></div></section>
+<section id="casesView" hidden><div class="panel"><h2>自分の案件一覧</h2><div class="filters"><label>学校名・案件番号・教材名<input id="caseSearch" type="search" maxlength="80" autocomplete="off"></label><label>進行状況<select id="caseFilter"><option value="open">未完了のみ</option><option value="all">すべて</option><option value="done">完了のみ</option></select></label></div><div class="records" id="caseRows"></div></div></section>
+<section id="entryView" hidden><div class="panel"><h2>手動受付（下書き）</h2><p class="hint">まずは分かる範囲で入力。商品が未確定でも確認案件として仮登録できます。</p>
+<form id="entryForm"><div class="fields" style="margin-top:12px">
+<label>学校名<select id="entrySchool" required></select></label>
+<label>担当営業<input id="entryRep" readonly></label>
+<label>受付方法<select id="entryMethod"><option>FAX</option><option>電話</option><option>訪問</option><option>ウェブ</option><option>その他</option></select></label>
+<label>依頼区分<select id="entryKind"><option>見積依頼</option><option>注文</option><option>問い合わせ</option></select></label>
+<label>次回確認日<input id="entryDue" type="date"></label>
+<label>数量（任意）<input id="entryQty" type="number" min="1" max="99999" step="1" inputmode="numeric"></label>
+<label class="full">教材・依頼内容<textarea id="entryNote" required maxlength="400" placeholder="架空の教材名・依頼内容"></textarea></label>
+</div><p class="status-note" id="entryMaster">学校を選ぶと登録情報が表示されます。</p>
+<div class="actions"><button class="primary" type="submit">下書きを仮登録</button><button type="button" id="clearEntry">入力をクリア</button></div></form></div></section>
+<section id="detailView" hidden><div class="panel"><div class="panel-head"><h2>案件詳細</h2><button type="button" id="backDetail">戻る</button></div><div id="detailContent"></div>
+<div class="detail-edit"><h3>対応状況を更新（試作）</h3><form id="detailForm"><div class="fields" style="margin-top:10px">
+<label>次の作業<select id="detailStage"></select></label><label>次回確認日<input id="detailDue" type="date"></label>
+<label class="full">対応内容（任意）<textarea id="detailNote" maxlength="400" placeholder="架空の対応記録"></textarea></label>
+</div><div class="actions" style="margin-top:10px"><button class="primary" type="submit">対応内容を反映</button></div></form></div>
+<div class="report-links"><a href="index.html" target="_blank" rel="noopener">帳票作成（別画面・データ連動前）</a></div></div></section>
+<div class="footer">株式会社タナカ｜担当営業ホーム試作　・　<a href="staff.html" target="_blank" rel="noopener">従来の本部・社員管理画面（比較用）</a><p>正式なログイン・権限・データ保存・帳票連動・発注送信は未実装です。</p></div>
+</main>
+<script>
+"use strict";
+(function(){
+const reps=["大田","会野","藤井","長谷","恩田","社長"];
+const stages=["受付内容の確認","見積書の準備","学校への返信","注文内容の確認","メーカー発注の準備","納期の確認","出荷情報の入力","納品書の準備","請求内容の確認","完了"];
+const names=["みどり中学校","つばさ小学校","ひかり中学校","しらかば小学校","あおぞら中学校","さくら小学校","わかば小学校"];
+const schools=names.map((name,i)=>({id:"S"+(i+1),name:"架空・"+name,rep:reps[i%reps.length],address:"架空県サンプル市"+(i+1)+"丁目",phone:"000-0000-"+String(i+1).padStart(4,"0")}));
+function day(offset=0){const d=new Date();d.setDate(d.getDate()+offset);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+const cases=schools.map((s,i)=>({id:"DEMO-"+String(i+1).padStart(3,"0"),school:s.id,rep:s.rep,method:i%2?"電話":"FAX",kind:i%2?"注文":"見積依頼",qty:20+i*5,note:"架空の教材セット "+(20+i*5)+"点",stage:stages[[1,5,3,6,2,4,9][i]],due:day(i%3-1),updated:day(-i),history:[{at:day(-i),text:"試作用の受付記録"}]}));
+let rep=reps[0],view="home",back="home",opened=null,taskFilter="all",nextId=cases.length+1;
+const drafts={},detailDrafts={};
+const $=id=>document.getElementById(id);
+const esc=x=>String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const option=(v,l)=>'<option value="'+esc(v)+'">'+esc(l)+'</option>';
+const ownSchools=()=>schools.filter(x=>x.rep===rep);
+const ownCases=()=>cases.filter(x=>x.rep===rep&&ownSchools().some(s=>s.id===x.school));
+const findCase=id=>ownCases().find(x=>x.id===id);
+const schoolFor=id=>ownSchools().find(x=>x.id===id);
+const isOpen=c=>c.stage!=="完了";
+const dueText=c=>c.stage==="完了"?"完了":c.due?c.due:"期限未設定";
+const sortDue=(a,b)=>(a.due||"9999-99-99").localeCompare(b.due||"9999-99-99")||a.id.localeCompare(b.id);
+const empty=msg=>'<p class="empty">'+esc(msg)+'</p>';
+function announce(msg=""){$("feedback").textContent=msg;}
+function row(c){
+ const s=schoolFor(c.school);if(!s)return "";
+ const late=isOpen(c)&&c.due&&c.due<day();
+ return '<div class="record"><div><strong>'+esc(s.name)+'</strong><p class="small">'+esc(c.id)+'　'+esc(c.kind)+'</p></div><div><span class="pill">'+esc(c.stage)+'</span><p>'+esc(c.note)+'</p></div><div class="due'+(late?" late":"")+'">'+esc(dueText(c))+(late?'　期限超過':'')+'</div><button type="button" data-case="'+esc(c.id)+'">内容を確認</button></div>';
+}
+function renderHome(){
+ const own=ownCases(),active=own.filter(isOpen).sort(sortDue);
+ $("lateCount").textContent=active.filter(c=>c.due&&c.due<day()).length;
+ $("todayCount").textContent=active.filter(c=>c.due===day()).length;
+ $("openCount").textContent=active.length;
+ const work=active.filter(c=>taskFilter==="all"||(taskFilter==="today"?c.due===day():c.due&&c.due<day()));
+ $("taskTitle").textContent=({all:"未完了の仕事",today:"本日の作業",late:"期限超過"})[taskFilter];
+ document.querySelectorAll("[data-task-filter]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.taskFilter===taskFilter)));
+ $("taskRows").innerHTML=work.map(row).join("")||empty("該当する作業はありません。");
+ $("recentRows").innerHTML=own.slice().sort((a,b)=>b.updated.localeCompare(a.updated)||b.id.localeCompare(a.id)).slice(0,4).map(row).join("")||empty("担当案件はありません。");
+}
+function renderSchools(){
+ const q=$("schoolSearch").value.trim().toLowerCase();
+ $("schoolRows").innerHTML=ownSchools().filter(s=>s.name.toLowerCase().includes(q)).map(s=>{
+  const count=ownCases().filter(c=>c.school===s.id&&isOpen(c)).length;
+  return '<div class="school-card"><h3>'+esc(s.name)+'</h3><p>'+esc(s.address)+'</p><p>TEL '+esc(s.phone)+'</p><p class="small">未完了の案件：'+count+'件</p><div class="actions"><button type="button" data-school="'+esc(s.id)+'">新規受付</button><button type="button" data-school-cases="'+esc(s.id)+'">案件を見る</button></div></div>';
+ }).join("")||empty("該当する担当校はありません。");
+}
+function renderCases(){
+ const q=$("caseSearch").value.trim().toLowerCase(),filter=$("caseFilter").value;
+ const rows=ownCases().filter(c=>(filter==="all"||(filter==="done"?!isOpen(c):isOpen(c)))&&(!q||(schoolFor(c.school).name+" "+c.id+" "+c.note).toLowerCase().includes(q))).sort((a,b)=>Number(!isOpen(a))-Number(!isOpen(b))||sortDue(a,b));
+ $("caseRows").innerHTML=rows.map(row).join("")||empty("該当する担当案件はありません。");
+}
+const entryIds=["entrySchool","entryMethod","entryKind","entryDue","entryQty","entryNote"];
+function saveDraft(){drafts[rep]=Object.fromEntries(entryIds.map(k=>[k,$(k).value]));}
+function masterPreview(){
+ const s=schoolFor($("entrySchool").value);
+ $("entryMaster").textContent=s?s.address+"　TEL "+s.phone:"学校を選ぶと登録情報が表示されます。";
+}
+function restoreDraft(){
+ const saved=drafts[rep]||{};
+ $("entrySchool").innerHTML=option("","担当校を選択")+ownSchools().map(s=>option(s.id,s.name)).join("");
+ $("entryRep").value=rep;
+ for(const [k,v] of Object.entries({entrySchool:"",entryMethod:"FAX",entryKind:"見積依頼",entryDue:day(),entryQty:"",entryNote:"",...saved}))$(k).value=v;
+ if(!schoolFor($("entrySchool").value))$("entrySchool").value="";
+ masterPreview();
+}
+function renderDetail(id){
+ const c=findCase(id);if(!c)return false;
+ const s=schoolFor(c.school);
+ $("detailContent").innerHTML='<h3>'+esc(s.name)+'　'+esc(c.id)+'</h3><dl class="detail-meta">'+
+ [["担当営業",c.rep],["受付方法・区分",c.method+"／"+c.kind],["学校の住所・電話",s.address+"／"+s.phone],["数量",c.qty===""?"未確定":c.qty+" 点"],["依頼内容",c.note],["現在の作業",c.stage],["次回確認日",dueText(c)]].map(([k,v])=>'<div><dt>'+esc(k)+'</dt><dd>'+esc(v)+'</dd></div>').join("")+
+ '</dl><h3>対応履歴</h3><ul class="history">'+c.history.slice().reverse().map(h=>'<li><time>'+esc(h.at)+'</time>'+esc(h.text)+'</li>').join("")+'</ul>';
+ const dd=detailDrafts[id]||{};
+ $("detailStage").value=dd.stage??c.stage;$("detailDue").value=dd.due??c.due;$("detailNote").value=dd.note??"";
+ return true;
+}
+function saveDetailDraft(){if(opened&&findCase(opened))detailDrafts[opened]={stage:$("detailStage").value,due:$("detailDue").value,note:$("detailNote").value};}
+function show(name){
+ if(!["home","schools","cases","entry","detail"].includes(name))return;
+ if(view==="entry")saveDraft();
+ if(view==="detail")saveDetailDraft();
+ view=name;
+ for(const x of ["home","schools","cases","entry","detail"])$(x+"View").hidden=x!==name;
+ document.querySelectorAll("[data-tab]").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.tab===name)));
+ if(name==="home")renderHome();if(name==="schools")renderSchools();if(name==="cases")renderCases();if(name==="entry")restoreDraft();
+ if(name==="detail"&&!renderDetail(opened)){opened=null;show("home");}
+}
+function selectRep(next){
+ if(!reps.includes(next))return;
+ if(view==="entry")saveDraft();if(view==="detail")saveDetailDraft();
+ rep=next;view="home";opened=null;back="home";taskFilter="all";
+ $("rep").value=rep;$("greeting").textContent=rep+" の業務";
+ $("schoolSearch").value="";$("caseSearch").value="";$("caseFilter").value="open";restoreDraft();show("home");announce("");
+}
+function openCase(id){
+ if(!findCase(id))return;
+ back=view==="detail"?"cases":view;opened=id;show("detail");announce("");
+}
+$("rep").innerHTML=reps.map(r=>option(r,r)).join("");
+$("detailStage").innerHTML=stages.map(s=>option(s,s)).join("");
+$("rep").addEventListener("change",e=>selectRep(e.target.value));
+$("schoolSearch").addEventListener("input",renderSchools);
+$("caseSearch").addEventListener("input",renderCases);
+$("caseFilter").addEventListener("change",renderCases);
+$("entryForm").addEventListener("input",()=>{saveDraft();masterPreview();});
+$("entryForm").addEventListener("change",()=>{saveDraft();masterPreview();});
+$("clearEntry").addEventListener("click",()=>{if(confirm("現在の下書き入力をクリアしますか？")){delete drafts[rep];restoreDraft();announce("入力をクリアしました。");}});
+$("entryForm").addEventListener("submit",e=>{
+ e.preventDefault();
+ const school=schoolFor($("entrySchool").value),note=$("entryNote").value.trim(),raw=$("entryQty").value,qty=raw===""?"":Number(raw),due=$("entryDue").value;
+ if(!school||!note||note.length>400||(qty!==""&&(!Number.isInteger(qty)||qty<1||qty>99999))){announce("学校名・依頼内容・数量を確認してください。");return;}
+ const method=$("entryMethod").value,kind=$("entryKind").value;
+ if(!["FAX","電話","訪問","ウェブ","その他"].includes(method)||!["見積依頼","注文","問い合わせ"].includes(kind))return;
+ const id="DEMO-"+String(nextId++).padStart(3,"0");
+ cases.push({id,school:school.id,rep,method,kind,qty,note,stage:stages[0],due,updated:day(),history:[{at:day(),text:method+"で"+kind+"を仮受付"}]});
+ delete drafts[rep];restoreDraft();show("home");announce(id+"：下書きを仮登録しました（正式受付ではありません）。");
+});
+$("detailForm").addEventListener("input",saveDetailDraft);
+$("detailForm").addEventListener("change",saveDetailDraft);
+$("detailForm").addEventListener("submit",e=>{
+ e.preventDefault();const c=findCase(opened);if(!c)return;
+ const stage=$("detailStage").value,due=$("detailDue").value,note=$("detailNote").value.trim();
+ if(!stages.includes(stage)||note.length>400)return;
+ if(stage===c.stage&&due===c.due&&!note){announce("変更された内容はありません。");return;}
+ const changes=[];if(stage!==c.stage)changes.push(c.stage+" → "+stage);if(due!==c.due)changes.push("次回確認日："+(c.due||"未設定")+" → "+(due||"未設定"));if(note)changes.push(note);
+ c.stage=stage;c.due=due;c.updated=day();c.history.push({at:day(),text:changes.join("／")});delete detailDrafts[c.id];renderDetail(c.id);announce("対応内容を反映しました（画面内のみ）。");
+});
+$("backDetail").addEventListener("click",()=>{show(back);announce("");});
+document.addEventListener("click",e=>{
+ const b=e.target.closest("button");if(!b)return;
+ if(b.dataset.open){show(b.dataset.open);announce("");}
+ else if(b.dataset.taskFilter){taskFilter=b.dataset.taskFilter;renderHome();}
+ else if(b.dataset.case)openCase(b.dataset.case);
+ else if(b.dataset.school&&schoolFor(b.dataset.school)){show("entry");$("entrySchool").value=b.dataset.school;saveDraft();masterPreview();announce("");}
+ else if(b.dataset.schoolCases&&schoolFor(b.dataset.schoolCases)){show("cases");$("caseSearch").value=schoolFor(b.dataset.schoolCases).name;$("caseFilter").value="all";renderCases();announce("");}
+});
+selectRep(reps[0]);
+})();
+</script>
+</body>
+</html>
