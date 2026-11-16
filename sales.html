@@ -158,8 +158,8 @@ function selectRep(next){
  $("schoolSearch").value="";$("caseSearch").value="";$("caseFilter").value="open";restoreDraft();show("home");announce("");
 }
 function openCase(id){
- if(!findCase(id))return;
- back=view==="detail"?"cases":view;opened=id;show("detail");announce("");
+ if(!findCase(id)||view==="detail")return;
+ back=view;opened=id;show("detail");announce("");
 }
 $("rep").innerHTML=reps.map(r=>option(r,r)).join("");
 $("detailStage").innerHTML=stages.map(s=>option(s,s)).join("");
@@ -196,7 +196,11 @@ document.addEventListener("click",e=>{
  if(b.dataset.open){show(b.dataset.open);announce("");}
  else if(b.dataset.taskFilter){taskFilter=b.dataset.taskFilter;renderHome();}
  else if(b.dataset.case)openCase(b.dataset.case);
- else if(b.dataset.school&&schoolFor(b.dataset.school)){show("entry");$("entrySchool").value=b.dataset.school;saveDraft();masterPreview();announce("");}
+ else if(b.dataset.school&&schoolFor(b.dataset.school)){
+  show("entry");
+  if($("entrySchool").value&&$("entrySchool").value!==b.dataset.school&&($("entryNote").value.trim()||$("entryQty").value)){announce("別の学校の入力途中の下書きがあります。学校と依頼内容を確認してから変更してください。");return;}
+  $("entrySchool").value=b.dataset.school;saveDraft();masterPreview();announce("");
+ }
  else if(b.dataset.schoolCases&&schoolFor(b.dataset.schoolCases)){show("cases");$("caseSearch").value=schoolFor(b.dataset.schoolCases).name;$("caseFilter").value="all";renderCases();announce("");}
 });
 selectRep(reps[0]);
