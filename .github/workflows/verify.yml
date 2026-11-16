@@ -5,6 +5,8 @@ on:
     paths:
       - index.html
       - staff.html
+      - sales.html
+      - tests/check-sales-browser.cjs
       - tests/verify.cjs
       - tests/check-data-model.cjs
       - tests/fixtures/workflow-demo.json
@@ -16,6 +18,8 @@ on:
     paths:
       - index.html
       - staff.html
+      - sales.html
+      - tests/check-sales-browser.cjs
       - tests/verify.cjs
       - tests/check-data-model.cjs
       - tests/fixtures/workflow-demo.json
@@ -39,3 +43,5 @@ jobs:
         run: |
           node tests/verify.cjs
           node tests/check-data-model.cjs
+      - name: Check sales workspace in Chrome (desktop and mobile widths)
+        run: node tests/check-sales-browser.cjs
