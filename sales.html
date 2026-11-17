@@ -223,6 +223,8 @@ window.addEventListener("message",e=>{
  if(!c||c.stage!==p.stage||(p.maker&&activeGroup(c)?.maker!==p.maker)){pendingWindow=null;return;}
  if(e.data.type==="tanaka-draft-ready")p.win.postMessage({type:"tanaka-draft-fill",token:p.token,data:p.pack},window.location.origin);
  if(e.data.type==="tanaka-draft-loaded"&&e.data.token===p.token){
+  // 読み込み中に商品欄を変更したら古い下書きを確認済みにしない。
+  if(p.stage==="見積書の準備"&&workDrafts[c.id]?.items){pendingWindow=null;if(rep===c.rep&&view==="detail"&&opened===c.id)workMsg("商品情報が変更されたため、古い帳票は使用せず、もう一度作成してください。");return;}
   c.prepared=p.stage;pendingWindow=null;
   if(rep===c.rep&&view==="detail"&&opened===c.id){renderWork(c);workMsg("下書きを引き継ぎました。別タブで確認してから次の仕事へ進んでください。");}
  }
