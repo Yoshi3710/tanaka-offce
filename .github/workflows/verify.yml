@@ -6,6 +6,7 @@ on:
       - index.html
       - staff.html
       - sales.html
+      - ocr.html
       - tests/check-sales-browser.cjs
       - tests/check-sales-handoff.cjs
       - tests/verify.cjs
@@ -20,6 +21,7 @@ on:
       - index.html
       - staff.html
       - sales.html
+      - ocr.html
       - tests/check-sales-browser.cjs
       - tests/check-sales-handoff.cjs
       - tests/verify.cjs
