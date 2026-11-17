@@ -77,6 +77,7 @@ const reps=["大田","会野","藤井","長谷","恩田","社長"];
 const stages=["受付内容の確認","見積書の準備","学校への返信","注文内容の確認","メーカー発注の準備","納期の確認","出荷情報の入力","納品書の準備","請求内容の確認","完了","学校からの注文待ち"];
 const names=["みどり中学校","つばさ小学校","ひかり中学校","しらかば小学校","あおぞら中学校","さくら小学校","わかば小学校"];
 const schools=names.map((name,i)=>({id:"S"+(i+1),name:"架空・"+name,rep:reps[i%reps.length],address:"架空県サンプル市"+(i+1)+"丁目",phone:"000-0000-"+String(i+1).padStart(4,"0")}));
+const suppliers=[{name:"架空・教材メーカーA",phone:"000-0000-0101",fax:"000-0000-0102",code:"DEMO-A"},{name:"架空・教材メーカーB",phone:"000-0000-0201",fax:"000-0000-0202",code:"DEMO-B"},{name:"エデュース",phone:"",fax:"",code:""}];
 function day(offset=0){const d=new Date();d.setDate(d.getDate()+offset);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
 const cases=schools.map((s,i)=>({id:"DEMO-"+String(i+1).padStart(3,"0"),school:s.id,rep:s.rep,method:i%2?"電話":"FAX",kind:[0,4].includes(i)?"見積依頼":"注文",qty:20+i*5,note:"架空の教材セット "+(20+i*5)+"点",stage:stages[[1,5,3,6,2,4,9][i]],due:day(i%3-1),updated:day(-i),history:[{at:day(-i),text:"試作用の受付記録"}]}));
 // 商品単位で出荷・納品を管理する。架空の複数メーカー例は藤井の案件。
@@ -204,7 +205,7 @@ function openWorkspace(kind,archiveId){
 window.addEventListener("message",e=>{
  if(!workspace||e.origin!==window.location.origin||e.origin==="null"||e.source!==workspace.win||!e.data)return;
  const p=workspace,m=e.data;
- if(m.type==="tanaka-workspace-ready"){p.win.postMessage({type:"tanaka-workspace-init",token:p.token,rep:p.rep,data:p.data},e.origin);return;}
+ if(m.type==="tanaka-workspace-ready"){p.win.postMessage({type:"tanaka-workspace-init",token:p.token,rep:p.rep,data:p.data,schools:schools.filter(s=>s.rep===p.rep),suppliers},e.origin);return;}
  if(m.token!==p.token)return;
  if(m.type==="tanaka-workspace-loaded"){p.loaded=true;return;}
  if(m.type!=="tanaka-workspace-save"||!p.loaded)return;
@@ -287,7 +288,7 @@ function total(c,key){return products(c).reduce((n,p)=>n+Number(p[key]||0),0);}
 function validProduct(p){return p.maker.trim()&&p.name.trim()&&/^[0-9]+$/.test(p.qty)&&Number(p.qty)>=1&&Number(p.qty)<=99999&&/^[0-9]+$/.test(p.price)&&Number(p.price)<=99999999;}
 function editFields(c){
  const rows=(workDrafts[c.id]||{}).items||products(c);
- return '<p class="hint">注文内容を品目ごとに入力します。同じメーカー名の商品は自動で一つの発注書にまとまります。</p>'+rows.map((p,i)=>'<div class="product-line"><div class="line-head"><strong>商品 '+(i+1)+'</strong>'+(rows.length>1?'<button type="button" data-remove-line="'+i+'">削除</button>':'')+'</div><div class="fields">'+productFields.map(([k,label])=>'<label'+(k==="maker"||k==="name"?' class="full"':'')+'>'+esc(label)+'<input data-line="'+i+'" data-work="'+k+'" '+(k==="qty"||k==="price"?'type="number" min="'+(k==="qty"?1:0)+'" max="'+(k==="qty"?99999:99999999)+'" step="1" inputmode="numeric"':'maxlength="160"')+' value="'+esc(p[k]??"")+'"></label>').join("")+'</div></div>').join("")+'<button type="button" id="addProduct">＋ 商品を追加</button><p class="hint">最大30品目。販売単価は学校向けの税抜価格です。</p>';
+ return '<datalist id="supplierOptions">'+suppliers.map(s=>option(s.name,s.name)).join("")+'</datalist><p class="hint">注文内容を品目ごとに入力します。同じメーカー名の商品は自動で一つの発注書にまとまります。</p>'+rows.map((p,i)=>'<div class="product-line"><div class="line-head"><strong>商品 '+(i+1)+'</strong>'+(rows.length>1?'<button type="button" data-remove-line="'+i+'">削除</button>':'')+'</div><div class="fields">'+productFields.map(([k,label])=>'<label'+(k==="maker"||k==="name"?' class="full"':'')+'>'+esc(label)+'<input data-line="'+i+'" data-work="'+k+'" '+(k==="maker"?'list="supplierOptions" ':"")+(k==="qty"||k==="price"?'type="number" min="'+(k==="qty"?1:0)+'" max="'+(k==="qty"?99999:99999999)+'" step="1" inputmode="numeric"':'maxlength="160"')+' value="'+esc(p[k]??"")+'"></label>').join("")+'</div></div>').join("")+'<button type="button" id="addProduct">＋ 商品を追加</button><p class="hint">最大30品目。販売単価は学校向けの税抜価格です。</p>';
 }
 function getDraftItems(c){const d=workDrafts[c.id]??={};return d.items??=products(c).map(p=>({...p}));}
 function saveWork(c){
@@ -341,7 +342,8 @@ function openDocument(c,kind){
   return;
  }
  const number=c.id.replace("DEMO-",""),maker=kind==="order"?g.maker:gs.length===1?gs[0].maker:"複数（明細参照）";
- const pack={type:kind,rep:c.rep,school:s.name,schoolAddress:s.address,schoolTel:s.phone,maker,date:day(),operator:c.rep,reference:"DEMO-O-"+number,quoteNumber:kind==="quote"?"DEMO-Q-"+number:"",number:kind==="order"?"DEMO-PO-"+number+(gs.length>1?"-"+(g.index+1):""):kind==="delivery"?"DEMO-D-"+number+"-"+c.batch:kind==="invoice"?"DEMO-I-"+number:"",serviceDate:kind==="delivery"?c.shipDate||"":"",items:rows.map(p=>({sku:p.sku,name:p.name,spec:p.spec||"",qty:String(kind==="delivery"?p.pending:kind==="invoice"?p.delivered:Number(p.qty)),unit:"個",price:kind==="order"?"":p.price,note:[p.note||"",kind==="quote"&&gs.length>1?"発売元："+p.maker:""].filter(Boolean).join("／"),deliveryDate:""})),memo:"試作案件 "+c.id};
+ const supplier=suppliers.find(x=>x.name===maker);
+ const pack={type:kind,rep:c.rep,school:s.name,schoolAddress:s.address,schoolTel:s.phone,maker,makerTel:supplier?.phone||"",makerFax:supplier?.fax||"",makerCode:supplier?.code||"",date:day(),operator:c.rep,reference:"DEMO-O-"+number,quoteNumber:kind==="quote"?"DEMO-Q-"+number:"",number:kind==="order"?"DEMO-PO-"+number+(gs.length>1?"-"+(g.index+1):""):kind==="delivery"?"DEMO-D-"+number+"-"+c.batch:kind==="invoice"?"DEMO-I-"+number:"",serviceDate:kind==="delivery"?c.shipDate||"":"",items:rows.map(p=>({sku:p.sku,name:p.name,spec:p.spec||"",qty:String(kind==="delivery"?p.pending:kind==="invoice"?p.delivered:Number(p.qty)),unit:"個",price:kind==="order"?"":p.price,note:[p.note||"",kind==="quote"&&gs.length>1?"発売元："+p.maker:""].filter(Boolean).join("／"),deliveryDate:""})),memo:"試作案件 "+c.id};
  const win=window.open("index.html?fromSales=1","_blank");
  if(!win){workMsg("別タブが開けません。ポップアップの許可を確認してください。");return;}
  pendingWindow={win,caseId:c.id,rep:c.rep,stage:c.stage,maker:kind==="order"?g.maker:"",pack,token:Date.now()+"-"+Math.random()};
