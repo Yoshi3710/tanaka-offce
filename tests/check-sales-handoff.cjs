@@ -18,7 +18,7 @@ w.confirm=()=>true;
 function click(sel){const b=d.querySelector(sel);ok(b,"missing "+sel);b.click();}
 function set(id,v){$(id).value=v;$(id).dispatchEvent(new w.Event("change",{bubbles:true}));}
 function field(key,v){const e=d.querySelector('[data-work="'+key+'"]');ok(e,"missing "+key);e.value=v;e.dispatchEvent(new w.Event("input",{bubbles:true}));}
-async function draft(type,rep,school,qty,number){
+async function draft(type,rep,school,qty,number,expectedLines,expectedMaker){
  click("#nextWork");ok(popup,"popup opened");
  await wait(()=>!!popup&&!popup.closed&&popup.document.querySelector(".notice")?.textContent.includes("下書きを読み込みました"),"handoff not loaded: "+type);
  const pd=popup.document;
@@ -27,6 +27,12 @@ async function draft(type,rep,school,qty,number){
  ok(pd.getElementById("school").value===school,"school "+school);
  ok(pd.querySelector('#paper [data-col="qty"]')?.value===String(qty)||pd.querySelector('#items [data-col="qty"]')?.value===String(qty),"quantity "+type);
  ok(pd.getElementById(type==="quote"?"quoteNumber":"number").value===number,"document number "+type);
+ if(expectedLines){
+  const editor=type==="quote"||type==="order"?pd.getElementById("paper"):pd.getElementById("items");
+  const lines=Array.from(editor.querySelectorAll('[data-col="sku"]')).filter(e=>e.value).map(e=>({sku:e.value,qty:editor.querySelector('[data-row="'+e.dataset.row+'"][data-col="qty"]').value}));
+  ok(JSON.stringify(lines)===JSON.stringify(expectedLines),"exact manufacturer/quantity lines: "+JSON.stringify(lines));
+ }
+ if(expectedMaker)ok(pd.getElementById("maker").value===expectedMaker,"maker "+expectedMaker);
  await wait(()=>!!$("reopenDoc"),"ack not received "+type);
  popup.close();popup=null;
 }
@@ -49,7 +55,31 @@ await draft("delivery","大田","架空・みどり中学校",12,"DEMO-D-001-2")
 click("#nextWork");ok($("workPanel").textContent.includes("納品確認済み：20 点"),"all delivered");
 await draft("invoice","大田","架空・みどり中学校",20,"DEMO-I-001");
 click("#nextWork");ok($("workPanel").textContent.includes("この案件は完了"),"completed");
-out.textContent="PASS: quotation, order, split delivery, invoice and scoped handoff";
+// 藤井：3品目、2メーカーを発注先ごとに分けて処理。
+set("rep","藤井");
+click('#taskRows [data-case="DEMO-003"]');
+ok(d.querySelectorAll('[data-work="maker"]').length===3,"three initial lines");
+click("#addProduct");ok(d.querySelectorAll('[data-work="maker"]').length===4,"add fourth");
+click('[data-remove-line="3"]');ok(d.querySelectorAll('[data-work="maker"]').length===3,"remove fourth");
+click("#nextWork");
+ok($("workPanel").textContent.includes("メーカー別の発注書：2社"),"two automatically grouped suppliers");
+const a="架空・教材メーカーA",b="架空・教材メーカーB",school="架空・ひかり中学校",who="藤井";
+const A1={sku:"DEMO-A01",qty:"10"},A2={sku:"DEMO-A02",qty:"10"},B1={sku:"DEMO-B01",qty:"10"};
+await draft("order",who,school,10,"DEMO-PO-003-1",[A1,A2],a);
+click("#nextWork");ok($("workPanel").textContent.includes("現在の発注先："+b),"second maker guided");ok($("workPanel").textContent.includes("2品目 ／ 20点 ／ 確認済み"),"first maker confirmed");
+await draft("order",who,school,10,"DEMO-PO-003-2",[B1],b);
+click("#nextWork");
+field("eta","2026-12-30");field("eta1","2026-12-31");click("#nextWork");
+field("shipQty","6");field("shipQty1","11");click("#nextWork");ok($("workFeedback").textContent.includes("未出荷数量"),"per-line excess rejected");
+field("shipQty1","4");click("#nextWork");
+await draft("delivery",who,school,6,"DEMO-D-003-1",[{sku:"DEMO-A01",qty:"6"},{sku:"DEMO-A02",qty:"4"}]);
+click("#nextWork");ok($("workPanel").textContent.includes("未出荷 20 点"),"remaining each line");
+field("shipQty","4");field("shipQty1","6");field("shipQty2","10");click("#nextWork");
+await draft("delivery",who,school,4,"DEMO-D-003-2",[{sku:"DEMO-A01",qty:"4"},{sku:"DEMO-A02",qty:"6"},B1]);
+click("#nextWork");ok($("workPanel").textContent.includes("納品確認済み：30 点"),"all products delivered");
+await draft("invoice",who,school,10,"DEMO-I-003",[A1,A2,B1]);
+click("#nextWork");ok($("workPanel").textContent.includes("この案件は完了"),"multi completed");
+out.textContent="PASS: single and multi manufacturer orders, per-item split delivery and invoice";
 })().catch(e=>{document.getElementById("result").textContent="FAIL "+String(e.stack||e);});
 `;
 const harness='<!doctype html><meta charset="utf-8"><pre id="result">PENDING</pre><iframe id="sales" src="/sales.html" width="1280" height="900"></iframe><script>const f=document.getElementById("sales");f.addEventListener("load",()=>{'+browserTest+'});<\/script>';
