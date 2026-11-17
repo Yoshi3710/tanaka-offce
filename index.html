@@ -442,12 +442,12 @@ if(window.opener&&window.location&&window.location.origin!=="null"&&new URLSearc
  window.addEventListener("message",function(e){
   if(received||touched||e.source!==source||e.origin!==origin||!e.data||e.data.type!=="tanaka-draft-fill"||typeof e.data.token!=="string")return;
   var d=e.data.data;
-  if(!d||!["quote","order","delivery","invoice"].includes(d.type)||!reps.includes(d.rep)||typeof d.school!=="string"||!d.school.startsWith("架空・")||!Array.isArray(d.items)||d.items.length!==1||!d.items[0]||typeof d.items[0]!=="object")return;
+  if(!d||!["quote","order","delivery","invoice"].includes(d.type)||!reps.includes(d.rep)||typeof d.school!=="string"||!d.school.startsWith("架空・")||!Array.isArray(d.items)||d.items.length<1||d.items.length>30||!d.items.every(function(it){return it&&typeof it==="object"&&!Array.isArray(it);}))return;
   var next=Object.assign({},s);
   keys.forEach(function(k){if(typeof d[k]==="string")next[k]=d[k].slice(0,1000);});
   next.type=d.type;next.rep=d.rep;
   next.items=d.items.map(function(it){var o={};["sku","name","spec","qty","unit","price","note","deliveryDate"].forEach(function(k){o[k]=typeof it[k]==="string"?it[k].slice(0,1000):"";});return o;});
-  if(!/^[0-9]+$/.test(next.items[0].qty)||Number(next.items[0].qty)<1||Number(next.items[0].qty)>99999)return;
+  if(!next.items.every(function(it){return it.name.trim()&&/^[0-9]+$/.test(it.qty)&&Number(it.qty)>=1&&Number(it.qty)<=99999&&(d.type==="order"||(/^[0-9]+$/.test(it.price)&&Number(it.price)<=99999999));}))return;
   received=true;s=next;sync();
   document.removeEventListener("input",touch,true);document.removeEventListener("change",touch,true);document.removeEventListener("click",touch,true);
   notice.textContent="営業画面の架空案件から下書きを読み込みました。帳票の確認・印刷・JSON保存ができます。この画面での修正は営業画面へ自動反映されません。正式な受発注・送信は行いません。";
