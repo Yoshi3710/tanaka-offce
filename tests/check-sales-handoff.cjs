@@ -79,7 +79,58 @@ await draft("delivery",who,school,4,"DEMO-D-003-2",[{sku:"DEMO-A01",qty:"4"},{sk
 click("#nextWork");ok($("workPanel").textContent.includes("納品確認済み：30 点"),"all products delivered");
 await draft("invoice",who,school,10,"DEMO-I-003",[A1,A2,B1]);
 click("#nextWork");ok($("workPanel").textContent.includes("この案件は完了"),"multi completed");
-out.textContent="PASS: single and multi manufacturer orders, per-item split delivery and invoice";
+
+// 直接帳票作成→仮保管→再編集→案件へ引き継ぎ
+set("rep","大田");
+click('[data-workspace="document"]');ok(popup,"manual workspace opens");
+await wait(()=>popup.document.getElementById("workspaceSave")&&!popup.document.getElementById("workspaceSave").classList.contains("hidden"),"manual workspace ready");
+let pd=popup.document;popup.confirm=()=>true;
+function pset(id,v,event="change"){const el=pd.getElementById(id);ok(el,"missing "+id);el.value=v;el.dispatchEvent(new popup.Event(event,{bubbles:true}));}
+pset("workspaceSchool","0");pset("workspaceMaker","0");
+ok(pd.getElementById("school").value==="架空・みどり中学校","school master");
+ok(pd.getElementById("makerCode").value==="DEMO-A","supplier master");
+pset("type","quote");pset("quoteNumber","Q-DIRECT-1","input");
+function pfield(k,v){const el=pd.querySelector('#paper [data-row="0"][data-col="'+k+'"]');ok(el,"missing document product "+k);el.value=v;el.dispatchEvent(new popup.Event("input",{bubbles:true}));}
+pfield("sku","TEST-DIRECT");pfield("name","架空の手動教材");pfield("qty","7");pfield("price","300");
+pd.getElementById("workspaceSave").click();
+await wait(()=>$("archiveCount").textContent==="1","direct document saved");
+popup.close();popup=null;click('[data-open="archive"]');
+ok($("archiveRows").textContent.includes("見積書")&&$("archiveRows").textContent.includes("架空・みどり中学校"),"archive listing");
+click('[data-archive-open="ARCH-001"]');
+await wait(()=>popup?.document.getElementById("quoteNumber")?.value==="Q-DIRECT-1","restore quote number");
+pd=popup.document;ok(pd.querySelector('#paper [data-row="0"][data-col="sku"]').value==="TEST-DIRECT","restore product");ok(pd.getElementById("school").value==="架空・みどり中学校","restore school");
+popup.close();popup=null;
+click('[data-archive-next="ARCH-001"]');
+ok($("workPanel").textContent.includes("見積書を作成する"),"archive routed to draft quote");
+ok(d.querySelector('[data-line="0"][data-work="sku"]').value==="TEST-DIRECT","manual item transferred");
+ok($("detailContent").textContent.includes("ARCH-001"),"source document linked");
+click('[data-tab="home"]');
+// 元OTAを統合した画面。外部CDNなしの手動確認経路で帳票作成・保管・復元を検証。
+// OCR認識そのものは実画像を使う別検査が必要。
+click('[data-workspace="ocr"]');
+await wait(()=>popup?.document.getElementById("schoolMasterBox")&&!popup.document.getElementById("schoolMasterBox").hidden,"ocr workspace ready");
+pd=popup.document;popup.confirm=()=>true;pd.getElementById("manualCreateBtn").click();
+pset("schoolMasterChoice","0");
+pset("teacherName","架空担当者","input");pset("schoolPostal","000-0000","input");
+const fields=[...pd.querySelector("#rowsBody tr").querySelectorAll("input,select")];
+for(const [i,v] of [[0,"1年"],[1,"美術"],[3,"131801"],[4,"イエロー"],[5,"12"]]){fields[i].value=v;fields[i].dispatchEvent(new popup.Event("input",{bubbles:true}));fields[i].dispatchEvent(new popup.Event("change",{bubbles:true}));}
+pd.getElementById("makeBtn").click();
+ok(!pd.getElementById("archiveOrder").disabled,"ocr validated preview");
+pd.getElementById("archiveOrder").click();
+await wait(()=>$("archiveCount").textContent==="2","ocr order archived");
+popup.close();popup=null;click('[data-open="archive"]');
+ok($("archiveRows").textContent.includes("エデュース発注書"),"ocr archived label");
+click('[data-archive-open="ARCH-002"]');
+await wait(()=>popup?.document.querySelector("#rowsBody tr")?.querySelectorAll("input,select")[3].value==="131801","ocr restore rows");
+popup.close();popup=null;
+click('[data-archive-next="ARCH-002"]');
+ok($("workPanel").textContent.includes("注文内容を確認する"),"ocr routed to order check");
+ok(d.querySelector('[data-line="0"][data-work="sku"]').value==="131801","ocr item transferred");
+ok(d.querySelector('[data-line="0"][data-work="qty"]').value==="12","ocr quantity transferred");
+ok(d.querySelector('[data-line="0"][data-work="price"]').value==="","no invented selling price");
+ok(d.querySelector('[data-line="0"][data-work="note"]').value.includes("美術"),"grade and class retained");
+click('[data-tab="home"]');set("rep","恩田");ok($("archiveCount").textContent==="0","archive isolation");
+out.textContent="PASS: prior workflow plus manual and OTA archive, restore and case linkage";
 })().catch(e=>{document.getElementById("result").textContent="FAIL "+String(e.stack||e);});
 `;
 const harness='<!doctype html><meta charset="utf-8"><pre id="result">PENDING</pre><iframe id="sales" src="/sales.html" width="1280" height="900"></iframe><script>const f=document.getElementById("sales");f.addEventListener("load",()=>{'+browserTest+'});<\/script>';
@@ -87,15 +138,15 @@ const root=path.resolve(".");
 const server=http.createServer((req,res)=>{
  const pathname=new URL(req.url,"http://127.0.0.1").pathname;
  if(pathname==="/test"){res.setHeader("Content-Type","text/html; charset=utf-8");res.end(harness);return;}
- const files={"/sales.html":"sales.html","/index.html":"index.html","/assets/logo.webp":"assets/logo.webp"};
+ const files={"/sales.html":"sales.html","/index.html":"index.html","/assets/logo.webp":"assets/logo.webp","/ocr.html":"ocr.html"};
  if(!files[pathname]){res.writeHead(404);res.end();return;}
- res.setHeader("Content-Type",pathname.endsWith(".webp")?"image/webp":"text/html; charset=utf-8");res.end(fs.readFileSync(path.join(root,files[pathname])));
+ res.setHeader("Content-Type",pathname.endsWith(".webp")?"image/webp":"text/html; charset=utf-8");if(pathname==="/ocr.html"){res.end(fs.readFileSync(path.join(root,files[pathname]),"utf8").replace(/<script src="https:[^"]+"[^>]*><\/script>/g,""));return;}res.end(fs.readFileSync(path.join(root,files[pathname])));
 });
 (async()=>{
  try{
   await new Promise(resolve=>server.listen(0,"127.0.0.1",resolve));
   const port=server.address().port;
-  const args=["--headless","--no-sandbox","--disable-dev-shm-usage","--disable-background-networking","--disable-popup-blocking","--no-first-run","--window-size=1450,1050","--user-data-dir="+path.join(dir,"profile"),"--virtual-time-budget=20000","--dump-dom","http://127.0.0.1:"+port+"/test"];
+  const args=["--headless","--no-sandbox","--disable-dev-shm-usage","--disable-background-networking","--disable-popup-blocking","--no-first-run","--window-size=1450,1050","--user-data-dir="+path.join(dir,"profile"),"--virtual-time-budget=40000","--dump-dom","http://127.0.0.1:"+port+"/test"];
   const result=await new Promise((resolve,reject)=>{
    let stdout="",stderr="";const p=spawn(chrome,args,{stdio:["ignore","pipe","pipe"]});
    const t=setTimeout(()=>{p.kill("SIGKILL");reject(Error("Chrome timeout"));},50000);
