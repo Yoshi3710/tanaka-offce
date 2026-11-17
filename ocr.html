@@ -1,0 +1,1009 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>タナカ 発注書変換システム v2</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<style>
+:root{--bg:#eef4f7;--card:#fff;--line:#cbd5dc;--ink:#172026;--accent:#176b87;--warn:#9a5b00;--bad:#a62424}
+*{box-sizing:border-box} body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans JP","Yu Gothic UI",Meiryo,sans-serif;background:var(--bg);color:var(--ink)}
+header{background:#fff;border-bottom:1px solid var(--line);padding:14px 22px;position:sticky;top:0;z-index:20}
+header h1{font-size:20px;margin:0 0 3px} header p{margin:0;color:#5b6971;font-size:13px}
+main{max-width:1480px;margin:0 auto;padding:18px;display:grid;grid-template-columns:minmax(360px,1fr) minmax(520px,1.45fr);gap:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,.035)}
+h2{font-size:17px;margin:0 0 12px}.muted{color:#6f7d85;font-size:12px}.small{font-size:12px}.row{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+button,.btn{border:1px solid #9eb1bb;background:#fff;color:#18313c;padding:8px 12px;border-radius:8px;cursor:pointer;font-weight:600} button.primary{background:var(--accent);border-color:var(--accent);color:#fff} button.danger{color:var(--bad)} button:disabled{opacity:.5;cursor:not-allowed}
+input,select,textarea{border:1px solid #b9c6cd;border-radius:7px;padding:7px 8px;background:#fff;font:inherit} input[type=file]{width:100%} label{font-size:12px;color:#44535b;display:block;margin-bottom:3px}.field{min-width:130px;flex:1}.field input{width:100%}
+.drop-zone{border:2px dashed #9eb1bb;border-radius:10px;padding:14px;background:#f8fbfc;transition:border-color .15s,background .15s}.drop-zone.dragover{border-color:var(--accent);background:#eef8fb}.drop-hint{margin:0 0 8px;text-align:center;font-size:13px;color:#5b6971}
+.camera-panel{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.9);display:none;align-items:center;justify-content:center;padding:12px}.camera-panel.open{display:flex}.camera-box{width:min(720px,100%);background:#111;border-radius:12px;padding:12px}.camera-stage{position:relative;width:min(88vw,430px);aspect-ratio:1192/1685;margin:0 auto;overflow:hidden;background:#000;border-radius:8px}.camera-stage video{width:100%;height:100%;object-fit:cover;display:block}.camera-guide{position:absolute;inset:0;border:3px solid #fff;border-radius:6px;box-shadow:0 0 0 9999px rgba(0,0,0,.14);pointer-events:none}.camera-guide:before,.camera-guide:after{content:"";position:absolute;inset:8px;border:1px dashed rgba(255,255,255,.75);border-radius:4px}.camera-guide:after{inset:45% 8px auto;height:0;border:0;border-top:1px dashed rgba(255,255,255,.45)}.camera-actions{display:flex;gap:10px;justify-content:center;margin-top:10px;flex-wrap:wrap}.camera-actions button{min-width:120px}.camera-note{color:#fff;text-align:center;font-size:12px;line-height:1.45;margin:0 0 8px}
+.progress{height:9px;border-radius:20px;background:#e5ebee;overflow:hidden;margin:10px 0}.progress>div{height:100%;width:0;background:var(--accent);transition:width .2s}.status{font-size:13px;min-height:20px}.warn{color:var(--warn)}.bad{color:var(--bad)}
+#pages{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;max-height:480px;overflow:auto}.page-thumb{border:1px solid var(--line);border-radius:8px;padding:5px;background:#fafafa}.page-thumb canvas{width:100%;height:auto;display:block}.page-thumb .cap{font-size:11px;color:#69757b;margin-top:4px}
+.table-wrap{overflow:auto;max-height:560px;border:1px solid var(--line);border-radius:8px} table.edit{border-collapse:collapse;width:100%;font-size:12px;background:#fff}.edit th,.edit td{border-bottom:1px solid #e0e6e9;border-right:1px solid #eef1f2;padding:5px}.edit th{position:sticky;top:0;background:#f5f8f9;z-index:2;white-space:nowrap}.edit input,.edit select{width:100%;padding:5px;border-radius:5px}.edit td:nth-child(1){width:66px}.edit td:nth-child(2){width:92px}.edit td:nth-child(3){width:70px}.edit td:nth-child(4){width:90px}.edit td:nth-child(6){width:80px}.chip{display:inline-block;padding:2px 7px;border-radius:14px;background:#e7f0f3;font-size:11px;margin:2px 3px 2px 0}.chip.manual-chip{background:#ffe2a8;color:#7a4300;font-weight:700}.chip.review-chip{background:#ffd5d5;color:#8b1f1f;font-weight:700}.edit tr.manual-edited td{background:#fffaf0}.edit tr.needs-review td{background:#fff4d8}.edit tr.needs-review input{border-color:#d69a25;background:#fffdf5}.danger-chip{background:#fde8e8;color:#8e1f1f}
+.settings{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.settings .wide{grid-column:span 2}.settings .full{grid-column:1/-1}
+.raw{width:100%;height:150px;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11px}
+#previewArea{grid-column:1/-1;min-width:0}.preview-toolbar{margin-bottom:8px}.output-actions{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin:8px 0;position:sticky;left:0;width:max-content;max-width:100%;z-index:3}.output-actions button{min-width:92px}.preview-scroller{overflow:auto;border:1px solid var(--line);border-radius:10px;background:#dbe3e7;padding:14px;max-height:780px;max-width:100%}
+.order-page{width:297mm;height:210mm;background:#fff;margin:0 auto 14px;padding:10mm 9mm 8mm;border:1px solid #aab4b9;box-shadow:0 2px 9px rgba(0,0,0,.08);font-family:"Yu Gothic",Meiryo,sans-serif;color:#111;position:relative}
+.order-topline{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:4mm}.order-title{font-size:16px;font-weight:700;border:1.2px solid #111;padding:2mm 4mm;width:62%}.send-count{font-size:11px}.order-date{font-size:11px;text-align:right;margin-top:1mm}
+.order-head{display:grid;grid-template-columns:2.2fr 1fr;border:1.2px solid #111}.order-head-left{border-right:1.2px solid #111}.head-row{display:grid;border-bottom:1px solid #111;min-height:10mm}.head-row:last-child{border-bottom:0}.head-row.r1{grid-template-columns:1.1fr 1.4fr 1fr}.head-row>div{padding:2mm;border-right:1px solid #111;font-size:11px;display:flex;align-items:center}.head-row>div:last-child{border-right:0}.schoolrow{padding:2mm 3mm;font-size:12px;font-weight:700;text-align:center}.contactrow{padding:1.5mm 3mm;font-size:10.5px;line-height:1.45;text-align:left}
+.vendor{display:grid;grid-template-columns:1fr 1.35fr;min-height:30mm}.vendor-labels,.vendor-values{display:grid;grid-template-rows:repeat(5,1fr)}.vendor-labels div,.vendor-values div{border-bottom:1px solid #111;padding:1.2mm 2mm;font-size:10px}.vendor-labels div:last-child,.vendor-values div:last-child{border-bottom:0}.vendor-labels{border-right:1px solid #111}.vendor-values div{font-weight:700;text-align:center}
+.order-body{display:grid;grid-template-columns:1.7fr 1fr;gap:10mm;margin-top:2mm}.order-table{border-collapse:collapse;width:100%;font-size:10.5px}.order-table th,.order-table td{border:1px solid #111;padding:1mm 1.5mm;height:7mm}.order-table th{text-align:center}.order-table .family{font-size:14px;font-weight:700;text-align:center;width:20mm}.order-table .vert{font-weight:700;text-align:center;width:24mm;line-height:1.35}.order-table .num{text-align:center;font-weight:700}.order-table .sum{font-weight:700;text-align:center}.rightbox{height:65mm;border:1px solid #111;position:relative}.rightbox:after{content:"";position:absolute;left:0;top:0;width:100%;height:100%;background:linear-gradient(to bottom right,transparent 49.7%,#111 50%,transparent 50.3%);pointer-events:none}.contactbox{border:1px solid #111;margin-top:8mm;padding:5mm 4mm;text-align:center;font-size:13px;line-height:2}.contactbox .small{font-size:10px;text-align:left;line-height:1.2}.note{font-size:11px;margin-top:4mm;font-weight:700}.unknown-box{margin-top:4px;padding:8px;border:1px solid #e1baba;background:#fff7f7;font-size:12px}
+footer{max-width:1480px;margin:0 auto;padding:0 18px 22px;color:#6c797f;font-size:11px}
+@media(max-width:980px){main{grid-template-columns:1fr}.settings{grid-template-columns:repeat(2,1fr)}#previewArea{grid-column:auto}.order-page{transform-origin:top left;transform:scale(.72);margin-bottom:-55mm}}
+.order-page.pdf-export{width:257mm;height:170mm;padding:0;border:0;box-shadow:none;margin:0;transform:none!important;overflow:hidden}
+.order-page.pdf-export .order-topline{margin-bottom:1.8mm}
+.order-page.pdf-export .order-title{font-size:21px;padding:1.4mm 3mm}
+.order-page.pdf-export .send-count,.order-page.pdf-export .order-date{font-size:13px}
+.order-page.pdf-export .head-row{min-height:7mm}
+.order-page.pdf-export .head-row>div{padding:1mm 1.4mm;font-size:13px;line-height:1.15}
+.order-page.pdf-export .schoolrow{padding:1mm 2mm;font-size:15px}
+.order-page.pdf-export .contactrow{padding:.8mm 2mm;font-size:13px;line-height:1.2}
+.order-page.pdf-export .vendor{min-height:24mm}
+.order-page.pdf-export .vendor-labels div,.order-page.pdf-export .vendor-values div{padding:.7mm 1.2mm;font-size:12.5px;line-height:1.1}
+.order-page.pdf-export .order-body{grid-template-columns:1.82fr 1fr;gap:5mm;margin-top:1mm}
+.order-page.pdf-export .order-table{font-size:14px;line-height:1.05}
+.order-page.pdf-export .order-table th,.order-page.pdf-export .order-table td{padding:.35mm .8mm;height:5mm}
+.order-page.pdf-export .order-table .family{font-size:16px;width:18mm}
+.order-page.pdf-export .order-table .vert{font-size:14px;width:23mm;line-height:1.15}
+.order-page.pdf-export .rightbox{height:49mm}
+.order-page.pdf-export .contactbox{margin-top:3mm;padding:2.2mm;font-size:15px;line-height:1.35}
+.order-page.pdf-export .contactbox .small{font-size:12px}
+.order-page.pdf-export .note{font-size:13px;margin-top:1.2mm}
+@media print{body{background:#fff}header,main>.card:not(#previewArea),.preview-toolbar,.output-actions,footer{display:none!important}main{display:block;max-width:none;padding:0}#previewArea{border:0;padding:0;box-shadow:none}.preview-scroller{padding:0;border:0;max-height:none;overflow:visible;background:#fff}.order-page{width:257mm;height:170mm;padding:0;border:0;box-shadow:none;margin:0;transform:none!important;overflow:hidden;page-break-after:always;break-after:page}.order-page .order-topline{margin-bottom:1.8mm}.order-page .order-title{font-size:21px;padding:1.4mm 3mm}.order-page .send-count,.order-page .order-date{font-size:13px}.order-page .head-row{min-height:7mm}.order-page .head-row>div{padding:1mm 1.4mm;font-size:13px;line-height:1.15}.order-page .schoolrow{padding:1mm 2mm;font-size:15px}.order-page .contactrow{padding:.8mm 2mm;font-size:13px;line-height:1.2}.order-page .vendor{min-height:24mm}.order-page .vendor-labels div,.order-page .vendor-values div{padding:.7mm 1.2mm;font-size:12.5px;line-height:1.1}.order-page .order-body{grid-template-columns:1.82fr 1fr;gap:5mm;margin-top:1mm}.order-page .order-table{font-size:14px;line-height:1.05}.order-page .order-table th,.order-page .order-table td{padding:.35mm .8mm;height:5mm}.order-page .order-table .family{font-size:16px;width:18mm}.order-page .order-table .vert{font-size:14px;width:23mm;line-height:1.15}.order-page .rightbox{height:49mm}.order-page .contactbox{margin-top:3mm;padding:2.2mm;font-size:15px;line-height:1.35}.order-page .contactbox .small{font-size:12px}.order-page .note{font-size:13px;margin-top:1.2mm}.order-page:last-child{page-break-after:auto}@page{size:A4 landscape;margin:20mm}}
+</style>
+</head>
+<body>
+<header>
+  <h1>タナカ 発注書変換システム <span class="small">v2.0 統合試作版</span></h1><p><strong>架空データ専用：</strong>紙フラットファイル注文書向け。OCR用外部ライブラリを読み込むため実際のFAX・個人情報は使用しないでください。</p><p><a href="sales.html" id="homeLink">担当営業ホームへ戻る</a></p>
+  <p>スキャン注文書 → OCR読み取り → 内容確認 → エデュース向け発注書を学年別に自動編成</p>
+</header>
+<div id="cameraPanel" class="camera-panel" aria-hidden="true">
+  <div class="camera-box">
+    <p class="camera-note">白い枠に用紙の4辺を合わせ、影を避けてできるだけ真上から撮影してください。<br>枠いっぱいに入れるほど読み取り精度が上がります。</p>
+    <div class="camera-stage"><video id="cameraVideo" autoplay playsinline muted></video><div class="camera-guide"></div></div>
+    <div class="camera-actions">
+      <button id="takePhotoBtn" class="primary" type="button">撮影して読み取る</button>
+      <button id="closeCameraBtn" type="button">カメラを閉じる</button>
+    </div>
+  </div>
+</div>
+<main>
+  <section class="card">
+    <h2>① お客さんの注文書を読み込む</h2>
+    <div id="dropZone" class="drop-zone">
+      <p class="drop-hint">PDFまたは画像をここにドロップ、または下からファイルを選択</p>
+      <input id="fileInput" type="file" accept="application/pdf,image/*" />
+      <div class="row" style="margin-top:9px;justify-content:center">
+        <button id="cameraBtn" type="button">📷 カメラを開く</button>
+        <span id="cameraCount" class="muted">撮影 0/6枚（撮影後、自動読取）</span>
+      </div>
+    </div>
+    <div class="row" style="margin-top:9px">
+      <button id="scanBtn" class="primary">OCR読み取り開始</button>
+      <button id="manualCreateBtn">注文書なしで手動作成</button>
+      <button id="sampleBtn">見本データを入れる</button>
+      <button id="clearBtn">クリア</button>
+    </div>
+    <div class="progress"><div id="bar"></div></div>
+    <div id="status" class="status muted">PDFまたは画像を選択してください。</div>
+    <p class="muted">今回は紙フラットファイル発注書の6ページ様式を基準に、表のセル位置から数量を読み取ります。画像はブラウザ内で処理し、この試作版ではサーバーへ保存しません。</p>
+    <div id="pages"></div>
+  </section>
+
+  <section class="card">
+    <h2>② 読み取り結果を確認・修正</h2>
+    <div id="manualModeNotice" class="muted" style="display:none;margin:-3px 0 10px;padding:8px 10px;background:#eef7fb;border:1px solid #bdd6e1;border-radius:7px">手動作成モード：学校情報と明細を直接入力してください。</div>
+    <div class="row" style="margin-bottom:8px">
+      <div class="field"><label>学校名</label><input id="schoolName" placeholder="自動読取"></div>
+      <div class="field"><label>担当者</label><input id="teacherName" placeholder="自動読取"></div>
+      <div class="field"><label>所属／受取場所</label><input id="schoolOffice" value="事務室" placeholder="例：事務室"></div>
+    </div>
+    <div class="muted" style="margin:-2px 0 8px">学校情報は重要項目です。自動読取後、原票と照合して表示します。</div>
+    <div class="row" style="margin-bottom:8px">
+      <div class="field"><label>学校郵便番号</label><input id="schoolPostal" inputmode="numeric" placeholder="自動補完"></div>
+      <div class="field" style="flex:2"><label>学校住所</label><input id="schoolAddress" placeholder="自動読取"></div>
+      <div class="field"><label>学校電話番号</label><input id="schoolTel" inputmode="tel" placeholder="自動読取／補完"></div>
+    </div>
+    <div class="table-wrap">
+      <table class="edit">
+        <thead><tr><th>学年</th><th>教科</th><th>規格</th><th>品番</th><th>色</th><th>数量</th><th>状態</th><th></th></tr></thead>
+        <tbody id="rowsBody"></tbody>
+      </table>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <button id="addRowBtn">＋ 行を追加</button>
+      <button id="dedupeBtn">同一行を合算</button>
+      <button id="makeBtn" class="primary">③ 発注書を作成</button><button id="archiveOrder" type="button" disabled>帳票を営業画面に保管する</button><span id="archiveStatus" role="status" class="muted"></span>
+    </div>
+    <div id="warnings"></div>
+    <details style="margin-top:10px"><summary class="small">読み取り詳細を確認</summary><textarea id="rawText" class="raw" readonly></textarea></details>
+  </section>
+
+  <section class="card">
+    <h2>発注書 共通設定</h2>
+    <div class="settings">
+      <div class="field"><label>年度</label><input id="year" value="2026"></div>
+      <div class="field"><label>発注日</label><input id="orderDate" type="date"></div>
+      <div class="field"><label>学校直送コード</label><input id="schoolCode" value="DEMO-SCHOOL"></div>
+      <div class="field"><label>販売店名</label><input id="vendorName" value="(株)タナカ"></div>
+      <div class="field"><label>販売店コード</label><input id="vendorCode" value="DEMO-VENDOR"></div>
+      <div class="field"><label>ご注文者</label><input id="orderer" value="大田"></div>
+      <div class="field"><label>TEL</label><input id="tel" value="06-6997-6030"></div>
+      <div class="field"><label>FAX</label><input id="fax" value="06-6997-6035"></div>
+      <div class="field"><label>配送先表記</label><input id="delivery" value="学校直送"></div>
+    </div>
+    <p class="muted">公開試作では設定を端末に記憶しません。</p>
+    <div class="row"><button id="saveSettings" hidden>設定を保存</button><button id="resetSettings">初期値に戻す</button></div>
+  </section>
+
+  <section id="previewArea" class="card">
+    <div class="preview-toolbar">
+      <div><h2 style="margin-bottom:3px">③ エデュース向け発注書プレビュー</h2><div id="previewInfo" class="muted">まだ作成されていません。</div></div>
+    </div>
+    <div class="output-actions">
+      <button id="printBtn" class="primary" disabled>印刷</button>
+      <button id="pdfBtn" disabled>保管</button>
+    </div>
+    <div id="printArea" class="preview-scroller"><div class="muted">「発注書を作成」を押すと、学年ごとにまとめ、同一品番が重なる場合だけ次ページへ分けて作成します。</div></div>
+    <div class="output-actions">
+      <button id="printBtnBottom" class="primary" disabled>印刷</button>
+      <button id="pdfBtnBottom" disabled>保管</button>
+    </div>
+  </section>
+</main>
+<footer>試作版 v2.0｜OCR結果は必ず確認してから発注してください。未対応の商品コードは警告表示します。</footer>
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+const $=id=>document.getElementById(id);
+const MASTER={
+  '131801':{family:'A4S',label:'#3 イエロー',color:'イエロー'},'153350':{family:'A4S',label:'#5 オレンジ',color:'オレンジ'},'260143':{family:'A4S',label:'#9 クリーム',color:'クリーム'},'131810':{family:'A4S',label:'#20 ピンク',color:'ピンク'},'131828':{family:'A4S',label:'#24 バイオレット',color:'バイオレット'},'131836':{family:'A4S',label:'#25 ライトブルー',color:'ライトブルー'},'131844':{family:'A4S',label:'#29 グリーン',color:'グリーン'},'131852':{family:'A4S',label:'#36 ブルー',color:'ブルー'},'140932':{family:'A4S',label:'#44 グレー',color:'グレー'},
+  '131860':{family:'B5S',label:'#3 イエロー',color:'イエロー'},'131879':{family:'B5S',label:'#20 ピンク',color:'ピンク'},'131887':{family:'B5S',label:'#24 バイオレット',color:'バイオレット'},'131895':{family:'B5S',label:'#25 ライトブルー',color:'ライトブルー'},'131909':{family:'B5S',label:'#29 グリーン',color:'グリーン'},'131917':{family:'B5S',label:'#36 ブルー',color:'ブルー'},'131925':{family:'B5S',label:'#44 グレー',color:'グレー'},
+  '155290':{family:'A5E',label:'ピンク',color:'ピンク',unsupported:true},'155291':{family:'A5E',label:'黄',color:'黄',unsupported:true},'155292':{family:'A5E',label:'水',color:'水',unsupported:true},'155293':{family:'A5E',label:'緑',color:'緑',unsupported:true},
+  '150182':{family:'B6E',label:'ピンク',color:'ピンク',unsupported:true},'150183':{family:'B6E',label:'黄',color:'黄',unsupported:true},'150184':{family:'B6E',label:'水',color:'水',unsupported:true},'150185':{family:'B6E',label:'緑',color:'緑',unsupported:true}
+};
+const A4_CODES=['131801','153350','260143','131810','131828','131836','131844','131852','140932'];
+const B5_CODES=['131860','131879','131887','131895','131909','131917','131925'];
+const TEMPLATE_COLUMNS=[
+  [{grade:'1年',subject:'英語'},{grade:'1年',subject:'理科'},{grade:'1年',subject:'国語'},{grade:'1年',subject:'美術'},{grade:'1年',subject:'保体'},{grade:'1年',subject:'家庭'}],
+  [{grade:'1年',subject:'地理'},{grade:'1年',subject:'歴史'},{grade:'教務',subject:'教務'},null,null,null],
+  [{grade:'2年',subject:'英語'},{grade:'2年',subject:'社会'},{grade:'2年',subject:'理A'},{grade:'2年',subject:'国A'},{grade:'2年',subject:'国B'},{grade:'2年',subject:'数学'}],
+  [{grade:'2年',subject:'美術'},{grade:'2年',subject:'家庭'},{grade:'2年',subject:'理B'},{grade:'2年',subject:'保体'},{grade:'2年',subject:'特活'},{grade:'2年',subject:'テスト'}],
+  [{grade:'3年',subject:'国語'},{grade:'3年',subject:'数学'},{grade:'3年',subject:'社A'},{grade:'3年',subject:'社B'},{grade:'3年',subject:'理A'},{grade:'3年',subject:'理B'}],
+  [{grade:'3年',subject:'英語'},{grade:'3年',subject:'保体'},{grade:'3年',subject:'家庭'},{grade:'3年',subject:'美術'},{grade:'3年',subject:'クラス'},{grade:'3年',subject:'テスト'}]
+];
+const GRID_BASE={
+  w:1192,h:1685,
+  x:[440,530,631,720,822,912,1002],
+  a4:[454,475,497,519,541,563,585,607,629,650],
+  b5:[697,718,740,762,784,806,828,850]
+};
+const SCHOOL_MASTER=[];
+function schoolKey(s){return String(s||'').normalize('NFKC').replace(/[\s　・|｜"“”'’]/g,'').toLowerCase()}
+function editDistance(a,b){
+  a=schoolKey(a);b=schoolKey(b);
+  const d=Array.from({length:a.length+1},()=>Array(b.length+1).fill(0));
+  for(let i=0;i<=a.length;i++)d[i][0]=i;
+  for(let j=0;j<=b.length;j++)d[0][j]=j;
+  for(let i=1;i<=a.length;i++)for(let j=1;j<=b.length;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));
+  return d[a.length][b.length];
+}
+function findSchoolMaster(s){
+  const raw=String(s||'').normalize('NFKC');
+  const k=schoolKey(raw);
+  const exact=SCHOOL_MASTER.find(x=>x.aliases.some(a=>k.includes(schoolKey(a))));
+  if(exact)return exact;
+  const schoolMatch=raw.match(/[^\s　|｜]{1,30}(?:中学校|小学校|高等学校)/);
+  const target=schoolKey(schoolMatch?schoolMatch[0]:raw);
+  let best=null,bestScore=99;
+  for(const x of SCHOOL_MASTER)for(const a of x.aliases){
+    const ak=schoolKey(a),score=editDistance(target,ak);
+    if(score<bestScore){bestScore=score;best=x}
+  }
+  return bestScore<=3?best:null;
+}
+function applySchoolMaster(source=''){
+  const m=findSchoolMaster(($('schoolName').value||'')+' '+source);
+  if(!m)return false;
+  $('schoolName').value=m.name;
+  $('schoolPostal').value=m.postal;
+  $('schoolAddress').value=m.address;
+  if(!$('schoolTel').value.trim()||$('schoolTel').value.replace(/\D/g,'').length<10)$('schoolTel').value=m.tel;
+  if(!$('schoolOffice').value.trim())$('schoolOffice').value=m.office;
+  return true;
+}
+function cleanOcrAddress(s){
+  return String(s||'').normalize('NFKC')
+    .replace(/[|｜]/g,' ')
+    .replace(/^(?:学校)?住所[:：\s]*/,'')
+    .replace(/発注日.*$/,'')
+    .replace(/担当者.*$/,'')
+    .replace(/["“”'’]/g,'')
+    .replace(/[・●■]/g,'')
+    .replace(/[\s　]+/g,'')
+    .replace(/[ー‐−―]/g,'-')
+    .trim();
+}
+function headerCanvas(source){
+  const c=document.createElement('canvas');
+  c.width=source.width;c.height=Math.max(1,Math.round(source.height*.30));
+  c.getContext('2d').drawImage(source,0,0,source.width,c.height,0,0,c.width,c.height);
+  return c;
+}
+let renderedPages=[]; let detectedRows=[]; let ocrWorker=null; let cameraRawRows=[]; let cameraStream=null; let manualOrderMode=false;
+
+function todayStr(){const d=new Date();return d.toISOString().slice(0,10)}
+$('orderDate').value=todayStr();
+function setStatus(t,cls='muted'){$('status').className='status '+cls;$('status').textContent=t}
+function setBar(p){$('bar').style.width=Math.max(0,Math.min(100,p))+'%'}
+function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function normalizeGrade(s){s=String(s||'').trim(); if(/教務/.test(s))return '教務'; const m=s.match(/([123])\s*年/);return m?m[1]+'年':s}
+function cleanSubject(s){return String(s||'').replace(/[\s　]+/g,'').replace(/^([123])年/,'').trim()}
+function gradeRank(g){return g==='1年'?1:g==='教務'?2:g==='2年'?3:g==='3年'?4:9}
+
+async function renderInput(file){renderedPages=[];$('pages').innerHTML='';
+  if(file.type==='application/pdf'||file.name.toLowerCase().endsWith('.pdf')){
+    const pdf=await pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise;
+    for(let i=1;i<=pdf.numPages;i++){
+      const page=await pdf.getPage(i); const vp=page.getViewport({scale:2.0});
+      const c=document.createElement('canvas'); c.width=vp.width;c.height=vp.height;
+      await page.render({canvasContext:c.getContext('2d'),viewport:vp}).promise;
+      renderedPages.push(c); addThumb(c,i);
+    }
+  }else{
+    const img=await fileToImage(file); const c=document.createElement('canvas'); const scale=Math.min(2,2200/img.width);
+    c.width=Math.round(img.width*scale); c.height=Math.round(img.height*scale); c.getContext('2d').drawImage(img,0,0,c.width,c.height);renderedPages.push(c);addThumb(c,1);
+  }
+}
+function fileToImage(file){return new Promise((res,rej)=>{const im=new Image();im.onload=()=>{URL.revokeObjectURL(im.src);res(im)};im.onerror=rej;im.src=URL.createObjectURL(file)})}
+function addThumb(c,i){const d=document.createElement('div');d.className='page-thumb';const cc=document.createElement('canvas');cc.width=c.width;cc.height=c.height;cc.getContext('2d').drawImage(c,0,0);d.appendChild(cc);const cap=document.createElement('div');cap.className='cap';cap.textContent=`${i}ページ`;d.appendChild(cap);$('pages').appendChild(d)}
+
+async function getWorker(){if(ocrWorker)return ocrWorker;setStatus('日本語OCRエンジンを準備しています…');ocrWorker=await Tesseract.createWorker('jpn+eng',1,{logger:m=>{if(m.progress!=null)setBar(Math.round(m.progress*15));}});return ocrWorker}
+
+const HEADER_RECTS={
+  school:{x0:245,y0:225,x1:815,y1:264},
+  address:{x0:245,y0:264,x1:815,y1:304},
+  teacher:{x0:240,y0:306,x1:470,y1:345},
+  tel:{x0:400,y0:306,x1:660,y1:345}
+};
+function cropHeaderCell(source,rect,scale=6,threshold=185){
+  const sx=source.width/GRID_BASE.w,sy=source.height/GRID_BASE.h;
+  const x0=Math.round(rect.x0*sx),y0=Math.round(rect.y0*sy),x1=Math.round(rect.x1*sx),y1=Math.round(rect.y1*sy);
+  const w=Math.max(1,x1-x0),h=Math.max(1,y1-y0);
+  const out=document.createElement('canvas');out.width=w*scale;out.height=h*scale;
+  const ctx=out.getContext('2d',{willReadFrequently:true});
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,out.width,out.height);
+  ctx.drawImage(source,x0,y0,w,h,0,0,out.width,out.height);
+  const im=ctx.getImageData(0,0,out.width,out.height),d=im.data;
+  for(let i=0;i<d.length;i+=4){
+    const g=.299*d[i]+.587*d[i+1]+.114*d[i+2];
+    const v=g<threshold?0:255;d[i]=d[i+1]=d[i+2]=v;
+  }
+  ctx.putImageData(im,0,0);
+  return out;
+}
+function cleanHeaderValue(s){
+  return String(s||'').normalize('NFKC').replace(/[|｜]/g,' ').replace(/[“”"'’]/g,'').replace(/[\s　]+/g,' ').trim();
+}
+function cleanTeacherValue(s){
+  return cleanHeaderValue(s)
+    .replace(/^(担当者|担当)[:：\s]*/,'')
+    .replace(/\s*(先生|様)\s*$/,'')
+    .replace(/[^\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}々ヶヵー]/gu,'')
+    .trim();
+}
+function chooseBestCandidate(items,kind){
+  const valid=items.filter(x=>x.value);
+  if(!valid.length)return '';
+  const freq=new Map();
+  for(const x of valid)freq.set(x.value,(freq.get(x.value)||0)+1);
+  return valid.sort((a,b)=>{
+    const fa=freq.get(a.value)||0,fb=freq.get(b.value)||0;
+    if(fa!==fb)return fb-fa;
+    if(kind==='teacher'){
+      const al=a.value.length>=3&&a.value.length<=8?1:0,bl=b.value.length>=3&&b.value.length<=8?1:0;
+      if(al!==bl)return bl-al;
+    }
+    return (b.confidence||0)-(a.confidence||0);
+  })[0].value;
+}
+async function recognizeHeaderVariants(worker,source,rect,cleaner,thresholds=[170,185,200]){
+  const items=[];
+  for(const threshold of thresholds){
+    const r=await worker.recognize(cropHeaderCell(source,rect,6,threshold));
+    items.push({value:cleaner(r.data.text||''),confidence:r.data.confidence||0});
+  }
+  return items;
+}
+function cleanTelValue(s){
+  const t=String(s||'').normalize('NFKC').replace(/[ー‐−―]/g,'-');
+  const m=t.match(/0[0-9\-\s]{8,15}/);
+  if(!m)return '';
+  const digits=m[0].replace(/\D/g,'');
+  if(digits.length===10){
+    if(/^(03|06)/.test(digits))return digits.replace(/^(\d{2})(\d{4})(\d{4})$/,'$1-$2-$3');
+    return digits.replace(/^(\d{3})(\d{3})(\d{4})$/,'$1-$2-$3');
+  }
+  if(digits.length===11)return digits.replace(/^(\d{3})(\d{4})(\d{4})$/,'$1-$2-$3');
+  return '';
+}
+async function readSchoolHeaderCells(worker,source){
+  const out={school:'',address:'',teacher:'',tel:''};
+  await worker.setParameters({tessedit_char_whitelist:'',tessedit_pageseg_mode:'7'});
+
+  const schoolItems=await recognizeHeaderVariants(worker,source,HEADER_RECTS.school,s=>{
+    const v=cleanHeaderValue(s).replace(/^(発注元|学校名)[:：\s]*/,'').replace(/[\s　]+/g,'');
+    return /(中学校|小学校|高等学校)/.test(v)?v:'';
+  });
+  out.school=chooseBestCandidate(schoolItems,'school');
+
+  const addressItems=await recognizeHeaderVariants(worker,source,HEADER_RECTS.address,s=>{
+    const v=cleanOcrAddress(s);
+    return /\d/.test(v)?v:'';
+  });
+  out.address=chooseBestCandidate(addressItems,'address');
+
+  const teacherItems=await recognizeHeaderVariants(worker,source,HEADER_RECTS.teacher,cleanTeacherValue,[160,180,200]);
+  out.teacher=chooseBestCandidate(teacherItems,'teacher');
+
+  await worker.setParameters({tessedit_char_whitelist:'0123456789-',tessedit_pageseg_mode:'7'});
+  const telItems=await recognizeHeaderVariants(worker,source,HEADER_RECTS.tel,cleanTelValue,[160,185,205]);
+  out.tel=chooseBestCandidate(telItems,'tel');
+
+  if(out.school)$('schoolName').value=out.school;
+  if(out.address&&/[市区町村]/.test(out.address)&&/\d/.test(out.address))$('schoolAddress').value=out.address;
+  if(out.teacher)$('teacherName').value=out.teacher;
+  if(out.tel)$('schoolTel').value=out.tel;
+  if(!$('schoolOffice').value.trim())$('schoolOffice').value='事務室';
+
+  applySchoolMaster(out.school+' '+out.address);
+  updateWarnings();
+  return out;
+}
+
+function extractHeaderFields(text){
+  text=String(text||'').normalize('NFKC').replace(/[|｜]/g,'\n').replace(/(\d)[ー‐−―](?=\d)/g,'$1-');
+  const lines=text.split(/\n+/).map(x=>x.trim()).filter(Boolean);
+  const compact=schoolKey(text);
+
+  const master=findSchoolMaster(text);
+  if(master){
+    $('schoolName').value=master.name;
+  }else if(!$('schoolName').value){
+    const joined=text.replace(/[\s　]+/g,'');
+    const m=joined.match(/((?:[一-龠々ぁ-んァ-ヶA-Za-z0-9]+市立)?[一-龠々ぁ-んァ-ヶA-Za-z0-9]{1,20}(?:中学校|小学校|高等学校))/);
+    if(m)$('schoolName').value=m[1].replace(/^(発注元|学校名|住所)[:：]*/,'').trim();
+  }
+
+  if(!$('teacherName').value){
+    const teacherLine=lines.find(x=>/(担当者|担当先生|先生名)/.test(x));
+    if(teacherLine){
+      let v=teacherLine.replace(/^.*?(?:担当者|担当先生|先生名)\s*[:：]?\s*/,'');
+      v=v.replace(/(?:発注日|住所|TEL|FAX|電話).*$/i,'').replace(/\s*(先生|様)\s*$/,'').trim();
+      if(v&&v.length<=20)$('teacherName').value=v;
+    }
+  }
+
+  if(!$('schoolPostal').value){
+    const m=text.match(/(?:〒\s*)?(\d{3}-\d{4}|\d{7})(?!\d)/);
+    if(m)$('schoolPostal').value=m[1].replace(/^(\d{3})(\d{4})$/,'$1-$2');
+  }
+
+  if(!$('schoolAddress').value){
+    let v='';
+    const line=lines.find(x=>/(?:^|\s)(?:学校)?住所\s*[:：]?/.test(x));
+    if(line)v=line.replace(/^.*?(?:学校)?住所\s*[:：]?\s*/,'');
+    if(!v){
+      const joined=text.replace(/\n/g,' ');
+      const m=joined.match(/住所\s*[:：]?\s*(.+?)(?=発注日|担当者|TEL|FAX|電話|$)/);
+      if(m)v=m[1];
+    }
+    v=cleanOcrAddress(v);
+    if(v&&/[市区町村]/.test(v)&&/\d/.test(v))$('schoolAddress').value=v;
+  }
+
+  if(!$('schoolOffice').value.trim())$('schoolOffice').value='事務室';
+  applySchoolMaster(text);
+}
+
+function bestAnchor(score,expected,offsets,radius,scale){
+  let best=expected,bestScore=-1;
+  const lo=Math.max(0,Math.round(expected-radius)),hi=Math.min(score.length-1,Math.round(expected+radius));
+  const local=Math.max(1,Math.round(2*scale));
+  for(let a=lo;a<=hi;a++){
+    let total=0;
+    for(const off of offsets){
+      const p=Math.round(a+off*scale);
+      let peak=0;
+      for(let k=Math.max(0,p-local);k<=Math.min(score.length-1,p+local);k++)peak=Math.max(peak,score[k]||0);
+      total+=peak;
+    }
+    if(total>bestScore){bestScore=total;best=a;}
+  }
+  return best;
+}
+
+function detectTemplateGrid(canvas){
+  const W=canvas.width,H=canvas.height,ctx=canvas.getContext('2d',{willReadFrequently:true});
+  const data=ctx.getImageData(0,0,W,H).data;
+  const xScore=new Uint32Array(W),yScore=new Uint32Array(H);
+  const yMin=Math.floor(H*.20),yMax=Math.floor(H*.55);
+  const xMin=Math.floor(W*.08),xMax=Math.floor(W*.93);
+  for(let y=0;y<H;y++){
+    const yActive=y>=yMin&&y<=yMax;
+    for(let x=0;x<W;x++){
+      const p=(y*W+x)*4;
+      if(Math.max(data[p],data[p+1],data[p+2])<120){
+        if(yActive)xScore[x]++;
+        if(x>=xMin&&x<=xMax)yScore[y]++;
+      }
+    }
+  }
+  const sx=W/GRID_BASE.w,sy=H/GRID_BASE.h;
+  const xOffsets=GRID_BASE.x.map(v=>v-GRID_BASE.x[0]);
+  const yOffsets=GRID_BASE.a4.map(v=>v-GRID_BASE.a4[0]);
+  const xExpected=GRID_BASE.x[0]*sx,yExpected=GRID_BASE.a4[0]*sy;
+  const xa=bestAnchor(xScore,xExpected,xOffsets,12*sx,sx);
+  const ya=bestAnchor(yScore,yExpected,yOffsets,12*sy,sy);
+  return {
+    data,W,H,
+    x:GRID_BASE.x.map(v=>Math.round(xa+(v-GRID_BASE.x[0])*sx)),
+    a4:GRID_BASE.a4.map(v=>Math.round(ya+(v-GRID_BASE.a4[0])*sy)),
+    b5:GRID_BASE.b5.map(v=>Math.round(ya+(v-GRID_BASE.a4[0])*sy))
+  };
+}
+
+function cellInkCount(grid,x0,x1,y0,y1){
+  const {data,W}=grid;
+  const ix=Math.max(4,Math.round((x1-x0)*.08)),iy=Math.max(3,Math.round((y1-y0)*.20));
+  let n=0;
+  for(let y=y0+iy;y<y1-iy;y++){
+    for(let x=x0+ix;x<x1-ix;x++){
+      const p=(y*W+x)*4;
+      if(Math.max(data[p],data[p+1],data[p+2])<110)n++;
+    }
+  }
+  return n;
+}
+
+function makeQtyCanvas(source,x0,x1,y0,y1,threshold=180){
+  const w=x1-x0,h=y1-y0;
+  const temp=document.createElement('canvas');temp.width=w;temp.height=h;
+  const tctx=temp.getContext('2d',{willReadFrequently:true});
+  tctx.drawImage(source,x0,y0,w,h,0,0,w,h);
+  const im=tctx.getImageData(0,0,w,h),d=im.data;
+  const bin=new Uint8Array(w*h);
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+    const p=(y*w+x)*4;
+    const border=x<3||x>=w-3||y<3||y>=h-3;
+    const black=!border&&Math.max(d[p],d[p+1],d[p+2])<threshold;
+    bin[y*w+x]=black?1:0;
+  }
+  const seen=new Uint8Array(bin.length),keep=new Uint8Array(bin.length),stack=[];
+  const dirs=[-1,1,-w,w,-w-1,-w+1,w-1,w+1];
+  for(let i=0;i<bin.length;i++){
+    if(!bin[i]||seen[i])continue;
+    stack.length=0;stack.push(i);seen[i]=1;const comp=[];
+    while(stack.length){
+      const q=stack.pop();comp.push(q);
+      const qx=q%w,qy=Math.floor(q/w);
+      for(const step of dirs){
+        const z=q+step;if(z<0||z>=bin.length||seen[z]||!bin[z])continue;
+        const zx=z%w,zy=Math.floor(z/w);
+        if(Math.abs(zx-qx)>1||Math.abs(zy-qy)>1)continue;
+        seen[z]=1;stack.push(z);
+      }
+    }
+    if(comp.length>=4)for(const q of comp)keep[q]=1;
+  }
+  let minX=w,minY=h,maxX=-1,maxY=-1;
+  for(let i=0;i<keep.length;i++)if(keep[i]){
+    const x=i%w,y=Math.floor(i/w);minX=Math.min(minX,x);minY=Math.min(minY,y);maxX=Math.max(maxX,x);maxY=Math.max(maxY,y);
+  }
+  if(maxX<0)return null;
+  const pad=2;minX=Math.max(0,minX-pad);minY=Math.max(0,minY-pad);maxX=Math.min(w-1,maxX+pad);maxY=Math.min(h-1,maxY+pad);
+  const cw=maxX-minX+1,ch=maxY-minY+1,scale=8,border=24;
+  const out=document.createElement('canvas');out.width=cw*scale+border*2;out.height=ch*scale+border*2;
+  const octx=out.getContext('2d');octx.fillStyle='#fff';octx.fillRect(0,0,out.width,out.height);octx.fillStyle='#000';
+  for(let y=minY;y<=maxY;y++)for(let x=minX;x<=maxX;x++)if(keep[y*w+x]){
+    octx.fillRect(border+(x-minX)*scale,border+(y-minY)*scale,scale,scale);
+  }
+  return out;
+}
+
+async function readQty(worker,source,box){return readQtyMulti(worker,source,box)}
+
+function correctTemplateQuantities(rows){
+  const out=rows.map(r=>({...r,rawQty:r.qty}));
+  const grades=new Map();
+  for(const r of out){
+    if(r.grade==='教務'||r.subject==='教務'||!r.qty)continue;
+    if(!grades.has(r.grade))grades.set(r.grade,[]);
+    grades.get(r.grade).push(r);
+  }
+  for(const group of grades.values()){
+    const reliable=group.filter(r=>r.qty>=80&&r.qty<=300&&(r.confidence||0)>=50);
+    const freq=new Map();for(const r of reliable)freq.set(r.qty,(freq.get(r.qty)||0)+1);
+    const ranked=[...freq.entries()].sort((a,b)=>b[1]-a[1]||a[0]-b[0]);
+    const base=ranked[0]?.[0]||0,count=ranked[0]?.[1]||0;
+    if(!base||count<2){for(const r of group)if(r.uncertain)r.needsReview=true;continue}
+    for(const r of group){
+      const fixed=normalizeQtyAgainstBase(r.qty,base);
+      if(fixed!==r.qty&&(r.uncertain||(r.confidence||0)<65||String(r.qty).length!==String(base).length)){
+        r.qty=fixed;r.corrected=true;r.needsReview=false;
+      }else if(r.qty!==base&&(r.uncertain||(r.confidence||0)<55)){
+        r.needsReview=true;
+      }
+    }
+  }
+  for(const r of out){
+    if(!r.qty)r.needsReview=true;
+    if(r.uncertain&&!r.corrected)r.needsReview=true;
+  }
+  return out;
+}
+
+async function readTemplatePage(worker,canvas,pageIndex){
+  const cols=TEMPLATE_COLUMNS[pageIndex]||[];
+  if(!cols.length)return [];
+  const grid=detectTemplateGrid(canvas),rows=[];
+  const families=[
+    {family:'A4S',codes:A4_CODES,bounds:grid.a4},
+    {family:'B5S',codes:B5_CODES,bounds:grid.b5}
+  ];
+  const scale=(canvas.width/GRID_BASE.w)*(canvas.height/GRID_BASE.h);
+  const inkThreshold=Math.max(22,Math.round(22*scale));
+  for(const fam of families){
+    for(let ri=0;ri<fam.codes.length;ri++){
+      for(let ci=0;ci<6;ci++){
+        const meta=cols[ci];if(!meta)continue;
+        const x0=grid.x[ci],x1=grid.x[ci+1],y0=fam.bounds[ri],y1=fam.bounds[ri+1];
+        if(cellInkCount(grid,x0,x1,y0,y1)<=inkThreshold)continue;
+        const q=await readQty(worker,canvas,{x0,x1,y0,y1});
+        const m=MASTER[fam.codes[ri]];
+        rows.push({
+          grade:meta.grade,subject:meta.subject,family:fam.family,code:fam.codes[ri],color:m.color,
+          qty:q.qty,confidence:q.confidence,page:pageIndex+1,col:ci,auto:true,template:true,
+          uncertain:!!q.uncertain,needsReview:!!q.uncertain||!q.qty,rawCandidates:q.candidates||[]
+        });
+      }
+    }
+  }
+  return rows;
+}
+
+async function runOcr(){
+  setManualOrderMode(false);
+  const file=$('fileInput').files[0];
+  if(!file&&!renderedPages.length){setStatus('先にPDF・画像を選択するか、スマホで撮影してください。','bad');return}
+  try{
+    $('scanBtn').disabled=true;setBar(1);setStatus('スキャン画像を読み込んでいます…');
+    if(file)await renderInput(file);
+    if(renderedPages.length!==6){
+      setStatus(`現在の帳票専用読取は6ページ様式が基準です。今回は${renderedPages.length}ページのため、読み取り結果を必ず確認してください。`,'warn');
+    }
+    const worker=await getWorker(),allRows=[],details=[];
+    await worker.setParameters({tessedit_char_whitelist:'',tessedit_pageseg_mode:'6'});
+    if(renderedPages[0]){
+      setStatus('学校名・担当者・住所・電話番号を読み取っています…');
+      const head=await worker.recognize(headerCanvas(renderedPages[0]));
+      extractHeaderFields(head.data.text||'');
+      await readSchoolHeaderCells(worker,renderedPages[0]);
+    }
+    await worker.setParameters({tessedit_char_whitelist:'0123456789',tessedit_pageseg_mode:'7'});
+    for(let i=0;i<renderedPages.length;i++){
+      const pct=15+Math.round((i/renderedPages.length)*80);
+      setBar(pct);setStatus(`${i+1}/${renderedPages.length}ページの注文数量を読み取り中…`);
+      const rows=await readTemplatePage(worker,renderedPages[i],i);
+      allRows.push(...rows);
+    }
+    detectedRows=consolidateRows(correctTemplateQuantities(allRows));
+    renderRows(detectedRows);updateWarnings();setBar(100);
+    for(const r of detectedRows)details.push(`${r.grade} ${r.subject} / ${r.code} ${r.color} / ${r.qty}${r.corrected?'（自動補正）':''}`);
+    $('rawText').value=details.join('\n');
+    if(detectedRows.length){
+      setStatus(`${detectedRows.length}行を帳票のセル位置から読み取りました。学校情報と数量を最終確認してください。`);
+    }else{
+      setStatus('数量セルを認識できませんでした。元PDFの向き・様式を確認してください。','bad');
+    }
+  }catch(e){
+    console.error(e);setStatus('OCR処理でエラーが発生しました。通信状態を確認して、再度お試しください。','bad');
+  }finally{$('scanBtn').disabled=false}
+}
+
+function consolidateRows(rows){const map=new Map();for(const r of rows){if((!r.qty||r.qty<=0)&&!r.needsReview)continue;const k=[normalizeGrade(r.grade),cleanSubject(r.subject),r.code].join('|');if(map.has(k)){const x=map.get(k);x.qty+=(r.qty||0);x.needsReview=x.needsReview||r.needsReview;x.uncertain=x.uncertain||r.uncertain;x.confidence=Math.min(x.confidence||100,r.confidence||100)}else map.set(k,{...r,grade:normalizeGrade(r.grade),subject:cleanSubject(r.subject)});}return [...map.values()]}
+function rowTemplate(r={}){
+  const m=MASTER[r.code]||{};
+  const manual=!!r.manual;
+  const manualEntry=!!r.manualEntry;
+  const review=!!r.needsReview&&!manual;
+  const statusText=manual?'手動修正':review?'要確認':r.auto?(r.corrected?'自動補正':r.template?'帳票読取':'OCR '+(r.confidence||'')):'手入力';
+  const statusClass=manual?'chip manual-chip':review?'chip review-chip':'chip';
+  const rowClass=manual?'manual-edited':review?'needs-review':'';
+  return `<tr${rowClass?' class="'+rowClass+'"':''} data-manual="${manual?'1':'0'}" data-review="${review?'1':'0'}" data-manual-entry="${manualEntry?'1':'0'}">
+<td><input value="${esc(r.grade||'')}" placeholder="1年"></td>
+<td><input value="${esc(r.subject||'')}" placeholder="美術"></td>
+<td><select><option value="A4S" ${(r.family||m.family)==='A4S'?'selected':''}>A4S</option><option value="B5S" ${(r.family||m.family)==='B5S'?'selected':''}>B5S</option><option value="A5E" ${(r.family||m.family)==='A5E'?'selected':''}>A5E</option><option value="B6E" ${(r.family||m.family)==='B6E'?'selected':''}>B6E</option><option value="その他">その他</option></select></td>
+<td><input value="${esc(r.code||'')}" inputmode="numeric"></td>
+<td><input value="${esc(r.color||m.color||'')}"></td>
+<td><input value="${esc(r.qty||'')}" inputmode="numeric"></td>
+<td><span class="${statusClass} row-status">${esc(statusText)}</span></td>
+<td><button class="danger del">削除</button></td></tr>`
+}
+function renderRows(rows){$('rowsBody').innerHTML=rows.map(rowTemplate).join('');bindRowEvents()}
+function markRowManual(el){
+  const tr=el.closest('tr');if(!tr)return;
+  tr.dataset.review='0';tr.classList.remove('needs-review');
+  const chip=tr.querySelector('.row-status');
+  if(tr.dataset.manualEntry==='1'){
+    tr.dataset.manual='0';tr.classList.remove('manual-edited');
+    if(chip){chip.textContent='手入力';chip.classList.remove('review-chip','manual-chip')}
+  }else{
+    tr.dataset.manual='1';tr.classList.add('manual-edited');
+    if(chip){chip.textContent='手動修正';chip.classList.remove('review-chip');chip.classList.add('manual-chip')}
+  }
+  updateWarnings();
+}
+function updateRowFromCode(input){
+  const tr=input.closest('tr');if(!tr)return;
+  const e=[...tr.querySelectorAll('input,select')],m=MASTER[e[3].value.trim()];
+  if(!m)return;
+  e[2].value=m.family;
+  e[4].value=m.color||'';
+}
+function bindRowEvents(){
+  document.querySelectorAll('.del').forEach(b=>b.onclick=()=>{b.closest('tr').remove();updateWarnings()});
+  document.querySelectorAll('#rowsBody tr').forEach(tr=>{const inputs=tr.querySelectorAll('input');inputs.forEach(x=>x.addEventListener('input',()=>{if(x===inputs[2])updateRowFromCode(x);markRowManual(x)}))});
+  document.querySelectorAll('#rowsBody select').forEach(x=>x.addEventListener('change',()=>markRowManual(x)));
+}
+function collectRows(){return [...$('rowsBody').querySelectorAll('tr')].map(tr=>{const e=[...tr.querySelectorAll('input,select')];const code=e[3].value.trim();const m=MASTER[code]||{};return {grade:normalizeGrade(e[0].value),subject:cleanSubject(e[1].value),family:e[2].value,code,color:e[4].value.trim()||m.color||'',qty:parseInt(e[5].value||'0',10)||0,manual:tr.dataset.manual==='1',manualEntry:tr.dataset.manualEntry==='1',needsReview:tr.dataset.review==='1'};}).filter(r=>r.qty>0||r.code||r.subject||r.grade)}
+function updateWarnings(){const rows=collectRows();const problems=[];const reviewCount=rows.filter(r=>r.needsReview&&!r.manual).length;if(reviewCount)problems.push(`要確認の明細が ${reviewCount} 件あります。黄色の行を確認し、必要なら手動修正してください。`);for(const [id,label] of [['schoolName','学校名'],['teacherName','担当先生名'],['schoolPostal','学校郵便番号'],['schoolAddress','学校住所'],['schoolTel','学校電話番号']])if(!$(id).value.trim())problems.push(`${label}が未入力です。②で確認・入力してください。`);rows.forEach((r,i)=>{if(!r.grade)problems.push(`行${i+1}: 学年が未入力`);if(!r.subject&&r.grade!=='教務')problems.push(`行${i+1}: 教科が未入力`);if(!MASTER[r.code])problems.push(`行${i+1}: 未登録品番 ${r.code||'(空欄)'}`);else if(MASTER[r.code].unsupported&&r.qty>0)problems.push(`行${i+1}: ${MASTER[r.code].family} ${r.code} は現在のエデュース発注書レイアウト未対応`);if(!r.qty)problems.push(`行${i+1}: 数量が0/未入力`)});$('warnings').innerHTML=problems.length?`<div class="unknown-box"><b>確認が必要です</b><br>${problems.map(esc).join('<br>')}</div>`:''}
+
+function setManualOrderMode(on){
+  manualOrderMode=!!on;
+  $('manualModeNotice').style.display=manualOrderMode?'block':'none';
+}
+function startManualOrder(){
+  setManualOrderMode(true);
+  renderedPages=[];detectedRows=[];cameraRawRows=[];
+  $('pages').innerHTML='';$('rawText').value='';$('fileInput').value='';$('cameraCount').textContent='撮影 0/6枚';stopDirectCamera();
+  $('schoolName').value='';$('teacherName').value='';$('schoolOffice').value='事務室';$('schoolPostal').value='';$('schoolAddress').value='';$('schoolTel').value='';
+  renderRows([{manualEntry:true}]);
+  $('printArea').innerHTML='<div class="muted">「発注書を作成」を押すと、入力した内容から発注書を作成します。</div>';
+  $('previewInfo').className='muted';$('previewInfo').textContent='まだ作成されていません。';
+  $('printBtn').disabled=true;$('pdfBtn').disabled=true;$('printBtnBottom').disabled=true;$('pdfBtnBottom').disabled=true;
+  setBar(0);setStatus('手動作成モードです。②で学校情報と明細を入力してください。');
+  $('schoolName').scrollIntoView({behavior:'smooth',block:'center'});
+  $('schoolName').focus();
+}
+function loadSample(){
+ setManualOrderMode(false);
+ $('schoolName').value='架空・みどり中学校';$('teacherName').value='架空担当者';$('schoolOffice').value='事務室';$('schoolPostal').value='000-0000';$('schoolAddress').value='架空県サンプル市1丁目';$('schoolTel').value='000-0000-0001';$('orderDate').value='2026-04-14';
+ detectedRows=[
+ {grade:'1年',subject:'美術',code:'153350',family:'A4S',color:'オレンジ',qty:144},{grade:'1年',subject:'英語',code:'131810',family:'A4S',color:'ピンク',qty:144},{grade:'1年',subject:'国語',code:'131828',family:'A4S',color:'バイオレット',qty:144},{grade:'1年',subject:'理科',code:'131844',family:'A4S',color:'グリーン',qty:144},{grade:'1年',subject:'保体',code:'131852',family:'A4S',color:'ブルー',qty:144},{grade:'1年',subject:'地理',code:'131860',family:'B5S',color:'イエロー',qty:144},{grade:'1年',subject:'歴史',code:'131909',family:'B5S',color:'グリーン',qty:144},{grade:'1年',subject:'家庭',code:'131925',family:'B5S',color:'グレー',qty:144},
+ {grade:'教務',subject:'教務',code:'131801',family:'A4S',color:'イエロー',qty:10},{grade:'教務',subject:'教務',code:'153350',family:'A4S',color:'オレンジ',qty:10},{grade:'教務',subject:'教務',code:'260143',family:'A4S',color:'クリーム',qty:10},{grade:'教務',subject:'教務',code:'131810',family:'A4S',color:'ピンク',qty:10},{grade:'教務',subject:'教務',code:'131828',family:'A4S',color:'バイオレット',qty:10},{grade:'教務',subject:'教務',code:'131836',family:'A4S',color:'ライトブルー',qty:10},{grade:'教務',subject:'教務',code:'131844',family:'A4S',color:'グリーン',qty:10},{grade:'教務',subject:'教務',code:'131852',family:'A4S',color:'ブルー',qty:10},{grade:'教務',subject:'教務',code:'140932',family:'A4S',color:'グレー',qty:10},{grade:'教務',subject:'教務',code:'131860',family:'B5S',color:'イエロー',qty:10},{grade:'教務',subject:'教務',code:'131879',family:'B5S',color:'ピンク',qty:10},{grade:'教務',subject:'教務',code:'131887',family:'B5S',color:'バイオレット',qty:10},{grade:'教務',subject:'教務',code:'131895',family:'B5S',color:'ライトブルー',qty:10},{grade:'教務',subject:'教務',code:'131909',family:'B5S',color:'グリーン',qty:10},{grade:'教務',subject:'教務',code:'131917',family:'B5S',color:'ブルー',qty:10},{grade:'教務',subject:'教務',code:'131925',family:'B5S',color:'グレー',qty:10},
+ {grade:'2年',subject:'数学',code:'131801',family:'A4S',color:'イエロー',qty:130},{grade:'2年',subject:'美術',code:'153350',family:'A4S',color:'オレンジ',qty:130},{grade:'2年',subject:'テスト',code:'260143',family:'A4S',color:'クリーム',qty:260},{grade:'2年',subject:'英語',code:'131810',family:'A4S',color:'ピンク',qty:130},{grade:'2年',subject:'国A',code:'131828',family:'A4S',color:'バイオレット',qty:130},{grade:'2年',subject:'社会',code:'131836',family:'A4S',color:'ライトブルー',qty:130},{grade:'2年',subject:'理A',code:'131844',family:'A4S',color:'グリーン',qty:130},{grade:'2年',subject:'特活',code:'140932',family:'A4S',color:'グレー',qty:130},{grade:'2年',subject:'理B',code:'131909',family:'B5S',color:'グリーン',qty:130},{grade:'2年',subject:'家庭',code:'131917',family:'B5S',color:'ブルー',qty:130},{grade:'2年',subject:'保体',code:'131925',family:'B5S',color:'グレー',qty:130},{grade:'2年',subject:'国B',code:'131828',family:'A4S',color:'バイオレット',qty:130},
+ {grade:'3年',subject:'理B',code:'131801',family:'A4S',color:'イエロー',qty:172},{grade:'3年',subject:'美術',code:'153350',family:'A4S',color:'オレンジ',qty:172},{grade:'3年',subject:'理A',code:'131844',family:'A4S',color:'グリーン',qty:172},{grade:'3年',subject:'保体',code:'140932',family:'A4S',color:'グレー',qty:172},{grade:'3年',subject:'社A',code:'131860',family:'B5S',color:'イエロー',qty:172},{grade:'3年',subject:'国語',code:'131879',family:'B5S',color:'ピンク',qty:172},{grade:'3年',subject:'英語',code:'131887',family:'B5S',color:'バイオレット',qty:172},{grade:'3年',subject:'家庭',code:'131895',family:'B5S',color:'ライトブルー',qty:172},{grade:'3年',subject:'テスト',code:'131909',family:'B5S',color:'グリーン',qty:172},{grade:'3年',subject:'数学',code:'131917',family:'B5S',color:'ブルー',qty:172},{grade:'3年',subject:'クラス',code:'131925',family:'B5S',color:'グレー',qty:172},{grade:'3年',subject:'社B',code:'131860',family:'B5S',color:'イエロー',qty:172}
+ ];renderRows(detectedRows);updateWarnings();setStatus('発注エデュース6枚の見本データを入力しました。「発注書を作成」でV2の編成を確認できます。')
+}
+function dedupe(){const rows=collectRows();const map=new Map();for(const r of rows){const k=[r.grade,r.subject,r.code].join('|');if(map.has(k)){const x=map.get(k);x.qty+=r.qty;x.manual=x.manual||r.manual;x.needsReview=x.needsReview||r.needsReview}else map.set(k,{...r});}renderRows([...map.values()]);updateWarnings()}
+function jpDate(s){const d=s?new Date(s+'T00:00:00'):new Date();return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`}
+function getSettings(){return {year:$('year').value.trim(),orderDate:$('orderDate').value,schoolCode:$('schoolCode').value.trim(),vendorName:$('vendorName').value.trim(),vendorCode:$('vendorCode').value.trim(),orderer:$('orderer').value.trim(),tel:$('tel').value.trim(),fax:$('fax').value.trim(),delivery:$('delivery').value.trim()}}
+function groupRows(rows){
+  const gradeMap=new Map();
+  for(const r of rows){
+    if(!r.qty||!MASTER[r.code]||MASTER[r.code].unsupported)continue;
+    const grade=normalizeGrade(r.grade),subject=grade==='教務'?'教務':cleanSubject(r.subject);
+    if(!gradeMap.has(grade))gradeMap.set(grade,new Map());
+    const subjects=gradeMap.get(grade);
+    if(!subjects.has(subject))subjects.set(subject,[]);
+    subjects.get(subject).push({...r,grade,subject});
+  }
+  const pages=[];
+  [...gradeMap.entries()].sort((a,b)=>gradeRank(a[0])-gradeRank(b[0])).forEach(([grade,subjects])=>{
+    if(grade==='教務'){
+      const all=[...subjects.values()].flat();
+      if(all.length)pages.push({grade,rows:all});
+      return;
+    }
+    const groups=[...subjects.entries()].map(([subject,subjectRows])=>({subject,rows:subjectRows,codes:new Set(subjectRows.map(r=>r.code))}));
+    const frequency={};groups.forEach(g=>g.codes.forEach(code=>frequency[code]=(frequency[code]||0)+1));
+    const lower=Math.max(1,...Object.values(frequency));
+    let packed=null;
+    for(let pageCount=lower;pageCount<=groups.length&&!packed;pageCount++){
+      const bins=Array.from({length:pageCount},()=>({codes:new Set(),groups:[]}));
+      const place=i=>{
+        if(i===groups.length)return true;
+        const g=groups[i];let usedEmpty=false;
+        for(const bin of bins){
+          if(g.codes.size&&[...g.codes].some(code=>bin.codes.has(code)))continue;
+          if(!bin.groups.length){if(usedEmpty)continue;usedEmpty=true}
+          bin.groups.push(g);g.codes.forEach(code=>bin.codes.add(code));
+          if(place(i+1))return true;
+          bin.groups.pop();bin.codes=new Set(bin.groups.flatMap(x=>[...x.codes]));
+        }
+        return false;
+      };
+      if(place(0))packed=bins.filter(b=>b.groups.length).map(b=>({grade,rows:b.groups.flatMap(g=>g.rows)}));
+    }
+    pages.push(...(packed||[]));
+  });
+  return pages;
+}
+function orderRows(codes,group){return codes.map(code=>{const m=MASTER[code],found=group.rows.filter(r=>r.code===code);const qty=found.reduce((s,r)=>s+r.qty,0);const subjects=[...new Set(found.map(r=>r.subject).filter(Boolean))];return {code,label:m.label,qty,subject:qty&&group.grade!=='教務'?subjects.join('・'):''}})}
+function tableBlock(group){const a=orderRows(A4_CODES,group),b=orderRows(B5_CODES,group);const aSum=a.reduce((s,r)=>s+r.qty,0),bSum=b.reduce((s,r)=>s+r.qty,0);let html='<table class="order-table"><thead><tr><th colspan="2">商品名</th><th>品NO.</th><th>注文数(個)</th><th>摘要(科目名)</th></tr></thead><tbody>';
+  a.forEach((r,i)=>{html+='<tr>';if(i===0)html+='<td class="vert" rowspan="18">紙製フラットファイル</td><td class="family" rowspan="9">OFK-<br>A4S</td>';html+=`<td>${esc(r.label)}&nbsp;&nbsp; ${esc(r.code)}</td><td class="num">${r.qty||''}</td><td>${esc(r.subject)}</td></tr>`});
+  html+=`<tr><td class="sum">合計</td><td></td><td class="sum">${aSum||0}</td><td></td></tr>`;
+  b.forEach((r,i)=>{html+='<tr>';if(i===0)html+='<td class="family" rowspan="7">OFK-<br>B5S</td>';html+=`<td>${esc(r.label)}&nbsp;&nbsp; ${esc(r.code)}</td><td class="num">${r.qty||''}</td><td>${esc(r.subject)}</td></tr>`});
+  html+=`<tr><td class="sum">合計</td><td></td><td class="sum">${bSum||0}</td><td></td></tr>`;
+  return html+'</tbody></table>';
+}
+function makePage(group,i,total){const s=getSettings(),school=$('schoolName').value.trim(),teacher=$('teacherName').value.trim(),postal=$('schoolPostal').value.trim(),address=$('schoolAddress').value.trim(),schoolTel=$('schoolTel').value.trim(),office=$('schoolOffice').value.trim()||'事務室';const line=group.grade==='教務'?`教務　${esc(office)}`:`${esc(group.grade)}　${esc(office)}`;
+return `<section class="order-page">
+  <div class="order-topline"><div class="order-title">${esc(s.year)}年　サクラ ファイル 専用注文書</div><div><div class="send-count">送付枚数　${total} 枚中 ${i} 枚</div><div class="order-date">${esc(jpDate(s.orderDate))}</div></div></div>
+  <div class="order-head">
+    <div class="order-head-left">
+      <div class="head-row r1"><div><b>発注区分</b></div><div>${esc(s.delivery)}</div><div><b>学校直送コード(6桁)</b>　${esc(s.schoolCode)}</div></div>
+      <div class="schoolrow">学校名　${esc(school)}</div><div class="contactrow">〒 ${esc(postal)}　${esc(address)}<br>担当　${esc(teacher)} 先生　　所属　${line}<br>TEL　${esc(schoolTel)}</div>
+    </div>
+    <div class="vendor"><div class="vendor-labels"><div>販売店名</div><div>販売店コード</div><div>TEL</div><div>FAX</div><div>ご注文者</div></div><div class="vendor-values"><div>${esc(s.vendorName)}</div><div>${esc(s.vendorCode)}</div><div>${esc(s.tel)}</div><div>${esc(s.fax)}</div><div>${esc(s.orderer)}</div></div></div>
+  </div>
+  <div class="order-body"><div>${tableBlock(group)}<div class="note">※各学年別にご発注下さい。何卒よろしくお願い致します。</div></div><div><div class="rightbox"></div><div class="contactbox"><div class="small">■ご用命・お問い合わせは</div><b>${esc(s.vendorName)}</b><br>TEL: ${esc(s.tel)}<br>FAX: ${esc(s.fax)}</div></div></div>
+</section>`}
+function makeOrders(){dedupe();const rows=collectRows();updateWarnings();const groups=groupRows(rows);if(!groups.length){alert('発注書に変換できる明細がありません。');return}const html=groups.map((g,i)=>makePage(g,i+1,groups.length)).join('');$('printArea').innerHTML=html;const inputTotal=rows.filter(r=>r.qty&&MASTER[r.code]&&!MASTER[r.code].unsupported).reduce((s,r)=>s+r.qty,0),outputTotal=groups.reduce((s,g)=>s+g.rows.reduce((t,r)=>t+r.qty,0),0),ok=inputTotal===outputTotal;$('previewInfo').textContent=`${groups.length}ページ作成しました（学年ごとに集約し、同一品番が重なる場合のみ分割）。数量照合 ${inputTotal} → ${outputTotal} ${ok?'一致':'不一致'}。内容確認後に「印刷」または「保管」を押してください。`;$('previewInfo').className=ok?'muted':'bad';$('printBtn').disabled=!ok;$('pdfBtn').disabled=!ok;$('printBtnBottom').disabled=!ok;$('pdfBtnBottom').disabled=!ok;$('previewArea').scrollIntoView({behavior:'smooth',block:'start'})}
+
+function saveSettings(){setStatus('統合試作では端末への設定保存は行いません。')}
+function resetSettings(){$('year').value='2026';$('orderDate').value=todayStr();$('schoolCode').value='DEMO-SCHOOL';$('vendorName').value='(株)タナカ';$('vendorCode').value='DEMO-VENDOR';$('orderer').value='大田';$('tel').value='06-6997-6030';$('fax').value='06-6997-6035';$('delivery').value='学校直送'}
+
+['schoolName','teacherName','schoolOffice','schoolPostal','schoolAddress','schoolTel'].forEach(id=>$(id).addEventListener('input',updateWarnings));$('schoolName').addEventListener('change',()=>{applySchoolMaster();updateWarnings()});
+$('scanBtn').onclick=runOcr;$('manualCreateBtn').onclick=startManualOrder;$('sampleBtn').onclick=loadSample;$('clearBtn').onclick=()=>{setManualOrderMode(false);renderedPages=[];detectedRows=[];cameraRawRows=[];$('pages').innerHTML='';$('rowsBody').innerHTML='';$('rawText').value='';$('schoolName').value='';$('teacherName').value='';$('schoolOffice').value='事務室';$('schoolPostal').value='';$('schoolAddress').value='';$('schoolTel').value='';$('fileInput').value='';$('cameraCount').textContent='撮影 0/6枚';stopDirectCamera();$('printArea').innerHTML='<div class="muted">「発注書を作成」を押すと、学年ごとにまとめ、同一品番が重なる場合だけ次ページへ分けて作成します。</div>';$('previewInfo').className='muted';$('previewInfo').textContent='まだ作成されていません。';$('printBtn').disabled=true;$('pdfBtn').disabled=true;$('printBtnBottom').disabled=true;$('pdfBtnBottom').disabled=true;setBar(0);setStatus('クリアしました。')};
+$('addRowBtn').onclick=()=>{$('rowsBody').insertAdjacentHTML('beforeend',rowTemplate({manualEntry:true}));bindRowEvents()};$('dedupeBtn').onclick=dedupe;function loadExternalScript(src,test){
+  if(test())return Promise.resolve();
+  return new Promise((resolve,reject)=>{
+    const existing=[...document.scripts].find(s=>s.src===src);
+    if(existing){
+      existing.addEventListener('load',resolve,{once:true});
+      existing.addEventListener('error',reject,{once:true});
+      return;
+    }
+    const s=document.createElement('script');
+    s.src=src;s.async=true;s.onload=resolve;s.onerror=reject;document.head.appendChild(s);
+  });
+}
+function safeFileName(s){return String(s||'').replace(/[\\/:*?"<>|]/g,'_').replace(/\s+/g,' ').trim()}
+async function saveOrdersPdf(){
+  const pages=[...document.querySelectorAll('#printArea .order-page')];
+  if(!pages.length){setStatus('先に発注書を作成してください。','bad');return}
+  const btn=$('pdfBtn'),oldText=btn.textContent;
+  try{
+    btn.disabled=true;btn.textContent='保管中…';setStatus('発注書をPDFにして保管しています…');
+    await Promise.all([
+      loadExternalScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',()=>!!window.html2canvas),
+      loadExternalScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js',()=>!!window.jspdf?.jsPDF)
+    ]);
+    if(document.fonts?.ready)await document.fonts.ready;
+    const {jsPDF}=window.jspdf;
+    const pdf=new jsPDF({orientation:'landscape',unit:'mm',format:'a4',compress:true});
+    for(let i=0;i<pages.length;i++){
+      setStatus(`発注書を保管中… ${i+1}/${pages.length}ページ`);
+      const p=pages[i];
+      p.classList.add('pdf-export');
+      const canvas=await html2canvas(p,{backgroundColor:'#fff',scale:1.8,useCORS:true,logging:false,windowWidth:972,windowHeight:643});
+      p.classList.remove('pdf-export');
+      const img=canvas.toDataURL('image/jpeg',0.94);
+      if(i>0)pdf.addPage('a4','landscape');
+      pdf.addImage(img,'JPEG',20,20,257,170,undefined,'FAST');
+    }
+    const school=safeFileName($('schoolName').value)||'学校';
+    const date=$('orderDate').value||todayStr();
+    pdf.save(`${school}_エデュース発注書_${date}.pdf`);
+    setStatus('発注書をPDFで保管しました。');
+  }catch(e){
+    console.error(e);setStatus('PDFの保管に失敗しました。もう一度お試しください。','bad');
+  }finally{btn.disabled=false;btn.textContent=oldText}
+}
+
+$('makeBtn').onclick=makeOrders;$('printBtn').onclick=()=>window.print();$('pdfBtn').onclick=saveOrdersPdf;$('printBtnBottom').onclick=()=>window.print();$('pdfBtnBottom').onclick=saveOrdersPdf;$('saveSettings').onclick=saveSettings;$('resetSettings').onclick=resetSettings;
+async function previewSelectedFile(f){if(!f)return;try{setManualOrderMode(false);cameraRawRows=[];setStatus('プレビューを作成しています…');await renderInput(f);$('cameraCount').textContent='撮影 0/6枚';setStatus(`${renderedPages.length}ページを読み込みました。「OCR読み取り開始」を押してください。`)}catch(e){setStatus('ファイルを読み込めませんでした。','bad')}}
+function cameraCropFromVideo(v){
+  const sw=v.videoWidth,sh=v.videoHeight,target=GRID_BASE.w/GRID_BASE.h;
+  let sx=0,sy=0,cw=sw,ch=sh;
+  if(sw/sh>target){cw=sh*target;sx=(sw-cw)/2}else{ch=sw/target;sy=(sh-ch)/2}
+  const out=document.createElement('canvas');
+  out.width=1788;out.height=2528;
+  out.getContext('2d').drawImage(v,sx,sy,cw,ch,0,0,out.width,out.height);
+  return enhanceCameraDocument(out);
+}
+function enhanceCameraDocument(canvas){
+  const ctx=canvas.getContext('2d',{willReadFrequently:true}),im=ctx.getImageData(0,0,canvas.width,canvas.height),d=im.data,hist=new Uint32Array(256);
+  for(let i=0;i<d.length;i+=4){
+    const r=d[i],g=d[i+1],b=d[i+2];
+    if(r>125&&r>g*1.28&&r>b*1.28){d[i]=d[i+1]=d[i+2]=255;continue}
+    const y=Math.max(0,Math.min(255,Math.round(.299*r+.587*g+.114*b)));hist[y]++;
+  }
+  const total=canvas.width*canvas.height,loTarget=total*.015,hiTarget=total*.985;
+  let sum=0,lo=0,hi=255;
+  for(let i=0;i<256;i++){sum+=hist[i];if(sum>=loTarget){lo=i;break}}
+  sum=0;for(let i=0;i<256;i++){sum+=hist[i];if(sum>=hiTarget){hi=i;break}}
+  if(hi-lo<70){lo=Math.max(0,lo-25);hi=Math.min(255,hi+25)}
+  const span=Math.max(1,hi-lo);
+  for(let i=0;i<d.length;i+=4){
+    if(d[i]===255&&d[i+1]===255&&d[i+2]===255)continue;
+    const y=.299*d[i]+.587*d[i+1]+.114*d[i+2];
+    let v=Math.round((y-lo)*255/span);v=Math.max(0,Math.min(255,v));
+    v=v<118?Math.max(0,v-18):Math.min(255,v+12);
+    d[i]=d[i+1]=d[i+2]=v;
+  }
+  ctx.putImageData(im,0,0);
+  return canvas;
+}
+function qtyCandidateScore(x){
+  let score=x.confidence||0;
+  if(x.qty>=1&&x.qty<=999)score+=12;
+  if(x.raw&&x.raw.length<=3)score+=8;
+  return score;
+}
+async function readQtyMulti(worker,source,box){
+  const candidates=[];
+  for(const threshold of [145,170,195,215]){
+    const c=makeQtyCanvas(source,box.x0,box.x1,box.y0,box.y1,threshold);
+    if(!c)continue;
+    const r=await worker.recognize(c);
+    const raw=(r.data.text||'').replace(/\D/g,'');
+    const qty=parseInt(raw||'0',10)||0;
+    candidates.push({qty,raw,confidence:Math.round(r.data.confidence||0),threshold});
+  }
+  const usable=candidates.filter(x=>x.qty>0);
+  if(!usable.length)return {qty:0,confidence:0,raw:'',uncertain:true,candidates};
+  const freq=new Map();for(const x of usable)freq.set(x.qty,(freq.get(x.qty)||0)+1);
+  usable.sort((a,b)=>(freq.get(b.qty)-freq.get(a.qty))||qtyCandidateScore(b)-qtyCandidateScore(a));
+  const best=usable[0],agree=freq.get(best.qty)||1;
+  const uncertain=agree<2||best.confidence<55||usable.some(x=>x.qty!==best.qty&&Math.abs((x.confidence||0)-best.confidence)<12);
+  return {...best,uncertain,candidates};
+}
+function normalizeQtyAgainstBase(q,base){
+  if(!q||!base)return q;
+  if(q===base)return q;
+  const qs=String(q),bs=String(base);
+  if(qs.length===bs.length+1&&qs.endsWith(bs))return base;
+  if(bs.length===qs.length+1&&bs.endsWith(qs))return base;
+  if(Math.abs(q-base)<=12)return base;
+  return q;
+}
+
+async function processCameraPage(canvas,pageIndex){
+  try{
+    $('scanBtn').disabled=true;
+    setStatus(`${pageIndex+1}ページ目を自動読み取り中…`);
+    const worker=await getWorker();
+    if(pageIndex===0){
+      await worker.setParameters({tessedit_char_whitelist:'',tessedit_pageseg_mode:'6'});
+      const head=await worker.recognize(headerCanvas(canvas));
+      extractHeaderFields(head.data.text||'');
+      await readSchoolHeaderCells(worker,canvas);
+    }
+    await worker.setParameters({tessedit_char_whitelist:'0123456789',tessedit_pageseg_mode:'7'});
+    const pageRows=await readTemplatePage(worker,canvas,pageIndex);
+    cameraRawRows=cameraRawRows.filter(r=>r.page!==pageIndex+1).concat(pageRows);
+    detectedRows=consolidateRows(correctTemplateQuantities(cameraRawRows));
+    renderRows(detectedRows);updateWarnings();
+    $('rawText').value=detectedRows.map(r=>`${r.grade} ${r.subject} / ${r.code} ${r.color} / ${r.qty}${r.corrected?'（自動補正）':''}`).join('\n');
+    const count=pageIndex+1;
+    const reviewCount=detectedRows.filter(r=>r.needsReview&&!r.corrected).length;
+    setStatus(`${count}ページ目を読み取り、②へ反映しました。${reviewCount?' 要確認 '+reviewCount+'件を黄色で表示しています。':''}${count<6?' 続けて次のページを撮影してください。':' 6ページ分の読み取りが完了しました。'}`,reviewCount?'warn':'muted');
+  }catch(e){
+    console.error(e);
+    setStatus(`${pageIndex+1}ページ目の自動読み取りに失敗しました。撮り直すか、OCR読み取り開始を押してください。`,'bad');
+  }finally{
+    $('scanBtn').disabled=false;
+  }
+}
+async function openDirectCamera(){
+  setManualOrderMode(false);
+  if(renderedPages.length>=6){setStatus('撮影は6ページまでです。やり直す場合は「クリア」を押してください。','warn');return}
+  if(!navigator.mediaDevices?.getUserMedia){
+    setStatus('このブラウザでは直接カメラを使用できません。上の「ファイルを選択」から写真を選んでください。','bad');return
+  }
+  try{
+    stopDirectCamera();
+    cameraStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:3840},height:{ideal:2160}},audio:false});
+    $('cameraVideo').srcObject=cameraStream;
+    $('cameraPanel').classList.add('open');
+    $('cameraPanel').setAttribute('aria-hidden','false');
+    await $('cameraVideo').play();
+    setStatus('カメラを起動しました。注文書全体を入れて「撮影して読み取る」を押してください。');
+  }catch(e){
+    console.error(e);
+    const msg=e?.name==='NotAllowedError'?'カメラの使用が許可されていません。ブラウザのカメラ許可をONにしてください。':'カメラを起動できませんでした。';
+    setStatus(msg,'bad');
+  }
+}
+function stopDirectCamera(){
+  if(cameraStream){cameraStream.getTracks().forEach(t=>t.stop());cameraStream=null}
+  if($('cameraVideo'))$('cameraVideo').srcObject=null;
+  if($('cameraPanel')){$('cameraPanel').classList.remove('open');$('cameraPanel').setAttribute('aria-hidden','true')}
+}
+async function captureDirectCamera(){
+  if(!cameraStream)return;
+  if(renderedPages.length>=6){stopDirectCamera();setStatus('撮影は6ページまでです。','warn');return}
+  const v=$('cameraVideo');
+  if(!v.videoWidth||!v.videoHeight){setStatus('カメラ映像の準備中です。もう一度撮影してください。','warn');return}
+  try{
+    $('fileInput').value='';
+    const c=cameraCropFromVideo(v);
+    renderedPages.push(c);addThumb(c,renderedPages.length);
+    $('cameraCount').textContent=`撮影 ${renderedPages.length}/6枚`;
+    stopDirectCamera();
+    await processCameraPage(c,renderedPages.length-1);
+  }catch(e){
+    console.error(e);stopDirectCamera();setStatus('撮影画像を処理できませんでした。','bad');
+  }
+}
+$('fileInput').onchange=()=>previewSelectedFile($('fileInput').files[0]);
+$('cameraBtn').onclick=openDirectCamera;
+$('takePhotoBtn').onclick=captureDirectCamera;
+$('closeCameraBtn').onclick=stopDirectCamera;
+const dropZone=$('dropZone');
+['dragenter','dragover'].forEach(type=>dropZone.addEventListener(type,e=>{e.preventDefault();e.stopPropagation();dropZone.classList.add('dragover')}));
+['dragleave','drop'].forEach(type=>dropZone.addEventListener(type,e=>{e.preventDefault();e.stopPropagation();dropZone.classList.remove('dragover')}));
+dropZone.addEventListener('drop',e=>{const f=e.dataTransfer?.files?.[0];if(!f)return;if(!(f.type==='application/pdf'||f.type.startsWith('image/')||f.name.toLowerCase().endsWith('.pdf'))){setStatus('PDFまたは画像ファイルをドロップしてください。','bad');return}const dt=new DataTransfer();dt.items.add(f);$('fileInput').files=dt.files;previewSelectedFile(f)});
+renderRows([]);
+// 営業画面と明示操作で連動。元のOCR・プレビュー・PDFエンジンは維持。
+(function(){
+ const parent=window.opener,origin=window.location.origin,btn=$('archiveOrder'),status=$('archiveStatus');
+ const active=!!parent&&origin!=="null"&&new URLSearchParams(location.search).get("fromSales")==="1";
+ let context=null,previewFingerprint="";
+ function snapshot(){
+  const rows=collectRows();
+  return {kind:"ocr",school:$('schoolName').value.trim(),schoolContact:$('teacherName').value.trim(),schoolOffice:$('schoolOffice').value.trim(),schoolPostal:$('schoolPostal').value.trim(),schoolAddress:$('schoolAddress').value.trim(),schoolTel:$('schoolTel').value.trim(),settings:getSettings(),rows};
+ }
+ function validate(data){
+  if(!data.school.startsWith("架空・")||!data.rows.length||data.rows.length>30)return "架空の学校名と1～30行の明細を確認してください。";
+  const raw=[...$('rowsBody').querySelectorAll('tr')].map(tr=>tr.querySelectorAll('input,select')[5].value.trim());
+  if(raw.length!==data.rows.length||raw.some(v=>! /^[0-9]+$/.test(v)||Number(v)<1||Number(v)>99999))return "空欄・不正な数量の行を修正してください。";
+  if(data.rows.some(r=>r.needsReview&&!r.manual||!MASTER[r.code]||MASTER[r.code].unsupported||!r.grade||!r.subject&&r.grade!=="教務"||r.qty<1||r.qty>99999))return "要確認・未対応品番・学年・教科・数量を修正してください。";
+  return "";
+ }
+ btn.disabled=true;
+ if(!active){status.textContent="営業ホームから開くと保管できます。";return;}
+ $('homeLink').addEventListener("click",e=>{e.preventDefault();if(confirm("この画面を閉じますか？保管していない変更は失われます。"))window.close();});
+ const original=$('makeBtn').onclick;
+ $('makeBtn').onclick=()=>{
+  btn.disabled=true;previewFingerprint="";
+  original();
+  const data=snapshot(),error=validate(data);
+  if(error){status.textContent=error;return;}
+  if(!$('printBtn').disabled&&$('printArea').querySelector('.order-page')){
+   previewFingerprint=JSON.stringify(data);btn.disabled=!context;status.textContent="原票と帳票を照合し、保管してください。";
+  }
+ };
+ document.addEventListener("input",()=>{btn.disabled=true;previewFingerprint="";status.textContent="変更後は発注書を作成し直してください。";});
+ document.addEventListener("change",()=>{btn.disabled=true;previewFingerprint="";});
+ window.addEventListener("message",e=>{
+  if(e.origin!==origin||e.source!==parent||!e.data)return;
+  if(e.data.type==="tanaka-workspace-init"&&!context&&typeof e.data.token==="string"){
+   context=e.data;const d=e.data.data;
+   $('orderer').value=context.rep;
+   if(d&&d.kind==="ocr"){
+    for(const [id,key] of [["schoolName","school"],["teacherName","schoolContact"],["schoolOffice","schoolOffice"],["schoolPostal","schoolPostal"],["schoolAddress","schoolAddress"],["schoolTel","schoolTel"]])$(id).value=d[key]||"";
+    for(const k of Object.keys(getSettings()))if(typeof d.settings?.[k]==="string")$(k).value=d.settings[k];
+    $('orderer').value=context.rep;
+    renderRows(d.rows||[]);updateWarnings();
+    status.textContent="保管済みの入力を復元しました。発注書を作成し直してください。";
+   }
+   parent.postMessage({type:"tanaka-workspace-loaded",token:context.token},origin);
+  }else if(e.data.type==="tanaka-workspace-saved"&&context&&e.data.token===context.token){
+   status.textContent="営業画面に仮保管しました。営業ホームに戻って確認してください。";
+  }
+ });
+ btn.onclick=()=>{
+  const data=snapshot(),error=validate(data);
+  if(error||!context||previewFingerprint!==JSON.stringify(data)){status.textContent=error||"発注書を作成し直してください。";return;}
+  if(!confirm("原票と作成した発注書を確認しましたか？（架空データの仮保管）"))return;
+  parent.postMessage({type:"tanaka-workspace-save",token:context.token,data},origin);
+ };
+ parent.postMessage({type:"tanaka-workspace-ready"},origin);
+})();
+</script>
+</body>
+</html>
