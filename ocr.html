@@ -92,7 +92,7 @@ footer{max-width:1480px;margin:0 auto;padding:0 18px 22px;color:#6c797f;font-siz
   </section>
 
   <section class="card">
-    <h2>② 読み取り結果を確認・修正</h2>
+    <h2>② 読み取り結果を確認・修正</h2><div class="field" id="schoolMasterBox" hidden style="margin-bottom:10px"><label for="schoolMasterChoice">担当校から入力（任意・原票照合後）</label><select id="schoolMasterChoice"><option value="">学校を選択</option></select></div>
     <div id="manualModeNotice" class="muted" style="display:none;margin:-3px 0 10px;padding:8px 10px;background:#eef7fb;border:1px solid #bdd6e1;border-radius:7px">手動作成モード：学校情報と明細を直接入力してください。</div>
     <div class="row" style="margin-bottom:8px">
       <div class="field"><label>学校名</label><input id="schoolName" placeholder="自動読取"></div>
@@ -154,7 +154,7 @@ footer{max-width:1480px;margin:0 auto;padding:0 18px 22px;color:#6c797f;font-siz
 </main>
 <footer>試作版 v2.0｜OCR結果は必ず確認してから発注してください。未対応の商品コードは警告表示します。</footer>
 <script>
-pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+if(window.pdfjsLib)pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 const $=id=>document.getElementById(id);
 const MASTER={
   '131801':{family:'A4S',label:'#3 イエロー',color:'イエロー'},'153350':{family:'A4S',label:'#5 オレンジ',color:'オレンジ'},'260143':{family:'A4S',label:'#9 クリーム',color:'クリーム'},'131810':{family:'A4S',label:'#20 ピンク',color:'ピンク'},'131828':{family:'A4S',label:'#24 バイオレット',color:'バイオレット'},'131836':{family:'A4S',label:'#25 ライトブルー',color:'ライトブルー'},'131844':{family:'A4S',label:'#29 グリーン',color:'グリーン'},'131852':{family:'A4S',label:'#36 ブルー',color:'ブルー'},'140932':{family:'A4S',label:'#44 グレー',color:'グレー'},
@@ -984,6 +984,10 @@ renderRows([]);
   if(e.data.type==="tanaka-workspace-init"&&!context&&typeof e.data.token==="string"){
    context=e.data;const d=e.data.data;
    $('orderer').value=context.rep;
+   const schools=Array.isArray(context.schools)?context.schools:[];
+   $('schoolMasterChoice').innerHTML='<option value="">学校を選択</option>'+schools.map((m,i)=>'<option value="'+i+'">'+esc(m.name)+'</option>').join("");
+   $('schoolMasterBox').hidden=false;
+   $('schoolMasterChoice').addEventListener("change",function(){const m=this.value===""?null:schools[Number(this.value)];if(!m)return;if($('schoolName').value&&$('schoolName').value!==m.name&&!confirm("読取結果を選択した学校情報に変更しますか？")){this.value="";return;}if($('schoolName').value!==m.name){$('teacherName').value="";$('schoolPostal').value="";}$('schoolName').value=m.name;$('schoolAddress').value=m.address||"";$('schoolTel').value=m.phone||"";updateWarnings();});
    if(d&&d.kind==="ocr"){
     for(const [id,key] of [["schoolName","school"],["teacherName","schoolContact"],["schoolOffice","schoolOffice"],["schoolPostal","schoolPostal"],["schoolAddress","schoolAddress"],["schoolTel","schoolTel"]])$(id).value=d[key]||"";
     for(const k of Object.keys(getSettings()))if(typeof d.settings?.[k]==="string")$(k).value=d.settings[k];
@@ -994,6 +998,7 @@ renderRows([]);
    parent.postMessage({type:"tanaka-workspace-loaded",token:context.token},origin);
   }else if(e.data.type==="tanaka-workspace-saved"&&context&&e.data.token===context.token){
    status.textContent="営業画面に仮保管しました。営業ホームに戻って確認してください。";
+  }else if(e.data.type==="tanaka-workspace-error"&&context&&e.data.token===context.token){status.textContent=String(e.data.message||"保管できませんでした。");
   }
  });
  btn.onclick=()=>{
