@@ -251,6 +251,7 @@ $("archiveFile").addEventListener("change",async e=>{
   archives.push({id:"ARCH-"+String(archiveSeq++).padStart(3,"0"),rep:owner,data,updated:day(),caseId:null});renderArchives();announce("保管データを復元しました。");
  }catch(err){announce(String(err.message||"読み込めませんでした。"));}
 });
+function lineSignature(rows){return JSON.stringify(rows.map(p=>[p.maker,p.sku,p.name,String(p.qty),p.spec||"",p.note||""]));}
 function linkArchive(a){
  if(a.caseId){const c=findCase(a.caseId);if(c)openCase(c.id);return;}
  const s=ownSchools().find(x=>x.name===archiveSchool(a.data));
@@ -268,7 +269,8 @@ function linkArchive(a){
  if(items.length>30){announce("案件への引き継ぎは30品目までです。分けて作成してください。");return;}
  if(!confirm("保管した帳票をもとに新規案件を作成します。受注・発注済みにはせず、内容確認から進めます。よろしいですか？"))return;
  const id="DEMO-"+String(nextId++).padStart(3,"0");
- const c={id,school:s.id,rep,method:d.kind==="ocr"?"FAX":"その他",kind:type==="quote"?"見積依頼":"注文",qty:items.reduce((n,p)=>n+Number(p.qty),0),note:archiveLabel(d)+"から引き継ぎ（内容確認）",stage:type==="quote"?"見積書の準備":"注文内容の確認",due:day(),updated:day(),products:items,confirmedMakers:[],batch:0,history:[{at:day(),text:"保管帳票 "+a.id+" より案件を作成（試作）"}]};
+ const c={id,school:s.id,rep,method:d.kind==="ocr"?"FAX":"その他",kind:type==="quote"?"見積依頼":"注文",qty:items.reduce((n,p)=>n+Number(p.qty),0),note:archiveLabel(d)+"から引き継ぎ（内容確認）",stage:type==="quote"?"見積書の準備":"注文内容の確認",due:day(),updated:day(),products:items,confirmedMakers:[],batch:0,sourceArchiveId:a.id,sourceLineSignature:lineSignature(items),history:[{at:day(),text:"保管帳票 "+a.id+" より案件を作成（試作）"}]};
+ if(type==="quote"&&items.every(validProduct)){c.prepared=c.stage;c.archivePrepared=a.id;}
  cases.push(c);a.caseId=id;openCase(id);
 }
 $("archiveRows").addEventListener("click",e=>{
@@ -321,12 +323,12 @@ function renderWork(c){
  if(c.stage==="請求内容の確認")extra='<p class="hint">納品確認済み：'+total(c,"delivered")+' 点。学校への請求額は販売単価を使用します。</p>'+shippingSummary(c);
  if(c.prepared===c.stage&&kind){
   button=({"quote":"見積書を確認して学校への返信へ","order":"このメーカーの発注を試作記録する","delivery":"今回の納品確認を記録する","invoice":"請求書の確認を試作記録する"})[kind];
-  extra+= '<p class="status-note">'+docNames[kind]+'の下書きに案件情報を引き継ぎました。別タブで内容を確認してください。帳票側で編集した内容は案件へ自動反映されません。</p><button type="button" id="reopenDoc">下書きをもう一度開く</button>';
+  extra+= '<p class="status-note">'+(c.archivePrepared?'作成済みの保管帳票を引き継いでいます。新たに作り直す必要はありません。':docNames[kind]+'の下書きに案件情報を引き継ぎました。')+' 別タブで内容を確認してください。帳票側で編集した内容は案件へ自動反映されません。</p><button type="button" id="reopenDoc">下書きをもう一度開く</button>';
  }
  $("workPanel").innerHTML='<p class="small">'+esc(s.name)+' ／ '+esc(c.id)+'</p><h3>次に行う仕事</h3><p><span class="pill">'+esc(c.stage)+'</span></p><p style="margin-top:8px">'+esc(f[1])+'</p>'+extra+(isOpen(c)?'<button class="primary" type="button" id="nextWork">'+esc(button)+'</button>':'')+'<p id="workFeedback" class="work-feedback" role="status"></p><p class="hint">操作確認用です。正式な受注・発注・請求・送信は行いません。</p>';
 }
 function advance(c,next,text){
- c.history.push({at:day(),text:text+"（試作）"});c.stage=next;c.prepared="";c.updated=day();c.due=next==="完了"?"":next==="学校からの注文待ち"||next==="出荷情報の入力"?day(1):day();delete workDrafts[c.id];delete detailDrafts[c.id];$("manualDetail").open=false;renderDetail(c.id);workMsg("記録しました。次の仕事："+next);
+ c.history.push({at:day(),text:text+"（試作）"});c.stage=next;c.prepared="";c.archivePrepared="";c.updated=day();c.due=next==="完了"?"":next==="学校からの注文待ち"||next==="出荷情報の入力"?day(1):day();delete workDrafts[c.id];delete detailDrafts[c.id];$("manualDetail").open=false;renderDetail(c.id);workMsg("記録しました。次の仕事："+next);
 }
 function openDocument(c,kind){
  if(window.location.origin==="null"){workMsg("公開サイトから帳票を開いてください。");return;}
@@ -385,7 +387,14 @@ function nextWork(c){
  if(stage==="受付内容の確認"){advance(c,c.kind==="見積依頼"?"見積書の準備":c.kind==="注文"?"注文内容の確認":"学校への返信","受付内容を確認");return;}
  if(stage==="学校への返信"){if(confirm("学校への返信を行いましたか？（試作記録のみ）"))advance(c,c.kind==="見積依頼"?"学校からの注文待ち":"完了","学校への返信を記録");return;}
  if(stage==="学校からの注文待ち"){if(confirm("学校から注文がありましたか？（試作記録のみ）")){c.kind="注文";advance(c,"注文内容の確認","学校からの注文を記録");}return;}
- if(stage==="注文内容の確認"){if(saveWork(c))advance(c,"メーカー発注の準備","注文の明細を確認");return;}
+ if(stage==="注文内容の確認"){
+  if(!saveWork(c))return;
+  const a=ownArchives().find(x=>x.id===c.sourceArchiveId&&x.caseId===c.id);
+  const useSource=a&&(a.data.kind==="ocr"||a.data.form?.type==="order")&&lineSignature(products(c))===c.sourceLineSignature&&groups(c).length===1;
+  advance(c,"メーカー発注の準備","注文の明細を確認");
+  if(useSource){c.prepared=c.stage;c.archivePrepared=a.id;renderWork(c);workMsg("作成済みの発注書を引き継ぎました。帳票内容を確認してから発注の確認を記録してください。");}
+  return;
+ }
  if(stage==="納期の確認"){
   const gs=groups(c),dates=gs.map((g,i)=>d["eta"+(i||"")]??(c.etas||{})[g.maker]);
   if(dates.some(x=>!x)){workMsg("各メーカーの回答納期を入力してください。");return;}
@@ -411,7 +420,10 @@ $("workPanel").addEventListener("change",workInput);
 $("workPanel").addEventListener("click",e=>{
  const c=findCase(opened);if(!c||view!=="detail")return;const b=e.target.closest("button");if(!b)return;
  if(b.id==="nextWork")nextWork(c);
- else if(b.id==="reopenDoc")openDocument(c,flows[c.stage][2]);
+ else if(b.id==="reopenDoc"){
+  const a=ownArchives().find(x=>x.id===c.archivePrepared&&x.caseId===c.id);
+  if(a)openWorkspace(a.data.kind,a.id);else openDocument(c,flows[c.stage][2]);
+ }
  else if(["見積書の準備","注文内容の確認"].includes(c.stage)&&!c.prepared){
   const rows=getDraftItems(c);
   if(b.id==="addProduct"){if(rows.length>=30){workMsg("試作では30品目までです。");return;}rows.push(line());renderWork(c);}
