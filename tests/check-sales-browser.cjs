@@ -8,7 +8,7 @@ try{
  const app=pathToFileURL(path.resolve("sales.html")).href;
  const test=String.raw`
 function checks(w,label){
- const d=w.document,$=id=>d.getElementById(id);
+ const d=w.document,$=id=>d.getElementById(id);w.confirm=()=>true;
  const ok=(v,m)=>{if(!v)throw Error(label+": "+m);};
  const set=(id,v,ev="input")=>{$(id).value=v;$(id).dispatchEvent(new w.Event(ev,{bubbles:true}));};
  const click=sel=>{const b=d.querySelector(sel);ok(b,"missing "+sel);b.click();};
@@ -33,10 +33,16 @@ function checks(w,label){
  click('[data-tab="cases"]');width("cases");
  set("caseSearch","DEMO-008");ok($("caseRows").querySelectorAll("[data-case]").length===1,"search");
  click('#caseRows [data-case="DEMO-008"]');ok(visible("detailView"),"detail route");width("detail");
+ ok($("workPanel").textContent.includes("依頼内容を確認する"),"one clear action");
+ click("#nextWork");ok($("workPanel").textContent.includes("見積書を作成する"),"quote routing");width("quote action");
+ $("manualDetail").open=true;
  set("detailNote","<img src=x onerror=alert(1)>");
  set("detailStage","完了","change");$("detailForm").requestSubmit();
  ok(!$("detailContent").querySelector("img")&&$("detailContent").textContent.includes("<img src=x onerror=alert(1)>"),"escaped history");
  click('[data-tab="home"]');ok($("openCount").textContent==="1","completion reflected");
+ set("rep","藤井","change");click('#taskRows [data-case="DEMO-003"]');ok($("workPanel").textContent.includes("注文内容を確認する"),"order routing");click("#nextWork");ok($("workPanel").textContent.includes("メーカー発注書を作成する"),"manufacturer order action");width("purchase action");
+ set("rep","長谷","change");click('#taskRows [data-case="DEMO-004"]');ok($("workPanel").textContent.includes("出荷情報を登録する"),"shipping action");
+ const ship=d.querySelector('[data-work="shipQty"]');ship.value="999";ship.dispatchEvent(new w.Event("input",{bubbles:true}));click("#nextWork");ok($("workFeedback").textContent.includes("未出荷数量"),"excess rejected");ship.value="10";ship.dispatchEvent(new w.Event("input",{bubbles:true}));click("#nextWork");ok($("workPanel").textContent.includes("今回の出荷数量：10 点")&&$("workPanel").textContent.includes("納品書を作成する"),"split shipment draft");width("delivery action");
  for(const rep of ["会野","藤井","長谷","恩田","社長"]){set("rep",rep,"change");width(rep);ok($("greeting").textContent.includes(rep),"rep available");}
 }
 `;
