@@ -101,8 +101,8 @@ await wait(()=>popup?.document.getElementById("quoteNumber")?.value==="Q-DIRECT-
 pd=popup.document;ok(pd.querySelector('#paper [data-row="0"][data-col="sku"]').value==="TEST-DIRECT","restore product");ok(pd.getElementById("school").value==="架空・みどり中学校","restore school");
 popup.close();popup=null;
 click('[data-archive-next="ARCH-001"]');
-ok($("workPanel").textContent.includes("見積書を作成する"),"archive routed to draft quote");
-ok(d.querySelector('[data-line="0"][data-work="sku"]').value==="TEST-DIRECT","manual item transferred");
+ok($("nextWork").textContent.includes("学校への返信へ")&&$("workPanel").textContent.includes("作り直す必要はありません"),"archived quote reused");
+click("#nextWork");ok($("nextWork").textContent.includes("学校への返信を記録する"),"continue from saved quote");
 ok($("detailContent").textContent.includes("ARCH-001"),"source document linked");
 click('[data-tab="home"]');
 // 元OTAを統合した画面。外部CDNなしの手動確認経路で帳票作成・保管・復元を検証。
@@ -129,6 +129,7 @@ ok(d.querySelector('[data-line="0"][data-work="sku"]').value==="131801","ocr ite
 ok(d.querySelector('[data-line="0"][data-work="qty"]').value==="12","ocr quantity transferred");
 ok(d.querySelector('[data-line="0"][data-work="price"]').value==="","no invented selling price");
 ok(d.querySelector('[data-line="0"][data-work="note"]').value.includes("美術"),"grade and class retained");
+field("price","100");click("#nextWork");ok($("nextWork").textContent.includes("このメーカーの発注を試作記録する")&&$("workPanel").textContent.includes("作り直す必要はありません"),"source OTA order reused after price confirmation");
 click('[data-tab="home"]');set("rep","恩田");ok($("archiveCount").textContent==="0","archive isolation");
 set("rep","大田");click('[data-open="archive"]');
 let exported=null;
