@@ -96,7 +96,7 @@
 <div class="notice" role="status">このページは帳票のレイアウト確認用です。実在の学校・児童生徒・取引先の個人情報を入力しないでください。入力内容の自動送信・サーバー保存は行いません。</div>
 <main class="layout" id="mainLayout">
 <section class="panel editor" aria-label="帳票編集">
-<h2>帳票の入力・編集</h2>
+<h2>帳票の入力・編集</h2><div id="workspaceMasters" class="hidden" style="margin-bottom:10px"><div class="field-grid"><div class="field"><label for="workspaceSchool">担当校から入力</label><select id="workspaceSchool"><option value="">学校を選択（任意）</option></select></div><div class="field"><label for="workspaceMaker">発注先から入力</label><select id="workspaceMaker"><option value="">メーカーを選択（任意）</option></select></div></div></div>
 <div class="field-grid">
 <div class="field order-picker"><label for="type">帳票の種類</label><select id="type"><option value="order">発注書（A4縦）</option><option value="quote">見積書（A4縦）</option><option value="delivery">納品書（A4縦）</option><option value="invoice">請求書（A4縦）</option></select></div>
 <div class="field order-picker"><label for="rep">担当営業</label><select id="rep"><option>大田</option><option>会野</option><option>藤井</option><option>長谷</option><option>恩田</option><option>社長</option></select></div>
@@ -452,7 +452,13 @@ if(window.opener&&window.location&&window.location.origin!=="null"&&new URLSearc
     next.items=d.form.items.map(function(it){var o={};["sku","name","spec","qty","unit","price","note","deliveryDate"].forEach(function(k){o[k]=typeof it[k]==="string"?it[k].slice(0,1000):"";});return o;});
     s=next;
    }
-   workspaceContext=msg;s.rep=msg.rep;s.operator=msg.rep;sync();workspaceButton.classList.remove("hidden");
+   workspaceContext=msg;s.rep=msg.rep;if(!d)s.operator=msg.rep;sync();workspaceButton.classList.remove("hidden");
+   var schools=Array.isArray(msg.schools)?msg.schools:[],suppliers=Array.isArray(msg.suppliers)?msg.suppliers:[];
+   byId("workspaceSchool").innerHTML='<option value="">学校を選択（任意）</option>'+schools.map(function(m,i){return '<option value="'+i+'">'+escapeText(m.name)+'</option>';}).join("");
+   byId("workspaceMaker").innerHTML='<option value="">メーカーを選択（任意）</option>'+suppliers.map(function(m,i){return '<option value="'+i+'">'+escapeText(m.name)+'</option>';}).join("");
+   byId("workspaceMasters").classList.remove("hidden");
+   byId("workspaceSchool").addEventListener("change",function(){var m=this.value===""?null:schools[Number(this.value)];if(!m)return;if(s.school&&s.school!==m.name&&!confirm("学校情報を選択した学校に置き換えますか？")){this.value="";return;}if(s.school!==m.name)s.schoolContact="";s.school=m.name;s.schoolAddress=m.address||"";s.schoolTel=m.phone||"";sync();});
+   byId("workspaceMaker").addEventListener("change",function(){var m=this.value===""?null:suppliers[Number(this.value)];if(!m)return;if(s.maker&&s.maker!==m.name&&!confirm("発注先情報を置き換えますか？")){this.value="";return;}if(s.maker!==m.name){s.makerAddress="";s.makerContact="";}s.maker=m.name;s.makerTel=m.phone||"";s.makerFax=m.fax||"";s.makerCode=m.code||"";sync();});
    workspaceNotice.textContent="営業ホームから開いた帳票です。架空データで作成し、「営業画面に仮保管」を押すと元の画面に保存されます。再読み込みで消えます。端末に残す場合は営業ホームで保管データを保存してください。";
    workspaceParent.postMessage({type:"tanaka-workspace-loaded",token:msg.token},workspaceOrigin);
   }else if(msg.type==="tanaka-workspace-saved"&&workspaceContext&&msg.token===workspaceContext.token){
