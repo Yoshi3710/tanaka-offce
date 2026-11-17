@@ -15,6 +15,7 @@ function checks(w,label){
  const visible=id=>!$(id).hidden;
  function width(name){ok(d.documentElement.scrollWidth<=d.documentElement.clientWidth+1,name+" horizontal overflow "+d.documentElement.scrollWidth+"/"+d.documentElement.clientWidth);}
  ok($("greeting").textContent.includes("大田"),"initial rep");width("home");
+ const shop=$("schoolShopLink");ok(shop&&shop.getBoundingClientRect().width>0&&shop.getBoundingClientRect().height>0,"school shop link visible");ok(shop.href==="https://yoshi3710.github.io/tanaka-school-shop/"&&shop.target==="_blank"&&shop.rel.includes("noopener"),"school shop opens safely in separate tab");
  ok($("openCount").textContent==="1","own open count");
  ok($("taskRows").textContent.includes("架空・みどり中学校")&&!$("taskRows").textContent.includes("架空・あおぞら中学校"),"scope");
  click('[data-task-filter="late"]');ok($("taskTitle").textContent==="期限超過","task filter");
