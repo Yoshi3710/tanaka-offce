@@ -43,7 +43,7 @@ function checks(w,label){
  set("rep","藤井","change");click('#taskRows [data-case="DEMO-003"]');ok($("workPanel").textContent.includes("注文内容を確認する"),"order routing");ok(d.querySelectorAll("[data-work=maker]").length===3,"multi-product editor");width("multi-product editor");click("#addProduct");width("added product");click('[data-remove-line="3"]');click("#nextWork");ok($("workPanel").textContent.includes("メーカー発注書を作成する")&&$("workPanel").textContent.includes("メーカー別の発注書：2社"),"manufacturer order action");width("purchase action");
  set("rep","長谷","change");click('#taskRows [data-case="DEMO-004"]');ok($("workPanel").textContent.includes("出荷情報を登録する"),"shipping action");
  const ship=d.querySelector('[data-work="shipQty"]');ship.value="999";ship.dispatchEvent(new w.Event("input",{bubbles:true}));click("#nextWork");ok($("workFeedback").textContent.includes("未出荷数量"),"excess rejected");ship.value="10";ship.dispatchEvent(new w.Event("input",{bubbles:true}));click("#nextWork");ok($("workPanel").textContent.includes("今回の出荷数量：10 点")&&$("workPanel").textContent.includes("納品書を作成する"),"split shipment draft");width("delivery action");
- for(const rep of ["会野","藤井","長谷","恩田","社長"]){set("rep",rep,"change");width(rep);ok($("greeting").textContent.includes(rep),"rep available");}
+ for(const rep of ["會野","藤井","長谷","恩田","田中壮一"]){set("rep",rep,"change");width(rep);ok($("greeting").textContent.includes(rep),"rep available");}
 }
 `;
  const run=(width,height)=>{

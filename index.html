@@ -99,7 +99,7 @@
 <h2>帳票の入力・編集</h2><div id="workspaceMasters" class="hidden" style="margin-bottom:10px"><div class="field-grid"><div class="field"><label for="workspaceSchool">担当校から入力</label><select id="workspaceSchool"><option value="">学校を選択（任意）</option></select></div><div class="field"><label for="workspaceMaker">発注先から入力</label><select id="workspaceMaker"><option value="">メーカーを選択（任意）</option></select></div></div></div>
 <div class="field-grid">
 <div class="field order-picker"><label for="type">帳票の種類</label><select id="type"><option value="order">発注書（A4縦）</option><option value="quote">見積書（A4縦）</option><option value="delivery">納品書（A4縦）</option><option value="invoice">請求書（A4縦）</option></select></div>
-<div class="field order-picker"><label for="rep">担当営業</label><select id="rep"><option>大田</option><option>会野</option><option>藤井</option><option>長谷</option><option>恩田</option><option>社長</option></select></div>
+<div class="field order-picker"><label for="rep">担当営業</label><select id="rep"><option>大田</option><option>會野</option><option>藤井</option><option>長谷</option><option>恩田</option><option>田中壮一</option></select></div>
 <div class="field not-quote"><label for="number">帳票番号</label><input id="number" data-field="number" autocomplete="off" placeholder="例：T-2026-001"></div>
 <div class="field quote-only hidden"><label for="quoteNumber">見積番号</label><input id="quoteNumber" data-field="quoteNumber" autocomplete="off" placeholder="例：Q-2026-001"></div>
 <div class="field"><label for="date">作成日</label><input type="date" id="date" data-field="date"></div>
@@ -139,7 +139,7 @@
 <script>
 (function(){
 "use strict";
-var reps=["大田","会野","藤井","長谷","恩田","社長"];
+var reps=["大田","會野","藤井","長谷","恩田","田中壮一"];
 var keys=["number","quoteNumber","quoteExpiry","date","school","schoolAddress","schoolContact","schoolTel","className","operator","contactTel","maker","orderClass","makerCode","makerAddress","makerTel","makerFax","makerContact","reference","serviceDate","tax","memo"];
 var today=new Date(),localDate=today.getFullYear()+"-"+String(today.getMonth()+1).padStart(2,"0")+"-"+String(today.getDate()).padStart(2,"0");
 var s={type:"order",rep:"大田",number:"",quoteNumber:"",quoteExpiry:"",date:localDate,school:"",schoolAddress:"",schoolContact:"",schoolTel:"",className:"",operator:"",contactTel:"06-6997-6030",maker:"",orderClass:"学校直送",makerCode:"",makerAddress:"",makerTel:"",makerFax:"",makerContact:"",reference:"",serviceDate:"",tax:"10",memo:"",items:[{sku:"",name:"",spec:"",qty:"",unit:"個",price:"",note:""}]};

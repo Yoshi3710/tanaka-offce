@@ -73,7 +73,7 @@ label{display:block;font-size:13px;font-weight:700;min-width:0}input,select,text
 <script>
 "use strict";
 (function(){
-const reps=["大田","会野","藤井","長谷","恩田","社長"];
+const reps=["大田","會野","藤井","長谷","恩田","田中壮一"];
 const stages=["受付内容の確認","見積書の準備","学校への返信","注文内容の確認","メーカー発注の準備","納期の確認","出荷情報の入力","納品書の準備","請求内容の確認","完了","学校からの注文待ち"];
 const names=["みどり中学校","つばさ小学校","ひかり中学校","しらかば小学校","あおぞら中学校","さくら小学校","わかば小学校"];
 const schools=names.map((name,i)=>({id:"S"+(i+1),name:"架空・"+name,rep:reps[i%reps.length],address:"架空県サンプル市"+(i+1)+"丁目",phone:"000-0000-"+String(i+1).padStart(4,"0")}));

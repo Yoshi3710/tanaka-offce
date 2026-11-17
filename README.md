@@ -1,5 +1,6 @@
 > **現行仕様の確認先（2026-11-13更新）**  
 > このREADME本文は初期試作時の履歴です。以下の古い記述（例：発注書A4横／担当営業「太田」／帳票3種類／Pages無効）は、現在の仕様ではありません。  
+> 現行の担当営業名（2026-11-17）：大田・會野・藤井・長谷・恩田・田中壮一。下記の旧名は初期試作の記録です。  
 > **最新の決定事項：** [docs/CURRENT_SPEC.md](docs/CURRENT_SPEC.md)  
 > **本番Xserver移行・改善計画：** [docs/XSERVER_ROADMAP.md](docs/XSERVER_ROADMAP.md)  
 > **検証項目・未確認事項：** [docs/QA_CHECKLIST.md](docs/QA_CHECKLIST.md)  

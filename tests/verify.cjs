@@ -7,7 +7,7 @@ const vm=require("node:vm");
 const assert=require("node:assert/strict");
 function read(file){return fs.readFileSync(file,"utf8");}
 const index=read("index.html"),staff=read("staff.html"),spec=read("docs/CURRENT_SPEC.md");
-const reps=["大田","会野","藤井","長谷","恩田","社長"];
+const reps=["大田","會野","藤井","長谷","恩田","田中壮一"];
 function scriptFrom(html,name){
  const m=html.match(/<script>([\s\S]*?)<\/script>/);
  assert(m,name+" has inline script");return m[1];
