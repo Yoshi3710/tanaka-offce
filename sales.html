@@ -17,9 +17,9 @@ label{display:block;font-size:13px;font-weight:700;min-width:0}input,select,text
 .panel{border:1px solid #cbd6df;border-radius:7px;background:#fff;padding:16px;margin-bottom:13px;min-width:0}.panel-head,.actions{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}.panel-head{margin-bottom:8px}.panel-head h2{margin:0}
 .records{display:grid;gap:0}.record{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr) minmax(0,105px) auto;align-items:center;gap:10px;padding:12px 0;border-top:1px solid #dbe3ea;min-width:0}.record>*{min-width:0;overflow-wrap:anywhere}.record strong{font-size:15px}.record p{font-size:13px}.small{font-size:12px;color:#526b7d}.due{font-size:13px}.late{color:#a33b2e;font-weight:700}.pill{display:inline-block;background:#edf3f7;color:#234c6e;padding:3px 7px;border-radius:4px;font-size:12px}.empty{padding:15px 0;color:#526b7d;font-size:14px}
 .fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.full{grid-column:1/-1}.filters{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,220px);gap:12px;margin-bottom:12px}.school-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.school-card{border:1px solid #cbd6df;border-radius:5px;padding:13px;min-width:0;overflow-wrap:anywhere}.school-card h3{margin-bottom:7px}.school-card .actions{margin-top:10px}.school-card p{font-size:13px}
-.detail-meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:12px 0}.detail-meta div{border-bottom:1px solid #dbe3ea;padding:5px 0;min-width:0;overflow-wrap:anywhere}.detail-meta dt{font-size:12px;color:#526b7d}.detail-meta dd{margin:4px 0;font-size:14px;white-space:pre-wrap}.history{list-style:none;padding:0;margin:8px 0 14px}.history li{border-bottom:1px solid #dbe3ea;padding:7px 0;overflow-wrap:anywhere;white-space:pre-wrap;font-size:13px}.history time{display:block;color:#526b7d;font-size:11px}.feedback{min-height:1.6em;font-size:13px;color:#124f80;margin:8px 0;overflow-wrap:anywhere}.status-note{padding:8px;background:#edf3f7;font-size:13px;border-radius:4px;margin:10px 0}.report-links{display:flex;gap:12px;flex-wrap:wrap;font-size:13px;margin-top:15px}.footer{font-size:12px;color:#526b7d;margin:18px 0;overflow-wrap:anywhere}
+.detail-meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:12px 0}.detail-meta div{border-bottom:1px solid #dbe3ea;padding:5px 0;min-width:0;overflow-wrap:anywhere}.detail-meta dt{font-size:12px;color:#526b7d}.detail-meta dd{margin:4px 0;font-size:14px;white-space:pre-wrap}.history{list-style:none;padding:0;margin:8px 0 14px}.history li{border-bottom:1px solid #dbe3ea;padding:7px 0;overflow-wrap:anywhere;white-space:pre-wrap;font-size:13px}.history time{display:block;color:#526b7d;font-size:11px}.feedback{min-height:1.6em;font-size:13px;color:#124f80;margin:8px 0;overflow-wrap:anywhere}.status-note{padding:8px;background:#edf3f7;font-size:13px;border-radius:4px;margin:10px 0}.report-links{display:flex;gap:12px;flex-wrap:wrap;font-size:13px;margin-top:15px}.work{border:1px solid #a6c4db;background:#f5faff;border-radius:6px;padding:15px;margin:12px 0 18px;min-width:0;overflow-wrap:anywhere}.work h3{font-size:19px;margin:5px 0 8px}.work .fields{margin-top:12px}.work .primary{width:100%;margin-top:12px;min-height:44px}.work .hint{margin-top:8px}.work-feedback{font-size:13px;color:#124f80;margin-top:8px;white-space:pre-wrap}details.detail-edit{border-top:1px solid #dbe3ea;padding-top:12px}details.detail-edit summary{cursor:pointer;color:#124f80;font-size:14px;font-weight:700}.footer{font-size:12px;color:#526b7d;margin:18px 0;overflow-wrap:anywhere}
 @media(max-width:640px){.shell{padding:12px}.mast-inner{padding:10px 12px;gap:9px}.mast img{width:116px}.mast h1{font-size:17px}.demo label{flex:1 1 100%}.heading h2{font-size:20px}.tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.tabs button{min-height:44px}.stats{gap:6px}.stat{padding:8px}.stat[aria-pressed=true]{padding:7px}.stat span{font-size:12px}.stat strong{font-size:22px}.panel{padding:12px}.record{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:7px}.record>div:first-child{grid-column:1/-1}.record button{min-height:40px}.fields,.school-grid,.filters,.detail-meta{grid-template-columns:minmax(0,1fr)}.actions button{min-height:42px}.primary{min-height:42px}}
-@media print{.mast,.demo,.tabs,.heading button,.stats,.actions,button,.filters,.report-links,.footer,.feedback,#entryView,.detail-edit{display:none!important}.shell{max-width:none;padding:0}.panel{border:0;padding:0}.record,.school-card{break-inside:avoid}.heading{margin:0 0 10px}body{background:#fff}}
+@media print{.mast,.demo,.tabs,.heading button,.stats,.actions,button,.filters,.report-links,.footer,.feedback,#entryView,.detail-edit,.work{display:none!important}.shell{max-width:none;padding:0}.panel{border:0;padding:0}.record,.school-card{break-inside:avoid}.heading{margin:0 0 10px}body{background:#fff}}
 </style>
 </head>
 <body>
@@ -56,25 +56,26 @@ label{display:block;font-size:13px;font-weight:700;min-width:0}input,select,text
 <label class="full">教材・依頼内容<textarea id="entryNote" required maxlength="400" placeholder="架空の教材名・依頼内容"></textarea></label>
 </div><p class="status-note" id="entryMaster">学校を選ぶと登録情報が表示されます。</p>
 <div class="actions"><button class="primary" type="submit">下書きを仮登録</button><button type="button" id="clearEntry">入力をクリア</button></div></form></div></section>
-<section id="detailView" hidden><div class="panel"><div class="panel-head"><h2>案件詳細</h2><button type="button" id="backDetail">戻る</button></div><div id="detailContent"></div>
-<div class="detail-edit"><h3>対応状況を更新（試作）</h3><form id="detailForm"><div class="fields" style="margin-top:10px">
+<section id="detailView" hidden><div class="panel"><div class="panel-head"><h2>案件詳細</h2><button type="button" id="backDetail">戻る</button></div><div id="workPanel" class="work" aria-label="次に行う仕事"></div><div id="detailContent"></div>
+<details class="detail-edit" id="manualDetail"><summary>対応メモ・確認日・例外的な進行状況の修正</summary><form id="detailForm"><div class="fields" style="margin-top:10px">
 <label>次の作業<select id="detailStage"></select></label><label>次回確認日<input id="detailDue" type="date"></label>
 <label class="full">対応内容（任意）<textarea id="detailNote" maxlength="400" placeholder="架空の対応記録"></textarea></label>
-</div><div class="actions" style="margin-top:10px"><button class="primary" type="submit">対応内容を反映</button></div></form></div>
-<div class="report-links"><a href="index.html" target="_blank" rel="noopener">帳票作成（別画面・データ連動前）</a></div></div></section>
-<div class="footer">株式会社タナカ｜担当営業ホーム試作　・　<a href="staff.html" target="_blank" rel="noopener">従来の本部・社員管理画面（比較用）</a><p>正式なログイン・権限・データ保存・帳票連動・発注送信は未実装です。</p></div>
+</div><div class="actions" style="margin-top:10px"><button type="submit">対応内容を反映</button></div></form></details></div></section>
+<div class="footer">株式会社タナカ｜担当営業ホーム試作　・　<a href="staff.html" target="_blank" rel="noopener">従来の本部・社員管理画面（比較用）</a><p>正式なログイン・権限・データ保存・発注送信は未実装です。帳票連動は架空データによる下書き作成のみです。</p></div>
 </main>
 <script>
 "use strict";
 (function(){
 const reps=["大田","会野","藤井","長谷","恩田","社長"];
-const stages=["受付内容の確認","見積書の準備","学校への返信","注文内容の確認","メーカー発注の準備","納期の確認","出荷情報の入力","納品書の準備","請求内容の確認","完了"];
+const stages=["受付内容の確認","見積書の準備","学校への返信","注文内容の確認","メーカー発注の準備","納期の確認","出荷情報の入力","納品書の準備","請求内容の確認","完了","学校からの注文待ち"];
 const names=["みどり中学校","つばさ小学校","ひかり中学校","しらかば小学校","あおぞら中学校","さくら小学校","わかば小学校"];
 const schools=names.map((name,i)=>({id:"S"+(i+1),name:"架空・"+name,rep:reps[i%reps.length],address:"架空県サンプル市"+(i+1)+"丁目",phone:"000-0000-"+String(i+1).padStart(4,"0")}));
 function day(offset=0){const d=new Date();d.setDate(d.getDate()+offset);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
-const cases=schools.map((s,i)=>({id:"DEMO-"+String(i+1).padStart(3,"0"),school:s.id,rep:s.rep,method:i%2?"電話":"FAX",kind:i%2?"注文":"見積依頼",qty:20+i*5,note:"架空の教材セット "+(20+i*5)+"点",stage:stages[[1,5,3,6,2,4,9][i]],due:day(i%3-1),updated:day(-i),history:[{at:day(-i),text:"試作用の受付記録"}]}));
+const cases=schools.map((s,i)=>({id:"DEMO-"+String(i+1).padStart(3,"0"),school:s.id,rep:s.rep,method:i%2?"電話":"FAX",kind:[0,4].includes(i)?"見積依頼":"注文",qty:20+i*5,note:"架空の教材セット "+(20+i*5)+"点",stage:stages[[1,5,3,6,2,4,9][i]],due:day(i%3-1),updated:day(-i),history:[{at:day(-i),text:"試作用の受付記録"}]}));
+// 架空の案件。単一商品で業務の流れを検証する。
+cases.forEach((c,i)=>{c.product={maker:"架空・教材メーカーA",sku:"DEMO-"+String(i+1).padStart(3,"0"),name:"架空の教材セット",qty:String(c.qty),price:"350"};c.shipped=0;c.delivered=0;c.pending=0;c.batch=0;});
 let rep=reps[0],view="home",back="home",opened=null,taskFilter="all",nextId=cases.length+1;
-const drafts={},detailDrafts={};
+const drafts={},detailDrafts={},workDrafts={};let pendingWindow=null;
 const $=id=>document.getElementById(id);
 const esc=x=>String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const option=(v,l)=>'<option value="'+esc(v)+'">'+esc(l)+'</option>';
@@ -83,6 +84,21 @@ const ownCases=()=>cases.filter(x=>x.rep===rep&&ownSchools().some(s=>s.id===x.sc
 const findCase=id=>ownCases().find(x=>x.id===id);
 const schoolFor=id=>ownSchools().find(x=>x.id===id);
 const isOpen=c=>c.stage!=="完了";
+const flows={
+ "受付内容の確認":["依頼内容を確認する","学校からの依頼を確認したら、内容に応じて次の作業へ進みます。"],
+ "見積書の準備":["見積書を作成する","学校情報と商品情報を引き継いだ見積書の下書きを開きます。","quote"],
+ "学校への返信":["学校への返信を記録する","学校に回答した後で押してください。メールは自動送信されません。"],
+ "学校からの注文待ち":["学校からの注文を記録する","学校から正式な注文があった場合だけ押してください。"],
+ "注文内容の確認":["注文内容を確認する","学校・商品・数量・販売単価を確認して発注の準備へ進みます。"],
+ "メーカー発注の準備":["メーカー発注書を作成する","発注先と商品情報を引き継ぎます。メーカーへの自動送信はありません。","order"],
+ "納期の確認":["納期確認を記録する","メーカーの納期回答を確認したら出荷連絡待ちへ進みます。"],
+ "出荷情報の入力":["出荷情報を登録する","メーカーから届いた出荷情報を入力してください。一部出荷も登録できます。"],
+ "納品書の準備":["納品書を作成する","出荷情報をもとに今回分の納品書の下書きを作成します。","delivery"],
+ "請求内容の確認":["請求書を作成する","納品済みの数量に基づく請求書の下書きを作成します。","invoice"],
+ "完了":["完了","この案件は完了しています。"]
+};
+const productFields=[["maker","メーカー名（発売元）"],["sku","品番（任意）"],["name","商品名"],["qty","数量"],["price","販売単価（税抜・円）"]];
+const docNames={quote:"見積書",order:"発注書",delivery:"納品書",invoice:"請求書"};
 const dueText=c=>c.stage==="完了"?"完了":c.due?c.due:"期限未設定";
 const sortDue=(a,b)=>(a.due||"9999-99-99").localeCompare(b.due||"9999-99-99")||a.id.localeCompare(b.id);
 const empty=msg=>'<p class="empty">'+esc(msg)+'</p>';
@@ -90,7 +106,7 @@ function announce(msg=""){$("feedback").textContent=msg;}
 function row(c){
  const s=schoolFor(c.school);if(!s)return "";
  const late=isOpen(c)&&c.due&&c.due<day();
- return '<div class="record"><div><strong>'+esc(s.name)+'</strong><p class="small">'+esc(c.id)+'　'+esc(c.kind)+'</p></div><div><span class="pill">'+esc(c.stage)+'</span><p>'+esc(c.note)+'</p></div><div class="due'+(late?" late":"")+'">'+esc(dueText(c))+(late?'　期限超過':'')+'</div><button type="button" data-case="'+esc(c.id)+'">内容を確認</button></div>';
+ return '<div class="record"><div><strong>'+esc(s.name)+'</strong><p class="small">'+esc(c.id)+'　'+esc(c.kind)+'</p></div><div><span class="pill">'+esc(c.stage)+'</span><p>'+esc(c.note)+'</p></div><div class="due'+(late?" late":"")+'">'+esc(dueText(c))+(late?'　期限超過':'')+'</div><button type="button" data-case="'+esc(c.id)+'">'+esc(isOpen(c)?flows[c.stage][0]:"内容を確認")+'</button></div>';
 }
 function renderHome(){
  const own=ownCases(),active=own.filter(isOpen).sort(sortDue);
@@ -129,9 +145,92 @@ function restoreDraft(){
  if(!schoolFor($("entrySchool").value))$("entrySchool").value="";
  masterPreview();
 }
+
+function workMsg(msg){const el=$("workFeedback");if(el)el.textContent=msg;}
+function product(c){return c.product||{maker:"",sku:"",name:"",qty:String(c.qty??""),price:""};}
+function editFields(c){
+ const p=product(c),saved=workDrafts[c.id]||{};
+ return '<div class="fields">'+productFields.map(([k,label])=>'<label'+(k==="maker"||k==="name"?' class="full"':'')+'>'+esc(label)+'<input data-work="'+k+'" '+(k==="qty"||k==="price"?'type="number" min="'+(k==="qty"?1:0)+'" max="99999999" step="1" inputmode="numeric"':'maxlength="160"')+' value="'+esc(saved[k]??p[k]??"")+'"></label>').join("")+'</div>';
+}
+function saveWork(c){
+ const p={...product(c),...(workDrafts[c.id]||{})};
+ if(!p.maker.trim()||!p.name.trim()||!/^[0-9]+$/.test(p.qty)||Number(p.qty)<1||Number(p.qty)>99999||! /^[0-9]+$/.test(p.price)||Number(p.price)>99999999){workMsg("メーカー名・商品名・数量・販売単価を確認してください。");return false;}
+ c.product={maker:p.maker.trim(),sku:p.sku.trim(),name:p.name.trim(),qty:p.qty,price:p.price};c.qty=Number(p.qty);delete workDrafts[c.id];return true;
+}
+function renderWork(c){
+ const f=flows[c.stage],p=product(c),s=schoolFor(c.school),kind=f[2],d=workDrafts[c.id]||{};
+ let extra="",button=f[0];
+ const edit=["見積書の準備","注文内容の確認","メーカー発注の準備"].includes(c.stage);
+ if(edit&&!c.prepared)extra=editFields(c);
+ if(c.stage==="納期の確認")extra='<div class="fields"><label>メーカー回答の納期<input type="date" data-work="eta" value="'+esc(d.eta??c.eta??"")+'"></label></div>';
+ if(c.stage==="出荷情報の入力"){
+  const rest=Number(c.qty||0)-(c.shipped||0);
+  extra='<p class="hint">注文数量 '+esc(c.qty)+' 点 ／ 出荷済み '+(c.shipped||0)+' 点 ／ 未出荷 '+rest+' 点</p><div class="fields"><label>今回の出荷数量<input type="number" min="1" max="'+Math.max(0,rest)+'" step="1" data-work="shipQty" value="'+esc(d.shipQty??"")+'"></label><label>出荷日<input type="date" data-work="shipDate" value="'+esc(d.shipDate??day())+'"></label></div>';
+ }
+ if(c.stage==="納品書の準備")extra='<p class="hint">今回の出荷数量：'+(c.pending||0)+' 点。納品を確認してから次へ進みます。</p>';
+ if(c.stage==="請求内容の確認")extra='<p class="hint">納品確認済み：'+(c.delivered||0)+' 点。学校への請求額は販売単価を使用します。</p>';
+ if(c.prepared===c.stage&&kind){button=({"quote":"見積書を確認して学校への返信へ","order":"メーカーへの発注を試作記録する","delivery":"今回の納品確認を記録する","invoice":"請求書の確認を試作記録する"})[kind];extra='<p class="status-note">'+docNames[kind]+'の下書きに案件情報を引き継ぎました。別タブで内容を確認してください。帳票側で編集した内容は案件へ自動反映されません。</p><button type="button" id="reopenDoc">下書きをもう一度開く</button>';}
+ $("workPanel").innerHTML='<p class="small">'+esc(s.name)+' ／ '+esc(c.id)+'</p><h3>次に行う仕事</h3><p><span class="pill">'+esc(c.stage)+'</span></p><p style="margin-top:8px">'+esc(f[1])+'</p>'+extra+(isOpen(c)?'<button class="primary" type="button" id="nextWork">'+esc(button)+'</button>':'')+'<p id="workFeedback" class="work-feedback" role="status"></p><p class="hint">操作確認用です。正式な受注・発注・請求・送信は行いません。</p>';
+}
+function advance(c,next,text){
+ c.history.push({at:day(),text:text+"（試作）"});c.stage=next;c.prepared="";c.updated=day();c.due=next==="完了"?"":next==="学校からの注文待ち"||next==="出荷情報の入力"?day(1):day();delete workDrafts[c.id];delete detailDrafts[c.id];$("manualDetail").open=false;renderDetail(c.id);workMsg("記録しました。次の仕事："+next);
+}
+function openDocument(c,kind){
+ if(window.location.origin==="null"){workMsg("公開サイトから帳票を開いてください。");return;}
+ const p=product(c),s=schoolFor(c.school);
+ const qty=kind==="delivery"?c.pending:kind==="invoice"?c.delivered:Number(p.qty);
+ if(!s||!p.name||!p.maker||!Number.isInteger(qty)||qty<1||! /^[0-9]+$/.test(String(p.price))){workMsg("案件の商品・数量・単価・出荷情報が不足しています。");return;}
+ if(pendingWindow&&pendingWindow.caseId===c.id&&pendingWindow.stage===c.stage&&!pendingWindow.win.closed){pendingWindow.win.focus();workMsg("帳票の別タブを確認してください。");return;}
+ const pack={type:kind,rep:c.rep,school:s.name,schoolAddress:s.address,schoolTel:s.phone,maker:p.maker,date:day(),operator:c.rep,reference:"DEMO-O-"+c.id.replace("DEMO-",""),quoteNumber:kind==="quote"?"DEMO-Q-"+c.id.replace("DEMO-",""):"",number:kind==="order"?"DEMO-PO-"+c.id.replace("DEMO-",""):kind==="delivery"?"DEMO-D-"+c.id.replace("DEMO-","")+"-"+c.batch:kind==="invoice"?"DEMO-I-"+c.id.replace("DEMO-",""):"",serviceDate:kind==="delivery"?c.shipDate||"":"",items:[{sku:p.sku,name:p.name,spec:"",qty:String(qty),unit:"個",price:kind==="order"?"":p.price,note:"",deliveryDate:""}],memo:"試作案件 "+c.id};
+ const win=window.open("index.html?fromSales=1","_blank");
+ if(!win){workMsg("別タブが開けません。ポップアップの許可を確認してください。");return;}
+ pendingWindow={win,caseId:c.id,rep:c.rep,stage:c.stage,pack,token:Date.now()+"-"+Math.random()};
+ workMsg("別タブで帳票を開いています。下書きの読み込み完了を確認してください。");
+}
+window.addEventListener("message",e=>{
+ if(!pendingWindow||e.origin!==window.location.origin||e.origin==="null"||e.source!==pendingWindow.win||!e.data)return;
+ const p=pendingWindow,c=cases.find(x=>x.id===p.caseId&&x.rep===p.rep);
+ if(!c||c.stage!==p.stage){pendingWindow=null;return;}
+ if(e.data.type==="tanaka-draft-ready"){p.win.postMessage({type:"tanaka-draft-fill",token:p.token,data:p.pack},window.location.origin);}
+ if(e.data.type==="tanaka-draft-loaded"&&e.data.token===p.token){
+  c.prepared=p.stage;pendingWindow=null;
+  if(rep===c.rep&&view==="detail"&&opened===c.id){renderWork(c);workMsg("下書きを引き継ぎました。別タブで確認してから次の仕事へ進んでください。");}
+ }
+});
+function nextWork(c){
+ const stage=c.stage,f=flows[stage],kind=f[2],d=workDrafts[c.id]||{};
+ if(kind){
+  if(c.prepared!==stage){
+   if((kind==="quote"||kind==="order")&&!saveWork(c))return;
+   openDocument(c,kind);return;
+  }
+  if(!confirm("別タブの帳票内容と、今回の作業が完了していることを確認しましたか？（試作記録のみ）"))return;
+  if(kind==="quote")advance(c,"学校への返信","見積書下書きを確認");
+  else if(kind==="order")advance(c,"納期の確認","メーカー発注の確認を記録（送信なし）");
+  else if(kind==="delivery"){
+   if(!(c.pending>0)||c.delivered+c.pending>Number(c.qty)){workMsg("納品数量が不正です。");return;}
+   c.delivered+=c.pending;c.pending=0;advance(c,c.delivered===Number(c.qty)?"請求内容の確認":"出荷情報の入力","今回の納品確認を記録・累計 "+c.delivered+" 点");
+  }else if(kind==="invoice"){if(!(c.delivered>0)||c.delivered!==Number(c.qty)){workMsg("すべての納品確認が必要です。");return;}advance(c,"完了","請求書下書きの確認を記録（正式発行なし）");}
+  return;
+ }
+ if(stage==="受付内容の確認"){advance(c,c.kind==="見積依頼"?"見積書の準備":c.kind==="注文"?"注文内容の確認":"学校への返信","受付内容を確認");return;}
+ if(stage==="学校への返信"){if(confirm("学校への返信を行いましたか？（試作記録のみ）"))advance(c,c.kind==="見積依頼"?"学校からの注文待ち":"完了","学校への返信を記録");return;}
+ if(stage==="学校からの注文待ち"){if(confirm("学校から注文がありましたか？（試作記録のみ）")){c.kind="注文";advance(c,"注文内容の確認","学校からの注文を記録");}return;}
+ if(stage==="注文内容の確認"){if(saveWork(c))advance(c,"メーカー発注の準備","注文の明細を確認");return;}
+ if(stage==="納期の確認"){if(!d.eta){workMsg("回答の納期を入力してください。");return;}c.eta=d.eta;advance(c,"出荷情報の入力","メーカー回答の納期："+c.eta);return;}
+ if(stage==="出荷情報の入力"){
+  const n=Number(d.shipQty),date=d.shipDate??day(),remaining=Number(c.qty)-(c.shipped||0);
+  if(!Number.isInteger(n)||n<1||n>remaining||!date||date>day()||c.pending){workMsg("未出荷数量の範囲で、出荷数量と出荷日を確認してください。");return;}
+  c.shipped=(c.shipped||0)+n;c.pending=n;c.shipDate=date;c.batch=(c.batch||0)+1;advance(c,"納品書の準備","出荷連絡 "+date+"／"+n+" 点を登録");return;
+ }
+}
+$("workPanel").addEventListener("input",e=>{const c=findCase(opened),k=e.target.dataset.work;if(c&&k){(workDrafts[c.id]??={})[k]=e.target.value;delete c.prepared;}});
+$("workPanel").addEventListener("change",e=>{const c=findCase(opened),k=e.target.dataset.work;if(c&&k)(workDrafts[c.id]??={})[k]=e.target.value;});
+$("workPanel").addEventListener("click",e=>{const c=findCase(opened);if(!c||view!=="detail")return;const b=e.target.closest("button");if(!b)return;if(b.id==="nextWork")nextWork(c);else if(b.id==="reopenDoc")openDocument(c,flows[c.stage][2]);});
+
 function renderDetail(id){
  const c=findCase(id);if(!c)return false;
- const s=schoolFor(c.school);
+ const s=schoolFor(c.school);renderWork(c);
  $("detailContent").innerHTML='<h3>'+esc(s.name)+'　'+esc(c.id)+'</h3><dl class="detail-meta">'+
  [["担当営業",c.rep],["受付方法・区分",c.method+"／"+c.kind],["学校の住所・電話",s.address+"／"+s.phone],["数量",c.qty===""?"未確定":c.qty+" 点"],["依頼内容",c.note],["現在の作業",c.stage],["次回確認日",dueText(c)]].map(([k,v])=>'<div><dt>'+esc(k)+'</dt><dd>'+esc(v)+'</dd></div>').join("")+
  '</dl><h3>対応履歴</h3><ul class="history">'+c.history.slice().reverse().map(h=>'<li><time>'+esc(h.at)+'</time>'+esc(h.text)+'</li>').join("")+'</ul>';
@@ -177,7 +276,7 @@ $("entryForm").addEventListener("submit",e=>{
  const method=$("entryMethod").value,kind=$("entryKind").value;
  if(!["FAX","電話","訪問","ウェブ","その他"].includes(method)||!["見積依頼","注文","問い合わせ"].includes(kind))return;
  const id="DEMO-"+String(nextId++).padStart(3,"0");
- cases.push({id,school:school.id,rep,method,kind,qty,note,stage:stages[0],due,updated:day(),history:[{at:day(),text:method+"で"+kind+"を仮受付"}]});
+ cases.push({id,school:school.id,rep,method,kind,qty,note,stage:stages[0],due,updated:day(),shipped:0,delivered:0,pending:0,batch:0,history:[{at:day(),text:method+"で"+kind+"を仮受付"}]});
  delete drafts[rep];restoreDraft();show("home");announce(id+"：下書きを仮登録しました（正式受付ではありません）。");
 });
 $("detailForm").addEventListener("input",saveDetailDraft);
@@ -186,9 +285,10 @@ $("detailForm").addEventListener("submit",e=>{
  e.preventDefault();const c=findCase(opened);if(!c)return;
  const stage=$("detailStage").value,due=$("detailDue").value,note=$("detailNote").value.trim();
  if(!stages.includes(stage)||note.length>400)return;
+ if(stage!==c.stage&&!confirm("例外的な進行状況の修正です。通常の作業確認を省略する場合のみ変更してください。（試作）"))return;
  if(stage===c.stage&&due===c.due&&!note){announce("変更された内容はありません。");return;}
  const changes=[];if(stage!==c.stage)changes.push(c.stage+" → "+stage);if(due!==c.due)changes.push("次回確認日："+(c.due||"未設定")+" → "+(due||"未設定"));if(note)changes.push(note);
- c.stage=stage;c.due=due;c.updated=day();c.history.push({at:day(),text:changes.join("／")});delete detailDrafts[c.id];renderDetail(c.id);announce("対応内容を反映しました（画面内のみ）。");
+ if(c.stage!==stage)c.prepared="";c.stage=stage;c.due=due;c.updated=day();c.history.push({at:day(),text:changes.join("／")});delete detailDrafts[c.id];renderDetail(c.id);announce("対応内容を反映しました（画面内のみ）。");
 });
 $("backDetail").addEventListener("click",()=>{show(back);announce("");});
 document.addEventListener("click",e=>{
