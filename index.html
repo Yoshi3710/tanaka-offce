@@ -91,7 +91,7 @@
 <header class="head">
 <img src="assets/logo.webp" alt="株式会社タナカ ロゴ">
 <div><h1>帳票作成プロトタイプ</h1><p>発注書・見積書・納品書・請求書／担当営業別入力・A4印刷</p></div>
-<span class="trial">確認用・発注／送信機能なし</span>
+<span class="trial">確認用・発注／送信機能なし</span><a id="salesHomeLink" href="sales.html" style="font-size:13px;color:inherit">担当営業ホーム</a>
 </header>
 <div class="notice" role="status">このページは帳票のレイアウト確認用です。実在の学校・児童生徒・取引先の個人情報を入力しないでください。入力内容の自動送信・サーバー保存は行いません。</div>
 <main class="layout" id="mainLayout">
@@ -125,7 +125,7 @@
 <div class="actions">
 <button class="primary" type="button" id="print">印刷／PDF保存</button>
 <button type="button" id="download">入力データ保存（JSON）</button>
-<button type="button" id="loadButton">JSON読み込み</button>
+<button type="button" id="loadButton">JSON読み込み</button><button class="primary hidden" type="button" id="workspaceSave">営業画面に仮保管</button>
 <button type="button" id="clear">初期化</button>
 <input id="load" class="hidden" type="file" accept=".json,application/json">
 </div>
@@ -430,6 +430,51 @@ byId("load").addEventListener("change",function(){var file=this.files[0];this.va
  }
  if(!confirm("現在の入力内容を読み込んだ内容に置き換えます。よろしいですか？"))return;s=next;sync();}catch(err){alert("読み込めませんでした。試作で保存したJSONファイルか確認してください。");}};reader.readAsText(file);});
 window.addEventListener("resize",fitPaper);sync();
+// トップからの直接帳票作成・保管済み帳票の復元（架空データのみ）
+if(window.opener&&window.location&&window.location.origin!=="null"&&new URLSearchParams(window.location.search).get("workspace")==="1"){
+ var workspaceParent=window.opener,workspaceOrigin=window.location.origin,workspaceContext=null;
+ var workspaceButton=byId("workspaceSave"),workspaceNotice=document.querySelector(".notice");
+ var workspaceTouched=false,workspaceTouch=function(){workspaceTouched=true;};
+ document.addEventListener("input",workspaceTouch,true);
+ document.addEventListener("change",workspaceTouch,true);
+ document.addEventListener("click",workspaceTouch,true);
+ workspaceNotice.textContent+=" 営業ホームとの接続を確認しています。";
+ window.addEventListener("message",function(e){
+  if(e.source!==workspaceParent||e.origin!==workspaceOrigin||!e.data)return;
+  var msg=e.data;
+  if(msg.type==="tanaka-workspace-init"&&!workspaceContext&&!workspaceTouched&&typeof msg.token==="string"&&reps.includes(msg.rep)){
+   var d=msg.data;
+   if(d&&d.kind==="document"){
+    if(!d.form||!["order","quote","delivery","invoice"].includes(d.form.type)||!Array.isArray(d.form.items)||!d.form.items.length||d.form.items.length>40)return;
+    var next=Object.assign({},s);
+    keys.forEach(function(k){if(typeof d.form[k]==="string")next[k]=d.form[k].slice(0,1000);});
+    next.type=d.form.type;
+    next.items=d.form.items.map(function(it){var o={};["sku","name","spec","qty","unit","price","note","deliveryDate"].forEach(function(k){o[k]=typeof it[k]==="string"?it[k].slice(0,1000):"";});return o;});
+    s=next;
+   }
+   workspaceContext=msg;s.rep=msg.rep;s.operator=msg.rep;sync();workspaceButton.classList.remove("hidden");
+   workspaceNotice.textContent="営業ホームから開いた帳票です。架空データで作成し、「営業画面に仮保管」を押すと元の画面に保存されます。再読み込みで消えます。端末に残す場合は営業ホームで保管データを保存してください。";
+   workspaceParent.postMessage({type:"tanaka-workspace-loaded",token:msg.token},workspaceOrigin);
+  }else if(msg.type==="tanaka-workspace-saved"&&workspaceContext&&msg.token===workspaceContext.token){
+   workspaceNotice.textContent="営業画面に仮保管しました。営業ホームに戻って保管帳票・次の作業を確認してください。";
+   workspaceButton.disabled=false;
+  }else if(msg.type==="tanaka-workspace-error"&&workspaceContext&&msg.token===workspaceContext.token){
+   workspaceNotice.textContent=String(msg.message||"保管できませんでした。");workspaceButton.disabled=false;
+  }
+ });
+ workspaceButton.addEventListener("click",function(){
+  if(!workspaceContext)return;
+  var items=s.items.filter(function(it){return ["sku","name","spec","qty","price","note"].some(function(k){return String(it[k]||"").trim()!=="";});});
+  if(s.rep!==workspaceContext.rep||!s.school.startsWith("架空・")||!items.length||items.length>40||items.some(function(it){return !String(it.name||"").trim()||!/^[0-9]+$/.test(it.qty)||Number(it.qty)<1||Number(it.qty)>99999||(s.type!=="order"&&(!/^[0-9]+$/.test(it.price)||Number(it.price)>99999999));})){
+   workspaceNotice.textContent="担当営業・架空の学校名・商品名・数量・単価を確認してください。発注書の単価は不要です。";return;
+  }
+  if(!confirm("入力中の帳票を営業画面に仮保管しますか？（正式発行・送信はありません）"))return;
+  workspaceParent.postMessage({type:"tanaka-workspace-save",token:workspaceContext.token,data:{kind:"document",form:Object.assign({},s,{items:items})}},workspaceOrigin);
+  workspaceNotice.textContent="営業画面へ保管データを送っています。";
+ });
+ byId("salesHomeLink").addEventListener("click",function(e){e.preventDefault();if(confirm("帳票画面を閉じますか？仮保管していない変更は残りません。"))window.close();});
+ workspaceParent.postMessage({type:"tanaka-workspace-ready"},workspaceOrigin);
+}
 // 営業画面から明示的に開いた架空の下書きのみ。通常の帳票画面・保存形式は変更しない。
 if(window.opener&&window.location&&window.location.origin!=="null"&&new URLSearchParams(window.location.search).get("fromSales")==="1"){
  var source=window.opener,origin=window.location.origin,received=false,touched=false;
