@@ -159,7 +159,24 @@ await wait(()=>fd.getElementById("feedback").textContent.trim().length>0,"other 
 ok(fd.getElementById("feedback").textContent.includes("一致しません"),"reject import to another rep: "+fd.getElementById("feedback").textContent);
 ok(!fd.getElementById("archiveRows").textContent.includes("見積書"),"no foreign archived data");
 fresh.remove();
-out.textContent="PASS: prior workflow plus manual and OTA archive, restore and case linkage";
+// 旧6ページ様式の見本で、30件超の読取明細も集計漏れなく共通帳票へ。
+click('[data-tab="home"]');click('[data-workspace="ocr"]');
+await wait(()=>popup?.document.getElementById("schoolMasterBox")&&!popup.document.getElementById("schoolMasterBox").hidden,"OCR sample ready");
+pd=popup.document;popup.confirm=()=>true;pd.getElementById("sampleBtn").click();
+const originalRows=[...pd.querySelectorAll("#rowsBody tr")].map(tr=>[...tr.querySelectorAll("input,select")].map(el=>el.value));
+ok(originalRows.length>30,"original sample has many rows");
+const expected=new Map();
+for(const r of originalRows)expected.set(r[3],(expected.get(r[3])||0)+Number(r[5]));
+const total=originalRows.reduce((a,r)=>a+Number(r[5]),0);
+pd.getElementById("makeBtn").click();
+await wait(()=>popup?.document.getElementById("workspaceSave")&&!popup.document.getElementById("workspaceSave").classList.contains("hidden"),"sample converted to standard document");
+pd=popup.document;
+const converted=[...pd.querySelectorAll("#paper .doc-items tbody tr")].map(tr=>({sku:tr.querySelector('[data-col="sku"]').value,qty:Number(tr.querySelector('[data-col="qty"]').value),note:tr.querySelector('[data-col="note"]').value}));
+ok(converted.length===expected.size&&converted.reduce((n,p)=>n+p.qty,0)===total,"sample quantities not lost");
+ok(converted.every(p=>expected.get(p.sku)===p.qty),"same SKU totals");
+ok(converted.some(p=>p.note.includes("1年")&&p.note.includes("2年")&&p.note.includes("3年")),"grade breakdown retained");
+popup.close();popup=null;
+out.textContent="PASS: all common documents, archive restore and unified OCR line totals";
 })().catch(e=>{document.getElementById("result").textContent="FAIL "+String(e.stack||e);});
 `;
 const harness='<!doctype html><meta charset="utf-8"><pre id="result">PENDING</pre><iframe id="sales" src="/sales.html" width="1280" height="900"></iframe><script>const f=document.getElementById("sales");f.addEventListener("load",()=>{'+browserTest+'});<\/script>';
