@@ -50,10 +50,12 @@ vm.runInNewContext(scriptFrom(index,"index.html"),state,{timeout:3500,filename:"
 function documentType(kind){doc.el("type").value=kind;doc.events.get("type:change").call(doc.el("type"));return doc.el("paper").innerHTML;}
 let html=doc.el("paper").innerHTML;
 assert(html.includes("発 注 書"),"初期帳票は発注書");
+assert(!/class="order-row-no">[^<]*<button/.test(html),"行番号欄は数字のみ");
 assert.equal((html.match(/class="order-row-no"/g)||[]).length,5,"発注書初期5行");
 html=documentType("quote");
 for(const label of ["見 積 書","メーカー名（発売元）","見積番号：","見積日：","見積有効期限","お見積金額"])
  assert(html.includes(label),"見積書の必須項目："+label);
+assert(!/class="order-row-no">[^<]*<button/.test(html),"行番号欄は数字のみ");
 assert.equal((html.match(/class="order-row-no"/g)||[]).length,5,"見積書初期5行");
 assert(!html.includes("[object Object]"),"見積書の明細ラベルは正常");
 assert(doc.el("pageRule").textContent.includes("A4 portrait"),"見積書はA4縦");

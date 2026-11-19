@@ -22,6 +22,8 @@ async function draft(type,rep,school,qty,number,expectedLines,expectedMaker){
  click("#nextWork");ok(popup,"popup opened");
  await wait(()=>!!popup&&!popup.closed&&popup.document.querySelector(".notice")?.textContent.includes("下書きを読み込みました"),"handoff not loaded: "+type);
  const pd=popup.document;
+ ok(!pd.querySelector(".order-page"),"common template only "+type);
+ ok([...pd.querySelectorAll("#paper .order-row-no")].every(el=>/^\d+$/.test(el.textContent.trim())&&!el.querySelector("button")),"number cells contain no delete controls "+type);
  ok(pd.getElementById("type").value===type,"type "+type);
  ok(pd.getElementById("rep").value===rep,"rep "+rep);
  ok(pd.getElementById("school").value===school,"school "+school);
@@ -115,13 +117,19 @@ pset("teacherName","架空担当者","input");pset("schoolPostal","000-0000","in
 const fields=[...pd.querySelector("#rowsBody tr").querySelectorAll("input,select")];
 for(const [i,v] of [[0,"1年"],[1,"美術"],[3,"131801"],[4,"イエロー"],[5,"12"]]){fields[i].value=v;fields[i].dispatchEvent(new popup.Event("input",{bubbles:true}));fields[i].dispatchEvent(new popup.Event("change",{bubbles:true}));}
 pd.getElementById("makeBtn").click();
-ok(!pd.getElementById("archiveOrder").disabled,"ocr validated preview");
-pd.getElementById("archiveOrder").click();
+await wait(()=>popup?.document.getElementById("workspaceSave")&&!popup.document.getElementById("workspaceSave").classList.contains("hidden"),"OCR converted to common document");
+pd=popup.document;popup.confirm=()=>true;
+ok(pd.getElementById("type").value==="order"&&pd.querySelector(".order-form"),"OCR uses the common order template");
+ok(!pd.querySelector(".order-page")&&pd.querySelector("#paper .order-row-no").textContent==="1","no old template or row cross");
+ok(pd.querySelector('#paper [data-row="0"][data-col="sku"]').value==="131801","OCR transferred SKU");
+ok(pd.querySelector('#paper [data-row="0"][data-col="qty"]').value==="12","OCR transferred quantity");
+ok(pd.querySelector('#paper [data-row="0"][data-col="note"]').value.includes("美術"),"OCR retained grade/subject");
+pd.getElementById("workspaceSave").click();
 await wait(()=>$("archiveCount").textContent==="2","ocr order archived");
 popup.close();popup=null;click('[data-open="archive"]');
-ok($("archiveRows").textContent.includes("エデュース発注書"),"ocr archived label");
+ok($("archiveRows").textContent.includes("発注書（FAX・注文書読取）"),"ocr archived label");
 click('[data-archive-open="ARCH-002"]');
-await wait(()=>popup?.document.querySelector("#rowsBody tr")?.querySelectorAll("input,select")[3].value==="131801","ocr restore rows");
+await wait(()=>popup?.document.querySelector('#paper [data-row="0"][data-col="sku"]')?.value==="131801","OCR archive restored as common order");
 popup.close();popup=null;
 click('[data-archive-next="ARCH-002"]');
 ok($("workPanel").textContent.includes("注文内容を確認する"),"ocr routed to order check");

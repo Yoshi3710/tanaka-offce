@@ -60,7 +60,7 @@
 .order-form .doc-items td textarea[data-col="qty"]{text-align:right}
 .order-form .doc-items td textarea[data-col="deliveryDate"]{height:9mm;min-height:9mm;max-height:9mm;border:0;border-radius:0;font-size:12px;text-align:center;white-space:nowrap}
 .order-form .doc-items .order-row-no{font-size:12px;line-height:1.4;text-align:center;white-space:nowrap}
-.order-row-no button{font-size:11px;font-weight:400;padding:0 3px;color:#a13d3d;border:0;background:transparent;vertical-align:middle}
+.order-delete-controls{display:inline-flex;align-items:center;gap:2mm;white-space:nowrap}.order-form .order-delete-controls select{width:auto;border:1px solid #b9c9d5;border-radius:4px;background:#fff;padding:4px 6px}
 .order-after{display:flex;align-items:center;justify-content:flex-end;gap:6mm;margin-top:2mm;font-size:12px;font-weight:700}
 .order-after button{padding:5px 9px;font-size:12px}
 .order-memo{display:flex;align-items:start;gap:1mm;margin-top:3mm;font-size:12px}
@@ -68,7 +68,7 @@
 .order-memo textarea{flex:1;border:1px solid #888;min-height:15mm;resize:vertical}
 .order-contact{margin-top:4mm;border-top:1px solid #999;padding-top:2mm;font-size:10.5px}
 @media print{
- .order-row-no button,.order-after button{display:none!important}
+ .order-delete-controls,.order-after button{display:none!important}
  .order-form input::placeholder{color:transparent!important}
  .order-form input,.order-form select,.order-form textarea{outline:0!important;background:transparent!important;border:0!important}
  .order-form .order-memo textarea{border:1px solid #888!important}
@@ -178,6 +178,11 @@ function formField(k,label,placeholder){
 function formSelect(k,label,options){
  return '<select data-field="'+k+'" aria-label="'+escapeText(label)+'">'+options.map(function(o){return '<option'+(s[k]===o?' selected':'')+'>'+escapeText(o)+'</option>';}).join("")+'</select>';
 }
+function rowDeleteControl(){
+ var options='<option value="">行を選択</option>';
+ for(var n=0;n<s.items.length;n++)options+='<option value="'+n+'">'+(n+1)+'行目</option>';
+ return '<span class="order-delete-controls"><select id="deleteRowChoice" aria-label="削除する明細行">'+options+'</select><button type="button" data-remove-order>明細を削除</button></span>';
+}
 function orderRows(){
  var rows=[],total=Math.max(5,s.items.length);
  var cols=[["sku","品番"],["name","商品名"],["spec","規格・色"],["qty","数量"],["note","摘要・備考"],["deliveryDate","納品日"]];
@@ -188,7 +193,7 @@ function orderRows(){
    if(c[0]==="deliveryDate")return '<td><textarea rows="1"'+attrs+' autocomplete="off">'+escapeText(it[c[0]]||"")+'</textarea></td>';
    return '<td><textarea rows="1"'+attrs+(c[0]==="qty"?' inputmode="decimal"':'')+' autocomplete="off">'+escapeText(it[c[0]]||"")+'</textarea></td>';
   }).join("");
-  rows.push('<tr><td class="order-row-no">'+(i+1)+'<button type="button" data-remove-order="'+i+'" aria-label="'+(i+1)+'行目を削除" title="この行を削除">×</button></td>'+tds+'</tr>');
+  rows.push('<tr><td class="order-row-no">'+(i+1)+'</td>'+tds+'</tr>');
  }
  return rows.join("");
 }
@@ -215,7 +220,7 @@ function orderMarkup(){
  '<table class="doc-items order-items"><colgroup><col style="width:5%"><col style="width:12%"><col style="width:27%"><col style="width:11%"><col style="width:8%"><col style="width:25%"><col style="width:12%"></colgroup>'+
  '<thead><tr><th>№</th><th>品番</th><th>商品名</th><th>規格・色</th><th>数量</th><th>摘要・備考</th><th>納品日</th></tr></thead>'+
  '<tbody>'+orderRows()+'</tbody></table>'+
- '<div class="order-after"><span id="orderSummary">'+orderSummary()+'</span><button type="button" data-add-order>＋ 商品を追加</button></div>'+
+ '<div class="order-after"><span id="orderSummary">'+orderSummary()+'</span><button type="button" data-add-order>＋ 商品を追加</button>'+rowDeleteControl()+'</div>'+
  '<div class="order-memo"><label>備考・連絡事項：</label><textarea aria-label="備考・連絡事項" data-field="memo">'+escapeText(s.memo)+'</textarea></div>'+
  '<div class="order-contact">株式会社タナカ　TEL：06-6997-6030　FAX：06-6997-6035　／　担当：<span id="orderStaffLabel">'+escapeText(s.rep)+'</span></div>'+
  '<div class="watermark">試作帳票・正式な注文／納品／請求には使用しないでください</div>'+
@@ -252,7 +257,7 @@ function quoteRows(){
   var cells=cols.map(function(c){
    return '<td><textarea rows="1" data-row="'+i+'" data-col="'+c[0]+'" aria-label="'+(i+1)+'行目 '+c[1]+'"'+(c[0]==="qty"||c[0]==="price"?' inputmode="decimal"':'')+' autocomplete="off">'+escapeText(it[c[0]]||"")+'</textarea></td>';
   });
-  rows.push('<tr><td class="order-row-no">'+(i+1)+'<button type="button" data-remove-order="'+i+'" aria-label="'+(i+1)+'行目を削除" title="この行を削除">×</button></td>'+
+  rows.push('<tr><td class="order-row-no">'+(i+1)+'</td>'+
    cells.slice(0,5).join("")+'<td class="quote-amount" id="quoteAmount'+i+'">'+quoteAmount(it)+'</td>'+cells[5]+'</tr>');
  }
  return rows.join("");
@@ -296,7 +301,7 @@ function quoteMarkup(){
   '<table class="doc-items order-items quote-items"><colgroup><col style="width:5%"><col style="width:12%"><col style="width:24%"><col style="width:12%"><col style="width:8%"><col style="width:11%"><col style="width:12%"><col style="width:16%"></colgroup>'+
   '<thead><tr><th>№</th><th>品番</th><th>商品名</th><th>規格・色</th><th>数量</th><th>単価</th><th>金額</th><th>摘要・備考</th></tr></thead>'+
   '<tbody>'+quoteRows()+'</tbody></table>'+
-  '<div class="order-after"><span>数量合計：<span id="quoteQuantity">'+(m.invalid?"要確認":yen(m.qty))+'</span></span><button type="button" data-add-order>＋ 商品を追加</button></div>'+
+  '<div class="order-after"><span>数量合計：<span id="quoteQuantity">'+(m.invalid?"要確認":yen(m.qty))+'</span></span><button type="button" data-add-order>＋ 商品を追加</button>'+rowDeleteControl()+'</div>'+
   quoteTotalsMarkup()+
   '<div class="order-memo"><label>備考・連絡事項：</label><textarea aria-label="備考・連絡事項" data-field="memo">'+escapeText(s.memo)+'</textarea></div>'+
   '<div class="order-contact">株式会社タナカ　TEL：06-6997-6030　FAX：06-6997-6035　／　担当：<span id="orderStaffLabel">'+escapeText(s.rep)+'</span></div>'+
@@ -411,8 +416,9 @@ byId("paper").addEventListener("click",function(e){
  }
  var remove=e.target.closest("[data-remove-order]");
  if(remove){
-  var i=Number(remove.dataset.removeOrder);
-  if(i<s.items.length)s.items.splice(i,1);
+  var choice=byId("deleteRowChoice");if(!choice||choice.value==="")return;
+  var i=Number(choice.value);if(!Number.isInteger(i)||i<0||i>=s.items.length||!confirm((i+1)+"行目を削除しますか？"))return;
+  s.items.splice(i,1);
   if(!s.items.length)s.items.push({sku:"",name:"",spec:"",qty:"",unit:"個",price:"",note:""});
   renderRows();render();
  }
