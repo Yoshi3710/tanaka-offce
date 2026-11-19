@@ -4,6 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#0b5aa5">
+<script id="home-entry">
+if (location.pathname.endsWith("/")) {
+ const params = new URLSearchParams(location.search);
+ if (params.get("workspace") !== "1" && params.get("fromSales") !== "1") {
+  location.replace("sales.html" + location.search + location.hash);
+ }
+}
+</script>
 <title>タナカ 社員用帳票プロトタイプ｜発注書・見積書・納品書・請求書</title>
 <style>
 :root{font-family:"Yu Gothic","Meiryo","Noto Sans JP",system-ui,sans-serif;color:#152535;background:#edf3f8}

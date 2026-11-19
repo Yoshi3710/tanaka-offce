@@ -7,6 +7,20 @@ const vm=require("node:vm");
 const assert=require("node:assert/strict");
 function read(file){return fs.readFileSync(file,"utf8");}
 const index=read("index.html"),staff=read("staff.html"),spec=read("docs/CURRENT_SPEC.md");
+// The directory URL opens the sales home; explicit form links and legacy handoffs stay intact.
+const entry=index.match(/<script id="home-entry">([\s\S]*?)<\/script>/);
+assert(entry,"トップ入口の振り分け");
+function entryTarget(pathname,search="",hash=""){
+ let target=null;
+ vm.runInNewContext(entry[1],{location:{pathname,search,hash,replace(v){target=v;}},URLSearchParams});
+ return target;
+}
+assert.equal(entryTarget("/tanaka-offce/"),"sales.html");
+assert.equal(entryTarget("/tanaka-offce/","?utm_source=test","#top"),"sales.html?utm_source=test#top");
+assert.equal(entryTarget("/tanaka-offce/index.html"),null);
+assert.equal(entryTarget("/tanaka-offce/index.html","?workspace=1"),null);
+assert.equal(entryTarget("/tanaka-offce/","?fromSales=1"),null);
+assert.equal(entryTarget("/tanaka-offce/","?workspace=1"),null);
 const reps=["大田","會野","藤井","長谷","恩田","田中壮一"];
 function scriptFrom(html,name){
  const m=html.match(/<script>([\s\S]*?)<\/script>/);
