@@ -25,9 +25,15 @@ label{display:block;font-size:13px;font-weight:700;min-width:0}input,select,text
 <body>
 <header class="mast"><div class="mast-inner"><img src="assets/logo.webp" alt="株式会社タナカ"><div><h1>担当営業ホーム</h1><p>社員用受発注管理・操作確認版</p></div></div></header>
 <main class="shell">
-<div class="demo"><p><strong>公開試作・架空データのみ。</strong> 本番のログインではありません。入力は画面内だけで、再読み込みで消えます。実際の学校・注文・個人情報は入力しないでください。</p><label id="repLabel" class="initial-rep"><span id="repPrompt">最初に、ご自身の担当営業名を選択してください。管理者は「オフィス」を選択してください。</span><span id="repSwitchLabel" hidden>試作用の担当営業切替</span><select id="rep" autocomplete="off" aria-label="担当営業を選択"><option value="" disabled selected>担当営業を選択してください</option></select></label></div>
+<div class="demo"><p><strong>公開試作・架空データのみ。</strong> 本番のログインではありません。入力は画面内だけで、再読み込みで消えます。実際の学校・注文・個人情報は入力しないでください。</p><label id="repLabel" class="initial-rep"><span id="repPrompt">最初に、ご自身の担当営業名を選択してください。オフィス担当者は「オフィス」を選択してください。</span><span id="repSwitchLabel" hidden>試作用の担当営業切替</span><select id="rep" autocomplete="off" aria-label="担当営業を選択"><option value="" disabled selected>担当営業を選択してください</option></select></label></div>
 <div class="actions" id="returnToTop" hidden style="justify-content:flex-start;margin:12px 0"><button type="button" id="topBack">← 担当選択に戻る</button></div>
-<section id="officeView" hidden class="panel"><h2>オフィス（管理者専用）</h2><p class="status-note"><strong>管理者パスワード認証が必要です。</strong> 公開試作では正式認証・管理データへのアクセスは未提供です。実際のパスワードを入力しないでください。</p><button type="button" class="primary" disabled>管理者ログイン（本番実装予定）</button><h3 style="margin-top:18px">統合管理の対象</h3><div class="entry-points"><div class="entry-point"><h3>受発注・帳票・進行管理</h3><p>全担当営業の案件・帳票・納品・請求を一元管理（本番予定）。</p></div><div class="entry-point"><h3>経理連携</h3><p>請求・売上・入金・支払の連携（将来予定）。</p></div><div class="entry-point"><h3>在庫連携</h3><p>入出庫・在庫・引当の連携（将来予定）。</p></div></div><p class="hint"><a href="staff.html" target="_blank" rel="noopener noreferrer">既存の本部管理画面を確認（公開・架空データのみ）</a><br>この確認画面は営業画面とデータ共有されていません。正式な管理者画面ではありません。</p></section>
+<section id="officeView" hidden>
+<div class="panel"><div class="panel-head"><h2>オフィス｜全体業務管理</h2><span class="pill">公開試作</span></div><p class="hint">架空データのみ。同じ画面内の営業案件・保管帳票を共有します。正式なログイン・権限・共有データベースは本番実装予定です。実際のパスワード・個人情報は入力しないでください。</p><div class="stats" style="margin-top:12px"><div class="stat"><span>全案件</span><strong id="officeCount">0</strong></div><div class="stat"><span>未完了</span><strong id="officeOpen">0</strong></div><div class="stat alert"><span>期限超過</span><strong id="officeLate">0</strong></div></div>
+<nav class="tabs" aria-label="オフィスメニュー"><button type="button" data-office-tab="cases" aria-selected="true">全案件・進行管理</button><button type="button" data-office-tab="archives" aria-selected="false">全保管帳票</button><button type="button" data-office-tab="masters" aria-selected="false">学校・メーカー</button><button type="button" data-office-tab="accounting" aria-selected="false">経理</button><button type="button" data-office-tab="inventory" aria-selected="false">在庫</button></nav>
+<div class="fields" id="officeFilters"><label>担当営業<select id="officeRep"></select></label><label>学校名・案件番号・教材名など<input id="officeSearch" type="search" autocomplete="off" maxlength="80"></label><label id="officeStageLabel">進行状況<select id="officeStage"><option value="all">すべて</option><option value="open">未完了</option><option value="late">期限超過</option><option value="done">完了</option></select></label></div></div>
+<div class="panel" id="officeResults"><div class="panel-head"><h2 id="officeTitle"></h2><span class="hint" id="officeResultCount"></span></div><div id="officeRows"></div></div>
+<p class="hint">オフィスは日常業務の管理用です。社員登録・権限設定・バックアップ等のシステム管理者サイトは別途構築します。</p>
+</section>
 <div id="salesWorkspace" hidden>
 <div class="heading"><h2 id="greeting"></h2><div class="heading-actions"><a id="schoolShopLink" class="shop-link" href="https://yoshi3710.github.io/tanaka-school-shop/" target="_blank" rel="noopener noreferrer">販売サイト（学校向け）を開く</a><button class="primary" type="button" data-open="entry">＋ 新規受付</button></div></div>
 <nav class="tabs" aria-label="担当営業メニュー">
@@ -244,7 +250,7 @@ window.addEventListener("message",e=>{
   else{a.data=data;a.updated=day();}
   p.data=data;
   p.win.postMessage({type:"tanaka-workspace-saved",token:p.token},e.origin);
-  if(rep===p.rep){if(view==="home")renderHome();if(view==="archive")renderArchives();announce(a.id+"：帳票を仮保管しました。");}
+  if(rep===p.rep){if(view==="home")renderHome();if(view==="archive")renderArchives();announce(a.id+"：帳票を仮保管しました。");}if(!$("officeView").hidden)renderOffice();
  }catch(err){p.win.postMessage({type:"tanaka-workspace-error",token:p.token,message:String(err.message)},e.origin);}
 });
 function nextLabel(a){
@@ -484,6 +490,40 @@ function show(name){
  if(name==="home")renderHome();if(name==="archive")renderArchives();if(name==="schools")renderSchools();if(name==="cases")renderCases();if(name==="entry")restoreDraft();
  if(name==="detail"&&!renderDetail(opened)){opened=null;show("home");}
 }
+let officeTab="cases";
+function renderOffice(){
+ const active=cases.filter(isOpen),filter=$("officeRep").value,q=$("officeSearch").value.trim().toLowerCase(),status=$("officeStage").value;
+ $("officeCount").textContent=cases.length;$("officeOpen").textContent=active.length;$("officeLate").textContent=active.filter(c=>c.due&&c.due<day()).length;
+ const matches=(owner,...fields)=>(filter==="all"||owner===filter)&&(!q||fields.join(" ").toLowerCase().includes(q));
+ $("officeFilters").hidden=["accounting","inventory"].includes(officeTab);$("officeStageLabel").hidden=officeTab!=="cases";
+ document.querySelectorAll("[data-office-tab]").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.officeTab===officeTab)));
+ const titles={cases:"全案件・進行管理",archives:"全保管帳票",masters:"学校・メーカー",accounting:"経理連携",inventory:"在庫連携"};
+ $("officeTitle").textContent=titles[officeTab];$("officeResultCount").textContent="";
+ let rows=[];
+ if(officeTab==="cases"){
+  const list=cases.filter(c=>{const s=schools.find(x=>x.id===c.school);return matches(c.rep,c.id,s?.name,c.rep,c.note,c.stage,...products(c).flatMap(p=>[p.name,p.sku,p.maker]))&&(status==="all"||(status==="done"?!isOpen(c):status==="late"?isOpen(c)&&c.due&&c.due<day():isOpen(c)));}).sort(sortDue);
+  rows=list.map(c=>{const s=schools.find(x=>x.id===c.school);return '<div class="archive-row"><strong>'+esc(s?.name)+' ／ '+esc(c.rep)+'</strong><p class="small">'+esc(c.id)+' ／ '+esc(c.kind)+' ／ '+esc(c.stage)+' ／ 次回確認 '+esc(dueText(c))+'</p><p>'+esc(c.note)+'</p><details><summary>明細・進行履歴</summary>'+products(c).map(p=>'<p class="small">'+esc(p.maker)+' ／ '+esc(p.sku)+' ／ '+esc(p.name)+' ／ 数量 '+esc(p.qty||"未確定")+' ／ 出荷 '+esc(p.shipped||0)+' ／ 納品 '+esc(p.delivered||0)+'</p>').join("")+'<ul class="history">'+c.history.slice().reverse().map(h=>'<li><time>'+esc(h.at)+'</time>'+esc(h.text)+'</li>').join("")+'</ul></details><div class="actions"><button type="button" data-office-case="'+esc(c.id)+'">案件の処理画面を開く</button></div></div>';});
+ }else if(officeTab==="archives"){
+  rows=archives.filter(a=>matches(a.rep,a.id,a.rep,archiveLabel(a.data),archiveSchool(a.data),a.caseId)).map(a=>'<div class="archive-row"><strong>'+esc(archiveLabel(a.data))+' ／ '+esc(archiveSchool(a.data))+'</strong><p class="small">'+esc(a.rep)+' ／ '+esc(a.id)+' ／ '+esc(a.updated)+' ／ '+archiveItems(a.data).length+'品目 ／ '+esc(a.caseId||"未関連付け")+'</p><div class="actions"><button type="button" data-office-archive="'+esc(a.id)+'">担当者の保管帳票を開く</button></div></div>');
+ }else if(officeTab==="masters"){
+  const ss=schools.filter(s=>matches(s.rep,s.name,s.rep,s.address,s.phone));
+  const ms=suppliers.filter(s=>!q||[s.name,s.code,s.phone].join(" ").toLowerCase().includes(q));
+  $("officeResultCount").textContent=ss.length+"校・"+ms.length+"社";
+  $("officeRows").innerHTML='<h3>学校</h3>'+ss.map(s=>'<div class="archive-row"><strong>'+esc(s.name)+' ／ '+esc(s.rep)+'</strong><p class="small">'+esc(s.address)+' ／ TEL '+esc(s.phone)+'</p></div>').join("")+'<h3 style="margin-top:12px">メーカー（共通）</h3>'+ms.map(s=>'<div class="archive-row"><strong>'+esc(s.name)+'</strong><p class="small">'+esc(s.code)+' ／ TEL '+esc(s.phone||"未登録")+'</p></div>').join("")+'<p class="hint">マスターの登録・編集と共有保存は本番実装予定です。</p>';return;
+ }else{
+  $("officeRows").innerHTML=officeTab==="accounting"?'<p>売上・請求・入金・支払管理との連携予定です。現在は正式な金額集計・入金処理を行いません。</p>':'<p>商品マスター・入出庫・在庫・引当との連携予定です。現在は正式な在庫数の管理・更新を行いません。</p>';return;
+ }
+ $("officeResultCount").textContent=rows.length+"件";$("officeRows").innerHTML=rows.join("")||empty("該当する情報はありません。");
+}
+$("officeRep").innerHTML=option("all","すべての担当営業")+reps.map(r=>option(r,r)).join("");
+for(const id of ["officeRep","officeStage"])$(id).addEventListener("change",renderOffice);
+$("officeSearch").addEventListener("input",renderOffice);
+$("officeView").addEventListener("click",e=>{
+ const b=e.target.closest("button");if(!b||$("officeView").hidden)return;
+ if(b.dataset.officeTab){officeTab=b.dataset.officeTab;renderOffice();return;}
+ if(b.dataset.officeCase){const c=cases.find(x=>x.id===b.dataset.officeCase);if(c){choose(c.rep);openCase(c.id);announce("オフィスから "+c.rep+" の案件を開きました。オフィスに戻るには担当選択でオフィスを選択してください。");}}
+ if(b.dataset.officeArchive){const a=archives.find(x=>x.id===b.dataset.officeArchive);if(a){choose(a.rep);show("archive");announce("オフィスから "+a.rep+" の保管帳票を開きました。");}}
+});
 function resetSelection(){
  if(view==="entry")saveDraft();if(view==="detail")saveDetailDraft();
  rep="";view="";opened=null;back="home";taskFilter="all";
@@ -494,7 +534,7 @@ function choose(next,record=true){
  if(next!=="office"&&!reps.includes(next)){resetSelection();return;}
  if(record){const state={tanakaSelection:next};if(history.state?.tanakaSelection)history.replaceState(state,"");else history.pushState(state,"");}
  if(next==="office"){
-  resetSelection();$("rep").value="office";$("repLabel").classList.remove("initial-rep");$("repPrompt").hidden=true;$("repSwitchLabel").hidden=false;$("officeView").hidden=false;
+  resetSelection();$("rep").value="office";$("repLabel").classList.remove("initial-rep");$("repPrompt").hidden=true;$("repSwitchLabel").hidden=false;$("officeView").hidden=false;renderOffice();
  }else{ $("officeView").hidden=true;selectRep(next); }
  $("returnToTop").hidden=false;
 }
