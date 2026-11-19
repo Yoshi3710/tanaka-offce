@@ -149,7 +149,7 @@ ok(d.querySelector('[data-line="0"][data-work="qty"]').value==="12","ocr quantit
 ok(d.querySelector('[data-line="0"][data-work="price"]').value==="","no invented selling price");
 ok(d.querySelector('[data-line="0"][data-work="note"]').value.includes("美術"),"grade and class retained");
 field("price","100");click("#nextWork");ok($("nextWork").textContent.includes("このメーカーの発注を試作記録する")&&$("workPanel").textContent.includes("作り直す必要はありません"),"source OTA order reused after price confirmation");
-click('[data-tab="home"]');set("rep","office");click('[data-office-tab="archives"]');ok($("officeRows").textContent.includes("見積書")&&$("officeRows").textContent.includes("大田"),"office sees shared archive");set("rep","恩田");ok($("archiveCount").textContent==="0","archive isolation");
+click('[data-tab="home"]');set("rep","office");click('[data-office-tab="archives"]');ok($("officeRows").textContent.includes("見積書")&&$("officeRows").textContent.includes("大田"),"office sees shared archive");const review=$("officeRows").querySelector("[data-office-archive]");ok(review&&!review.querySelector("button")&&!review.querySelector("input"),"office archive is read-only");review.querySelector("summary").click();ok(review.open&&review.textContent.includes("数量")&&$("salesWorkspace").hidden,"archive details without form creation");set("rep","恩田");ok($("archiveCount").textContent==="0","archive isolation");
 set("rep","大田");click('[data-open="archive"]');
 let exported=null;
 const createUrl=w.URL.createObjectURL,anchorClick=w.HTMLAnchorElement.prototype.click;
