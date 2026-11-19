@@ -25,7 +25,9 @@ label{display:block;font-size:13px;font-weight:700;min-width:0}input,select,text
 <body>
 <header class="mast"><div class="mast-inner"><img src="assets/logo.webp" alt="株式会社タナカ"><div><h1>担当営業ホーム</h1><p>社員用受発注管理・操作確認版</p></div></div></header>
 <main class="shell">
-<div class="demo"><p><strong>公開試作・架空データのみ。</strong> 本番のログインではありません。入力は画面内だけで、再読み込みで消えます。実際の学校・注文・個人情報は入力しないでください。</p><label id="repLabel" class="initial-rep"><span id="repPrompt">最初に、ご自身の担当営業名を選択してください。</span><span id="repSwitchLabel" hidden>試作用の担当営業切替</span><select id="rep" autocomplete="off" aria-label="担当営業を選択"><option value="" disabled selected>担当営業を選択してください</option></select></label></div>
+<div class="demo"><p><strong>公開試作・架空データのみ。</strong> 本番のログインではありません。入力は画面内だけで、再読み込みで消えます。実際の学校・注文・個人情報は入力しないでください。</p><label id="repLabel" class="initial-rep"><span id="repPrompt">最初に、ご自身の担当営業名を選択してください。管理者は「オフィス」を選択してください。</span><span id="repSwitchLabel" hidden>試作用の担当営業切替</span><select id="rep" autocomplete="off" aria-label="担当営業を選択"><option value="" disabled selected>担当営業を選択してください</option></select></label></div>
+<div class="actions" id="returnToTop" hidden style="justify-content:flex-start;margin:12px 0"><button type="button" id="topBack">← 担当選択に戻る</button></div>
+<section id="officeView" hidden class="panel"><h2>オフィス（管理者専用）</h2><p class="status-note"><strong>管理者パスワード認証が必要です。</strong> 公開試作では正式認証・管理データへのアクセスは未提供です。実際のパスワードを入力しないでください。</p><button type="button" class="primary" disabled>管理者ログイン（本番実装予定）</button><h3 style="margin-top:18px">統合管理の対象</h3><div class="entry-points"><div class="entry-point"><h3>受発注・帳票・進行管理</h3><p>全担当営業の案件・帳票・納品・請求を一元管理（本番予定）。</p></div><div class="entry-point"><h3>経理連携</h3><p>請求・売上・入金・支払の連携（将来予定）。</p></div><div class="entry-point"><h3>在庫連携</h3><p>入出庫・在庫・引当の連携（将来予定）。</p></div></div><p class="hint"><a href="staff.html" target="_blank" rel="noopener noreferrer">既存の本部管理画面を確認（公開・架空データのみ）</a><br>この確認画面は営業画面とデータ共有されていません。正式な管理者画面ではありません。</p></section>
 <div id="salesWorkspace" hidden>
 <div class="heading"><h2 id="greeting"></h2><div class="heading-actions"><a id="schoolShopLink" class="shop-link" href="https://yoshi3710.github.io/tanaka-school-shop/" target="_blank" rel="noopener noreferrer">販売サイト（学校向け）を開く</a><button class="primary" type="button" data-open="entry">＋ 新規受付</button></div></div>
 <nav class="tabs" aria-label="担当営業メニュー">
@@ -482,6 +484,20 @@ function show(name){
  if(name==="home")renderHome();if(name==="archive")renderArchives();if(name==="schools")renderSchools();if(name==="cases")renderCases();if(name==="entry")restoreDraft();
  if(name==="detail"&&!renderDetail(opened)){opened=null;show("home");}
 }
+function resetSelection(){
+ if(view==="entry")saveDraft();if(view==="detail")saveDetailDraft();
+ rep="";view="";opened=null;back="home";taskFilter="all";
+ $("rep").value="";$("greeting").textContent="";$("salesWorkspace").hidden=true;$("officeView").hidden=true;$("returnToTop").hidden=true;
+ $("repLabel").classList.add("initial-rep");$("repPrompt").hidden=false;$("repSwitchLabel").hidden=true;announce("");
+}
+function choose(next,record=true){
+ if(next!=="office"&&!reps.includes(next)){resetSelection();return;}
+ if(record){const state={tanakaSelection:next};if(history.state?.tanakaSelection)history.replaceState(state,"");else history.pushState(state,"");}
+ if(next==="office"){
+  resetSelection();$("rep").value="office";$("repLabel").classList.remove("initial-rep");$("repPrompt").hidden=true;$("repSwitchLabel").hidden=false;$("officeView").hidden=false;
+ }else{ $("officeView").hidden=true;selectRep(next); }
+ $("returnToTop").hidden=false;
+}
 function selectRep(next){
  if(!reps.includes(next))return;
  if(view==="entry")saveDraft();if(view==="detail")saveDetailDraft();
@@ -494,9 +510,12 @@ function openCase(id){
  if(!findCase(id)||view==="detail")return;
  back=view;opened=id;show("detail");announce("");
 }
-$("rep").insertAdjacentHTML("beforeend",reps.map(r=>option(r,r)).join(""));$("rep").value="";
+$("rep").insertAdjacentHTML("beforeend",reps.map(r=>option(r,r)).join("")+option("office","オフィス"));$("rep").value="";
+history.replaceState(null,"");
+window.addEventListener("popstate",e=>choose(e.state?.tanakaSelection||"",false));
+$("topBack").addEventListener("click",()=>{if(history.state?.tanakaSelection)history.back();else resetSelection();});
 $("detailStage").innerHTML=stages.map(s=>option(s,s)).join("");
-$("rep").addEventListener("change",e=>selectRep(e.target.value));
+$("rep").addEventListener("change",e=>choose(e.target.value));
 $("schoolSearch").addEventListener("input",renderSchools);
 $("caseSearch").addEventListener("input",renderCases);
 $("caseFilter").addEventListener("change",renderCases);

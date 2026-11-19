@@ -14,9 +14,10 @@ function checks(w,label){
  const click=sel=>{const b=d.querySelector(sel);ok(b,"missing "+sel);b.click();};
  const visible=id=>!$(id).hidden;
  function width(name){ok(d.documentElement.scrollWidth<=d.documentElement.clientWidth+1,name+" horizontal overflow "+d.documentElement.scrollWidth+"/"+d.documentElement.clientWidth);}
- ok($("rep").value===""&&$("rep").options.length===7&&$("rep").options[0].disabled,"initial rep unselected");
+ ok($("rep").value===""&&$("rep").options.length===8&&$("rep").options[0].disabled,"initial rep unselected");
  ok(visible("repPrompt")&&$("repPrompt").textContent.includes("担当営業名を選択")&&!visible("salesWorkspace")&&!$("homeView").getBoundingClientRect().width&&$("greeting").textContent==="","selection required");width("initial rep selection");
  click('[data-workspace="document"]');ok(!visible("salesWorkspace"),"no work before selection");
+ set("rep","office","change");ok(visible("officeView")&&!visible("salesWorkspace")&&visible("returnToTop"),"office entry only");ok($("officeView").querySelector("button").disabled&&!$("officeView").querySelector("input"),"public prototype cannot accept passwords");width("office");
  set("rep","恩田","change");ok(visible("salesWorkspace")&&$("greeting").textContent.includes("恩田")&&!visible("repPrompt")&&$("taskRows").textContent.includes("架空・あおぞら中学校"),"first selection is correct");
  set("rep","大田","change");ok($("greeting").textContent.includes("大田"),"selected rep");width("home");
  const shop=$("schoolShopLink");ok(shop&&shop.getBoundingClientRect().width>0&&shop.getBoundingClientRect().height>0,"school shop link visible");ok(shop.href==="https://yoshi3710.github.io/tanaka-school-shop/"&&shop.target==="_blank"&&shop.rel.includes("noopener"),"school shop opens safely in separate tab");

@@ -11,8 +11,17 @@ const wait=(fn,msg)=>new Promise((resolve,reject)=>{let count=0;const t=setInter
 const ok=(v,m)=>{if(!v)throw Error(m)};
 let popup;
 const frame=document.getElementById("sales"),w=frame.contentWindow,d=w.document,$=id=>d.getElementById(id);
-await wait(()=>d.getElementById("rep")?.options.length===7,"sales load");
+await wait(()=>d.getElementById("rep")?.options.length===8,"sales load");
 ok($("rep").value===""&&$("salesWorkspace").hidden,"no default rep");
+$("rep").value="大田";$("rep").dispatchEvent(new w.Event("change",{bubbles:true}));
+ok(w.history.state?.tanakaSelection==="大田","history records selected rep");
+$("topBack").click();await wait(()=>$("rep").value===""&&$("salesWorkspace").hidden,"top back button");
+$("rep").value="恩田";$("rep").dispatchEvent(new w.Event("change",{bubbles:true}));
+w.history.back();await wait(()=>$("rep").value===""&&$("salesWorkspace").hidden,"browser back returns to selector");
+w.history.forward();await wait(()=>$("rep").value==="恩田"&&!$("salesWorkspace").hidden,"browser forward restores selection");
+$("rep").value="office";$("rep").dispatchEvent(new w.Event("change",{bubbles:true}));
+ok(!$("officeView").hidden&&$("salesWorkspace").hidden,"office locked entry");
+$("topBack").click();await wait(()=>$("rep").value===""&&$("officeView").hidden,"office returns to selector");
 $("rep").value="大田";$("rep").dispatchEvent(new w.Event("change",{bubbles:true}));
 const realOpen=w.open.bind(w);
 w.open=(...args)=>{popup=realOpen(...args);return popup;};
@@ -149,7 +158,7 @@ click('[data-archive-download="ARCH-001"]');w.URL.createObjectURL=createUrl;w.HT
 ok(exported,"archive export blob");
 const json=await exported.text();ok(JSON.parse(json).data.form.quoteNumber==="Q-DIRECT-1","export exact document");
 const fresh=document.createElement("iframe");fresh.src="/sales.html";document.body.appendChild(fresh);
-await wait(()=>fresh.contentDocument?.getElementById("rep")?.options.length===7,"fresh sales screen");
+await wait(()=>fresh.contentDocument?.getElementById("rep")?.options.length===8,"fresh sales screen");
 const fw=fresh.contentWindow,fd=fresh.contentDocument;
 ok(fd.getElementById("rep").value===""&&fd.getElementById("salesWorkspace").hidden,"fresh screen requires rep selection");
 fd.getElementById("rep").value="大田";fd.getElementById("rep").dispatchEvent(new fw.Event("change",{bubbles:true}));
