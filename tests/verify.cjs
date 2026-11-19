@@ -92,3 +92,35 @@ staffUi.events.get("entryForm:submit").call(staffUi.el("entryForm"),{preventDefa
 assert(staffUi.el("caseRows").innerHTML.includes("DEMO-004"),"手動受付の仮登録");
 console.log("OK: 仕様・構文・4帳票・5行・見積計算・異常値・追加・切替・社員受付の基本回帰検査");
 console.log("未実施: 実ブラウザ／スマホ／PDF印刷／枠内表示／Xserver本番のセキュリティ検査");
+
+// OCR認識の意図しない変更を検出する。精度実測とは別の検査。
+const ocrSource=read("ocr.html");
+const ocrBaseline=[
+  [
+    "OCR外部ライブラリ",
+    "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/pdf.js/",
+    "<style>",
+    "180:9333f932"
+  ],
+  [
+    "品番・認識条件",
+    "const MASTER=",
+    "function todayStr",
+    "4871:3ff02db1"
+  ],
+  [
+    "PDF・画像読み取り",
+    "async function renderInput(",
+    "function rowTemplate(",
+    "16455:0a2531e5"
+  ],
+  [
+    "カメラ撮影・補正・認識",
+    "async function previewSelectedFile(",
+    "renderRows([]);\n//",
+    "7326:01169404"
+  ]
+];
+function ocrFingerprint(s){let n=2166136261;for(let i=0;i<s.length;i++)n=Math.imul(n^s.charCodeAt(i),16777619)>>>0;return s.length+":"+n.toString(16).padStart(8,"0");}
+for(const [label,start,end,expected] of ocrBaseline){const a=ocrSource.indexOf(start),b=ocrSource.indexOf(end,a+start.length);assert(a>=0&&b>a,label+"：認識処理の範囲を確認");assert.equal(ocrFingerprint(ocrSource.slice(a,b)),expected,label+"：変更前に承認と精度比較が必要");}
+console.log("OK: OCR認識・画像補正の基準コード一致（実画像精度は別途検証）");
