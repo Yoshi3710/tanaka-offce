@@ -180,7 +180,7 @@ function formSelect(k,label,options){
 }
 function rowDeleteControl(){
  var options='<option value="">行を選択</option>';
- for(var n=0;n<s.items.length;n++)options+='<option value="'+n+'">'+(n+1)+'行目</option>';
+ for(var n=0;n<Math.max(5,s.items.length);n++)options+='<option value="'+n+'">'+(n+1)+'行目</option>';
  return '<span class="order-delete-controls"><select id="deleteRowChoice" aria-label="削除する明細行">'+options+'</select><button type="button" data-remove-order>明細を削除</button></span>';
 }
 function orderRows(){

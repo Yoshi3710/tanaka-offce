@@ -61,7 +61,10 @@ function checkForms(w,label){
   const cells=[...d.querySelectorAll("#paper .doc-items tbody tr td:first-child")];
   ok(cells.length>=2&&cells.every((el,n)=>el.textContent.trim()===String(n+1)&&!el.querySelector("button")),k+" numbers only");
   if(k==="order"||k==="quote"){
-   ok(d.querySelectorAll("#paper .order-row-no").length===5,k+" five rows");
+   ok(d.querySelectorAll("#paper .order-row-no").length===5&&$("deleteRowChoice").options.length===6,k+" five rows selectable");
+   input(d.querySelector('#paper [data-row="4"][data-col="name"]'),"TEST-BLANK-ROW");
+   $("deleteRowChoice").value="4";d.querySelector("[data-remove-order]").click();
+   ok(!Array.from(d.querySelectorAll("#paper textarea")).some(el=>el.value==="TEST-BLANK-ROW"),k+" direct entry in preallocated row can be deleted");
    d.querySelector("[data-add-order]").click();ok(d.querySelectorAll("#paper .order-row-no").length===6,k+" add");
    input(d.querySelector('#paper [data-row="5"][data-col="name"]'),"TEST-DELETE");
    $("deleteRowChoice").value="5";d.querySelector("[data-remove-order]").click();
