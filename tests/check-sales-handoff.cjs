@@ -11,7 +11,9 @@ const wait=(fn,msg)=>new Promise((resolve,reject)=>{let count=0;const t=setInter
 const ok=(v,m)=>{if(!v)throw Error(m)};
 let popup;
 const frame=document.getElementById("sales"),w=frame.contentWindow,d=w.document,$=id=>d.getElementById(id);
-await wait(()=>d.getElementById("greeting")?.textContent.includes("大田"),"sales load");
+await wait(()=>d.getElementById("rep")?.options.length===7,"sales load");
+ok($("rep").value===""&&$("salesWorkspace").hidden,"no default rep");
+$("rep").value="大田";$("rep").dispatchEvent(new w.Event("change",{bubbles:true}));
 const realOpen=w.open.bind(w);
 w.open=(...args)=>{popup=realOpen(...args);return popup;};
 w.confirm=()=>true;
@@ -147,8 +149,10 @@ click('[data-archive-download="ARCH-001"]');w.URL.createObjectURL=createUrl;w.HT
 ok(exported,"archive export blob");
 const json=await exported.text();ok(JSON.parse(json).data.form.quoteNumber==="Q-DIRECT-1","export exact document");
 const fresh=document.createElement("iframe");fresh.src="/sales.html";document.body.appendChild(fresh);
-await wait(()=>fresh.contentDocument?.getElementById("greeting")?.textContent.includes("大田"),"fresh sales screen");
+await wait(()=>fresh.contentDocument?.getElementById("rep")?.options.length===7,"fresh sales screen");
 const fw=fresh.contentWindow,fd=fresh.contentDocument;
+ok(fd.getElementById("rep").value===""&&fd.getElementById("salesWorkspace").hidden,"fresh screen requires rep selection");
+fd.getElementById("rep").value="大田";fd.getElementById("rep").dispatchEvent(new fw.Event("change",{bubbles:true}));
 fd.querySelector('[data-open="archive"]').click();
 const dt=new fw.DataTransfer();dt.items.add(new fw.File([json],"archive.json",{type:"application/json"}));const input=fd.getElementById("archiveFile");input.files=dt.files;input.dispatchEvent(new fw.Event("change",{bubbles:true}));
 await wait(()=>fd.getElementById("archiveRows").textContent.includes("見積書"),"import exported archive into fresh screen");
