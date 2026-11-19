@@ -8,6 +8,7 @@ on:
       - sales.html
       - ocr.html
       - tests/check-sales-browser.cjs
+      - tests/check-forms-print.cjs
       - tests/check-sales-handoff.cjs
       - tests/verify.cjs
       - tests/check-data-model.cjs
@@ -23,6 +24,7 @@ on:
       - sales.html
       - ocr.html
       - tests/check-sales-browser.cjs
+      - tests/check-forms-print.cjs
       - tests/check-sales-handoff.cjs
       - tests/verify.cjs
       - tests/check-data-model.cjs
@@ -51,3 +53,5 @@ jobs:
         run: node tests/check-sales-browser.cjs
       - name: Check sales-to-document handoff and split delivery in Chrome
         run: node tests/check-sales-handoff.cjs
+      - name: Check PDF printing of all four common forms
+        run: node tests/check-forms-print.cjs
