@@ -5,7 +5,7 @@ const chrome=["google-chrome","google-chrome-stable","chromium","chromium-browse
 assert(chrome,"Chrome / Chromium が必要です");
 const temp=fs.mkdtempSync(path.join(os.tmpdir(),"tanaka-sales-"));
 try{
- const app=pathToFileURL(path.resolve("sales.html")).href;
+ const app=pathToFileURL(path.resolve("sales.html")).href,forms=pathToFileURL(path.resolve("index.html")).href;
  const test=String.raw`
 function checks(w,label){
  const d=w.document,$=id=>d.getElementById(id);w.confirm=()=>true;
@@ -46,14 +46,42 @@ function checks(w,label){
  const ship=d.querySelector('[data-work="shipQty"]');ship.value="999";ship.dispatchEvent(new w.Event("input",{bubbles:true}));click("#nextWork");ok($("workFeedback").textContent.includes("未出荷数量"),"excess rejected");ship.value="10";ship.dispatchEvent(new w.Event("input",{bubbles:true}));click("#nextWork");ok($("workPanel").textContent.includes("今回の出荷数量：10 点")&&$("workPanel").textContent.includes("納品書を作成する"),"split shipment draft");width("delivery action");
  for(const rep of ["會野","藤井","長谷","恩田","田中壮一"]){set("rep",rep,"change");width(rep);ok($("greeting").textContent.includes(rep),"rep available");}
 }
+function checkForms(w,label){
+ const d=w.document,$=id=>d.getElementById(id);w.confirm=()=>true;
+ const ok=(v,m)=>{if(!v)throw Error(label+" forms: "+m);};
+ const type=k=>{$("type").value=k;$("type").dispatchEvent(new w.Event("change",{bubbles:true}));};
+ const input=(el,val)=>{el.value=val;el.dispatchEvent(new w.Event("input",{bubbles:true}));};
+ $("sample").click();
+ for(const [k,title] of [["order","発注書"],["quote","見積書"],["delivery","納品書"],["invoice","請求書"]]){
+  type(k);
+  ok($("formatLabel").textContent===title+"／A4縦",k+" portrait");
+  ok($("paper").textContent.replace(/\s/g,"").includes(title),k+" title");
+  ok(!$("paper").textContent.includes("[object Object]"),k+" invalid label");
+  ok(d.documentElement.scrollWidth<=d.documentElement.clientWidth+1,k+" horizontal overflow "+d.documentElement.scrollWidth+"/"+d.documentElement.clientWidth);
+  const cells=[...d.querySelectorAll("#paper .doc-items tbody tr td:first-child")];
+  ok(cells.length>=2&&cells.every((el,n)=>el.textContent.trim()===String(n+1)&&!el.querySelector("button")),k+" numbers only");
+  if(k==="order"||k==="quote"){
+   ok(d.querySelectorAll("#paper .order-row-no").length===5,k+" five rows");
+   d.querySelector("[data-add-order]").click();ok(d.querySelectorAll("#paper .order-row-no").length===6,k+" add");
+   input(d.querySelector('#paper [data-row="5"][data-col="name"]'),"TEST-DELETE");
+   $("deleteRowChoice").value="5";d.querySelector("[data-remove-order]").click();
+   ok(d.querySelectorAll("#paper .order-row-no").length===5&&!Array.from(d.querySelectorAll("#paper textarea")).some(el=>el.value==="TEST-DELETE"),k+" remove outside number cell");
+   ok(d.querySelector('#paper [data-row="0"][data-col="sku"]').value==="A-001",k+" existing row retained");
+  }else{
+   ok($("paper").textContent.includes("A-001"),k+" preserved SKU");
+  }
+  const p=$("paper").getBoundingClientRect(),wrap=$("sheetWrap").getBoundingClientRect();
+  ok(p.left>=wrap.left-1&&p.right<=wrap.right+1,k+" paper fits viewport");
+ }
+}
 `;
  const run=(width,height)=>{
   const file=path.join(temp,"test-"+width+".html");
   fs.writeFileSync(file,'<!doctype html><meta charset="utf-8"><pre id="result">PENDING</pre><script>'+test+
-   'const f=document.createElement("iframe");f.width='+width+';f.height='+height+';f.style.border="0";f.onload=()=>{try{checks(f.contentWindow,"'+width+'px");document.getElementById("result").textContent="PASS '+width+'";}catch(e){document.getElementById("result").textContent="FAIL "+String(e.stack||e);}};f.src='+JSON.stringify(app)+';document.body.append(f);<\/script>');
+   'const f=document.createElement("iframe");f.width='+width+';f.height='+height+';f.style.border="0";f.onload=()=>{try{checks(f.contentWindow,"'+width+'px");const g=document.createElement("iframe");g.width='+width+';g.height='+height+';g.style.border="0";g.onload=()=>{try{checkForms(g.contentWindow,"'+width+'px");document.getElementById("result").textContent="PASS '+width+'";}catch(e){document.getElementById("result").textContent="FAIL "+String(e.stack||e);}};g.src='+JSON.stringify(forms)+';document.body.append(g);}catch(e){document.getElementById("result").textContent="FAIL "+String(e.stack||e);}};f.src='+JSON.stringify(app)+';document.body.append(f);<\/script>');
   const p=spawnSync(chrome,["--headless","--no-sandbox","--disable-dev-shm-usage","--disable-background-networking","--allow-file-access-from-files","--no-first-run","--window-size=1400,1000","--user-data-dir="+path.join(temp,"profile-"+width),"--virtual-time-budget=5000","--dump-dom",pathToFileURL(file).href],{encoding:"utf8",timeout:40000,maxBuffer:4*1024*1024});
   assert.equal(p.status,0,p.error?.message||p.stderr?.slice(-2000));const match=p.stdout.match(/<pre id="result">([\s\S]*?)<\/pre>/);
-  assert(match&&match[1]==="PASS "+width,match?.[1]||p.stdout.slice(0,1000));console.log(match[1]+"px：担当範囲・入力保持・受付・対応履歴・横スクロール");
+  assert(match&&match[1]==="PASS "+width,match?.[1]||p.stdout.slice(0,1000));console.log(match[1]+"px：営業画面・全4帳票・明細追加削除・横スクロール");
  };
  run(1280,900);run(390,844);
  console.log("実ブラウザ（Linux Chrome）の幅別検査。実機Windows/スマホ・本番認証・PDF印刷は未検証。");
