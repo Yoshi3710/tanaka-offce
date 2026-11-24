@@ -7,6 +7,9 @@ assert(chrome,"Chrome required");
 const temp=fs.mkdtempSync(path.join(os.tmpdir(),"tanaka-print-"));
 try{
  const source=fs.readFileSync("index.html","utf8");
+ assert(source.includes(".print-meta td{overflow-wrap:normal;white-space:nowrap}"),"document date single line");
+ assert(source.includes(".print-meta,.info-table,.doc-items,.totals{border:1px solid #333}"),"table border uniform");
+ assert(!/大阪信用金庫|振込先|お支払い日/.test(source),"bank details not added");
  fs.mkdirSync(path.join(temp,"assets"));fs.copyFileSync("assets/logo.webp",path.join(temp,"assets/logo.webp"));
  const pdfInfo=spawnSync("pdfinfo",["-v"],{encoding:"utf8"}).status===0;
  const textExtract=spawnSync("pdftotext",["-v"],{encoding:"utf8"}).status===0;
@@ -26,6 +29,7 @@ try{
   if(textExtract){
    const txt=spawnSync("pdftotext",["-layout",pdf,"-"],{encoding:"utf8"});assert.equal(txt.status,0);assert(txt.stdout.includes("A-001")&&txt.stdout.includes("B-002"),type+" printed sample SKUs");
    assert(!/PRINT-EDITOR-NOT-SHOW|PRINT-ROW-CONTROL-NOT-SHOW/.test(txt.stdout),type+" print controls excluded");
+   assert(!/学校提出用|ご確認をお願いいたします|試作帳票|正式な見積には使用しないでください|正式な注文|（未入力）/.test(txt.stdout),type+" print omits old trial messages");
   }
   console.log("PASS "+type+" PDF"+" / A4 portrait single page"+(textExtract?" / product text and controls":" / text not checked"));
  }
