@@ -71,7 +71,7 @@ if (location.pathname.endsWith("/")) {
 .order-delete-controls{display:inline-flex;align-items:center;gap:2mm;white-space:nowrap}.order-form .order-delete-controls select{width:auto;border:1px solid #b9c9d5;border-radius:4px;background:#fff;padding:4px 6px}
 .order-after{display:flex;align-items:center;justify-content:flex-end;gap:6mm;margin-top:2mm;font-size:12px;font-weight:700}
 .order-after button{padding:5px 9px;font-size:12px}
-.order-memo{display:flex;align-items:start;gap:1mm;margin-top:3mm;font-size:12px}
+.order-memo{display:flex;flex-direction:column;gap:1mm;margin-top:3mm;font-size:12px}
 .order-memo label{white-space:nowrap;margin-top:1mm}
 .order-memo textarea{flex:1;border:1px solid #888;min-height:15mm;resize:vertical}
 .order-contact{margin-top:4mm;border-top:1px solid #999;padding-top:2mm;font-size:10.5px}
@@ -355,7 +355,7 @@ function render(){
  '<table class="totals"><tr><th>小計</th><td>¥ '+yen(subtotal)+'</td></tr>'+
  (isInvoice||isQuote?'<tr><th>消費税（'+escapeText(taxRate)+'%）</th><td>¥ '+yen(tax)+'</td></tr>':'')+
  '<tr class="grand"><th>'+(isQuote?'お見積金額':isInvoice?'ご請求金額':'納品金額')+'</th><td>¥ '+yen(subtotal+(isInvoice||isQuote?tax:0))+'</td></tr></table>';
- var note=s.memo?'<div class="note-print"><b>備考</b>：'+escapeText(s.memo)+'</div>':'';
+ var note=s.memo?'<div class="note-print"><b style="display:block">備考：</b>'+escapeText(s.memo)+'</div>':'';
  var intro=isOrder?'下記の内容にて発注いたします。':isQuote?'下記の通り、お見積り申し上げます。':isInvoice?'下記の通り、ご請求申し上げます。':'下記の通り納品いたします。';
  byId("paper").className="paper"+(isOrder?" landscape":"");
  byId("paper").innerHTML='<div class="paper-inner">'+
