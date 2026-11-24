@@ -10,6 +10,8 @@ try{
  assert(source.includes(".print-meta td{overflow-wrap:normal;white-space:nowrap}"),"document date single line");
  assert(source.includes(".print-meta,.info-table,.doc-items,.totals{border:1px solid #333}"),"table border uniform");
  assert(!/大阪信用金庫|振込先|お支払い日/.test(source),"bank details not added");
+ assert(source.includes(".order-memo{display:flex;flex-direction:column;"),"order and quote remarks below heading");
+ assert(source.includes('<b style="display:block">備考：</b>'),"delivery and invoice remarks below heading");
  fs.mkdirSync(path.join(temp,"assets"));fs.copyFileSync("assets/logo.webp",path.join(temp,"assets/logo.webp"));
  const pdfInfo=spawnSync("pdfinfo",["-v"],{encoding:"utf8"}).status===0;
  const textExtract=spawnSync("pdftotext",["-v"],{encoding:"utf8"}).status===0;
