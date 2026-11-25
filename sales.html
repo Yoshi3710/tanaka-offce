@@ -223,7 +223,7 @@ function openWorkspace(kind,archiveId){
   if(workspace.rep===rep&&workspace.kind===kind&&workspace.id===(archiveId||null)){workspace.win.focus();return;}
   announce("別の作成画面が開いています。先に仮保管して閉じてください。");return;
  }
- const win=window.open(kind==="ocr"?"ocr.html?fromSales=1":"index.html?workspace=1","_blank");
+ const win=window.open(kind==="ocr"?"ocr.html?fromSales=1":"index.html?workspace=1&v=20261125-2","_blank");
  if(!win){announce("別タブが開けません。ポップアップの許可を確認してください。");return;}
  workspace={win,kind,rep,id:archiveId||null,data:record?.data||null,token:Date.now()+"-"+Math.random(),loaded:false};
  announce("作成画面を開きました。作成後に営業画面へ仮保管できます。");
@@ -237,7 +237,7 @@ window.addEventListener("message",e=>{
  if(m.type==="tanaka-workspace-convert"&&p.kind==="ocr"&&p.loaded){
   try{
    const data=ocrToDocument(m.data,p.rep);
-   p.win.location.replace(new URL("index.html?workspace=1",window.location.href).href);
+   p.win.location.replace(new URL("index.html?workspace=1&v=20261125-2",window.location.href).href);
    p.kind="document";p.data=data;p.loaded=false;
   }catch(err){p.win.postMessage({type:"tanaka-workspace-error",token:p.token,message:String(err.message)},e.origin);}
   return;
@@ -380,7 +380,7 @@ function openDocument(c,kind){
  const number=c.id.replace("DEMO-",""),maker=kind==="order"?g.maker:gs.length===1?gs[0].maker:"複数（明細参照）";
  const supplier=suppliers.find(x=>x.name===maker);
  const pack={type:kind,rep:c.rep,school:s.name,schoolAddress:s.address,schoolTel:s.phone,maker,makerTel:supplier?.phone||"",makerFax:supplier?.fax||"",makerCode:supplier?.code||"",date:day(),operator:c.rep,reference:"DEMO-O-"+number,quoteNumber:kind==="quote"?"DEMO-Q-"+number:"",number:kind==="order"?"DEMO-PO-"+number+(gs.length>1?"-"+(g.index+1):""):kind==="delivery"?"DEMO-D-"+number+"-"+c.batch:kind==="invoice"?"DEMO-I-"+number:"",serviceDate:kind==="delivery"?c.shipDate||"":"",items:rows.map(p=>({sku:p.sku,name:p.name,spec:p.spec||"",qty:String(kind==="delivery"?p.pending:kind==="invoice"?p.delivered:Number(p.qty)),unit:"個",price:kind==="order"?"":p.price,note:[p.note||"",kind==="quote"&&gs.length>1?"発売元："+p.maker:""].filter(Boolean).join("／"),deliveryDate:""})),memo:"試作案件 "+c.id};
- const win=window.open("index.html?fromSales=1","_blank");
+ const win=window.open("index.html?fromSales=1&v=20261125-2","_blank");
  if(!win){workMsg("別タブが開けません。ポップアップの許可を確認してください。");return;}
  pendingWindow={win,caseId:c.id,rep:c.rep,stage:c.stage,maker:kind==="order"?g.maker:"",pack,token:Date.now()+"-"+Math.random()};
  workMsg("別タブで帳票を開いています。下書きの読み込み完了を確認してください。");
