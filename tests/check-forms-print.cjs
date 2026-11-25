@@ -7,8 +7,9 @@ assert(chrome,"Chrome required");
 const temp=fs.mkdtempSync(path.join(os.tmpdir(),"tanaka-print-"));
 async function main(){try{
  const source=fs.readFileSync("index.html","utf8");
- assert(source.includes(".print-meta td{overflow-wrap:normal;white-space:nowrap}"),"document date single line");
- assert(source.includes(".print-meta,.info-table,.doc-items,.totals,.order-address-table{border:var(--form-line,1px) solid #333;border-collapse:separate;border-spacing:0;outline:var(--form-line,1px) solid #333;"),"table border uniform");
+ assert(source.includes(".print-meta tr:last-child td{white-space:nowrap;font-size:11px}"),"document date single line");
+ assert(source.includes(".paper table{border-collapse:separate;border-spacing:0;table-layout:fixed;border:1px solid #333;max-width:100%}"),"table border uniform");
+ assert(!source.includes("--form-line"),"no variable border compensation");
  assert(!source.includes("vertical-align:middle"),"all table text top-aligned");
  assert(source.includes("登録番号　T2120001158559"),"company registration number");
  assert(!/大阪信用金庫|振込先|お支払い日/.test(source),"bank details not added");
@@ -45,7 +46,7 @@ async function main(){try{
    await send("Page.navigate",{url:pathToFileURL(path.resolve("index.html")).href});
    let ready=false;for(let i=0;i<100&&!ready;i++){let v=await send("Runtime.evaluate",{expression:'document.readyState==="complete"&&!!document.getElementById("sample")'});ready=v.result.value===true;if(!ready)await delay(100);}
    assert(ready,"form ready");
-   const expression=`(async()=>{window.confirm=()=>true;document.getElementById("sample").click();let t=document.getElementById("type");t.value=${JSON.stringify(type)};t.dispatchEvent(new Event("change",{bubbles:true}));let st=document.createElement("style");st.textContent=".head,.notice,.editor,.sheet-top{display:none!important}.layout{display:block!important;margin:0!important;padding:0!important}.sheet-panel,.sheet-wrap{padding:0!important;border:0!important;background:white!important}.paper{margin:20px!important;zoom:.65!important;--form-line:2px!important}";document.head.append(st);await document.fonts.ready;await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));return [...document.querySelectorAll("#paper table,#paper .order-address-heading")].map(e=>{let r=e.getBoundingClientRect();return [r.left,r.top,r.right,r.bottom]});})()`;
+   const expression=`(async()=>{window.confirm=()=>true;document.getElementById("sample").click();let t=document.getElementById("type");t.value=${JSON.stringify(type)};t.dispatchEvent(new Event("change",{bubbles:true}));let st=document.createElement("style");st.textContent=".head,.notice,.editor,.sheet-top{display:none!important}.layout{display:block!important;margin:0!important;padding:0!important}.sheet-panel,.sheet-wrap{padding:0!important;border:0!important;background:white!important}.paper{margin:20px!important;zoom:.65!important}";document.head.append(st);await document.fonts.ready;await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));return [...document.querySelectorAll("#paper table:not(.order-address-table),#paper .order-address-block")].map(e=>{let r=e.getBoundingClientRect();return [r.left,r.top,r.right,r.bottom]});})()`;
    const geometry=await send("Runtime.evaluate",{expression,awaitPromise:true,returnByValue:true});assert(!geometry.exceptionDetails,JSON.stringify(geometry.exceptionDetails));let rects=geometry.result.value;
    const shot=await send("Page.captureScreenshot",{format:"png",fromSurface:true,captureBeyondViewport:false});let img=decodePNG(Buffer.from(shot.data,"base64"));
    assert(rects.length>0);
