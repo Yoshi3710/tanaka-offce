@@ -389,7 +389,7 @@ function fitPaper(){
  paper.style.zoom="1";
  var mmToPx=96/25.4,base=190*mmToPx;
  var scale=Math.min(1,Math.max(.25,(wrap.clientWidth-24)/base));
- paper.style.setProperty("--form-line",Math.ceil(1/scale)+"px");
+ if(paper.style.setProperty)paper.style.setProperty("--form-line",Math.ceil(1/scale)+"px");
  paper.style.zoom=String(scale);
  fitOrderTextareas();
 }
