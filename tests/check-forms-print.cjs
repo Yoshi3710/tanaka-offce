@@ -17,6 +17,25 @@ try{
  fs.mkdirSync(path.join(temp,"assets"));fs.copyFileSync("assets/logo.webp",path.join(temp,"assets/logo.webp"));
  const pdfInfo=spawnSync("pdfinfo",["-v"],{encoding:"utf8"}).status===0;
  const textExtract=spawnSync("pdftotext",["-v"],{encoding:"utf8"}).status===0;
+ // Check actual rendered right edge with reduced zoom (not merely computed CSS).
+ function decodePNG(bytes){
+  let p=8,w,h,channels,parts=[];
+  while(p+12<=bytes.length){let n=bytes.readUInt32BE(p),type=bytes.toString("ascii",p+4,p+8),d=bytes.subarray(p+8,p+8+n);if(type==="IHDR"){w=d.readUInt32BE(0);h=d.readUInt32BE(4);assert.equal(d[8],8);channels=d[9]===2?3:d[9]===6?4:0;assert(channels,"RGB PNG");}if(type==="IDAT")parts.push(d);p+=12+n;}
+  let raw=require("node:zlib").inflateSync(Buffer.concat(parts)),stride=w*channels,out=Buffer.alloc(stride*h),pos=0;
+  for(let y=0;y<h;y++){let filter=raw[pos++];for(let x=0;x<stride;x++){let i=y*stride+x,a=x>=channels?out[i-channels]:0,b=y?out[i-stride]:0,c=y&&x>=channels?out[i-stride-channels]:0,v=a+b-c,pa=Math.abs(v-a),pb=Math.abs(v-b),pc=Math.abs(v-c);out[i]=(raw[pos++]+(filter===1?a:filter===2?b:filter===3?Math.floor((a+b)/2):filter===4?(pa<=pb&&pa<=pc?a:pb<=pc?b:c):0))&255;}}
+  return {w,h,dark(x,y){if(x<0||x>=w||y<0||y>=h)return false;let i=(y*w+x)*channels;return out[i]<150&&out[i+1]<150&&out[i+2]<150;}};
+ }
+ function rasterEdges(type){
+  const html=path.join(temp,"raster-"+type+".html"),png=path.join(temp,"raster-"+type+".png");
+  const script='<script>window.confirm=()=>true;document.getElementById("sample").click();let t=document.getElementById("type");t.value='+JSON.stringify(type)+';t.dispatchEvent(new Event("change",{bubbles:true}));let p=document.getElementById("paper");document.body.replaceChildren(p);document.body.style.background="white";p.style.margin="20px";p.style.zoom=".65";p.style.setProperty("--form-line","2px");let a=[...p.querySelectorAll("table,.order-address-heading")].map(e=>{let r=e.getBoundingClientRect();return [r.left,r.top,r.right,r.bottom]});let pre=document.createElement("pre");pre.id="edge-geometry";pre.hidden=true;pre.textContent=JSON.stringify(a);document.body.append(pre);<\/script>';
+  fs.writeFileSync(html,source.replace("</body>",script+"</body>"));
+  const args=["--headless","--no-sandbox","--disable-dev-shm-usage","--hide-scrollbars","--window-size=900,1400","--force-device-scale-factor=1","--virtual-time-budget=1000","--user-data-dir="+path.join(temp,"raster-profile-"+type)];
+  const u=pathToFileURL(html).href,d=spawnSync(chrome,[...args,"--dump-dom",u],{encoding:"utf8",timeout:25000,maxBuffer:4*1024*1024});assert.equal(d.status,0);let m=d.stdout.match(/<pre id="edge-geometry" hidden="">(.*?)<\/pre>/);assert(m,type+" geometry");let rects=JSON.parse(m[1]);
+  const shot=spawnSync(chrome,[...args,"--screenshot="+png,u],{encoding:"utf8",timeout:25000});assert.equal(shot.status,0);let img=decodePNG(fs.readFileSync(png));
+  for(let [l,t,r,b] of rects){for(let edge of [l,r]){let hits=0,total=0;for(let y=Math.ceil(t)+3;y<Math.floor(b)-3;y++){total++;if([-2,-1,0,1].some(dx=>img.dark(Math.round(edge)+dx,y)))hits++;}assert(total>0&&hits/total>.85,type+" rendered vertical edge "+edge+" coverage "+hits+"/"+total);}}
+  console.log("PASS "+type+" actual raster left/right borders at 65% zoom");
+ }
+
  for(const type of ["order","quote","delivery","invoice"]){
   const file=path.join(temp,type+".html"),pdf=path.join(temp,type+".pdf");
   const script='<script>window.confirm=()=>true;document.getElementById("sample").click();let type=document.getElementById("type");type.value='+JSON.stringify(type)+';type.dispatchEvent(new Event("change",{bubbles:true}));document.querySelector(".editor").append("PRINT-EDITOR-NOT-SHOW");let del=document.querySelector(".order-delete-controls");if(del)del.append("PRINT-ROW-CONTROL-NOT-SHOW");let paper=document.getElementById("paper");if([...paper.querySelectorAll("table")].some(t=>{let c=getComputedStyle(t);return c.borderCollapse!=="separate"||c.borderLeftWidth!==c.borderRightWidth||c.borderLeftColor!==c.borderRightColor;} )||[...paper.querySelectorAll("th,td")].some(t=>getComputedStyle(t).verticalAlign!=="top"))paper.innerHTML="FORM-LAYOUT-FAIL";document.title="print-test";<\/script>';
@@ -37,6 +56,7 @@ try{
    assert(!/PRINT-EDITOR-NOT-SHOW|PRINT-ROW-CONTROL-NOT-SHOW/.test(txt.stdout),type+" print controls excluded");
    assert(!/学校提出用|ご確認をお願いいたします|試作帳票|正式な見積には使用しないでください|正式な注文|（未入力）/.test(txt.stdout),type+" print omits old trial messages");
   }
+  rasterEdges(type);
   console.log("PASS "+type+" PDF"+" / A4 portrait single page"+(textExtract?" / product text and controls":" / text not checked"));
  }
 }finally{fs.rmSync(temp,{recursive:true,force:true});}
