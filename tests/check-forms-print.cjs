@@ -8,7 +8,7 @@ const temp=fs.mkdtempSync(path.join(os.tmpdir(),"tanaka-print-"));
 try{
  const source=fs.readFileSync("index.html","utf8");
  assert(source.includes(".print-meta td{overflow-wrap:normal;white-space:nowrap}"),"document date single line");
- assert(source.includes(".print-meta,.info-table,.doc-items,.totals,.order-address-table{border:1px solid #333;border-collapse:separate;border-spacing:0}"),"table border uniform");
+ assert(source.includes(".print-meta,.info-table,.doc-items,.totals,.order-address-table{border:var(--form-line,1px) solid #333;border-collapse:separate;border-spacing:0;outline:var(--form-line,1px) solid #333;"),"table border uniform");
  assert(!source.includes("vertical-align:middle"),"all table text top-aligned");
  assert(source.includes("登録番号　T2120001158559"),"company registration number");
  assert(!/大阪信用金庫|振込先|お支払い日/.test(source),"bank details not added");
