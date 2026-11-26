@@ -53,5 +53,7 @@ jobs:
         run: node tests/check-sales-browser.cjs
       - name: Check sales-to-document handoff and split delivery in Chrome
         run: node tests/check-sales-handoff.cjs
+      - name: Install PDF inspection tools
+        run: sudo apt-get update && sudo apt-get install -y poppler-utils
       - name: Check PDF printing of all four common forms
         run: node tests/check-forms-print.cjs
