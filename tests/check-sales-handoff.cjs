@@ -229,5 +229,5 @@ const server=http.createServer((req,res)=>{
   });
   assert.equal(result.code,0,result.stderr.slice(-1500));const match=result.stdout.match(/<pre id="result">([\s\S]*?)<\/pre>/);
   assert(match&&match[1].startsWith("PASS:"),match?.[1]||result.stdout.slice(0,1500));console.log(match[1]);
- }finally{server.close();fs.rmSync(dir,{recursive:true,force:true});}
+ }finally{server.close();fs.rmSync(dir,{recursive:true,force:true,maxRetries:8,retryDelay:150});}
 })().catch(e=>{console.error(e);process.exitCode=1;});
