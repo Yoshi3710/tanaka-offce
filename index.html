@@ -97,9 +97,10 @@ if (location.pathname.endsWith("/")) {
 .quote-form .quote-totals td{overflow-wrap:anywhere}
 
 .paper table{border-collapse:collapse;table-layout:fixed;max-width:100%}
-.paper table th,.paper table td{background:#fff;color:#000;border:1px solid #333;vertical-align:top}
+.paper table th,.paper table td{background:#fff;color:#000;border:1px solid transparent;vertical-align:top}
 .order-address-table .order-address-title{width:auto;padding:0;background:#fff}
 .paper .order-address-table .address-gap{border:0;padding:0}
+.paper{position:relative}.paper-grid{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;z-index:2}.paper-grid path{fill:none;stroke:#333;stroke-width:1;vector-effect:non-scaling-stroke;shape-rendering:crispEdges}
 .company-sealed{position:relative;isolation:isolate}.company-sealed .seal-image{position:absolute;object-fit:contain;pointer-events:none;filter:grayscale(1);opacity:.25;z-index:-1;width:23mm;height:23mm;max-height:calc(100% - 5mm);top:1mm}.company-sealed .seal-square{right:17mm}.company-sealed .seal-round{right:0;top:5mm}.seal-controls{margin:10px 0}.seal-controls label{display:block;font-size:12px;margin:4px 0}.seal-controls input{max-width:100%;font-size:12px}
 </style>
 
@@ -382,12 +383,34 @@ var sealUrls={square:"",round:""};
  byId("formatLabel").textContent=title+"／A4縦";
  fitPaper();
 }
+var gridObservedSvg=null,gridObserver=typeof ResizeObserver==="function"?new ResizeObserver(function(){drawPaperGrid();}):null;
+function drawPaperGrid(){
+ var paper=byId("paper"),box=paper.getBoundingClientRect();
+ if(!box.width||!box.height)return;
+ var svg=paper.querySelector(".paper-grid"),ns="http://www.w3.org/2000/svg";
+ if(!svg){svg=document.createElementNS(ns,"svg");svg.setAttribute("class","paper-grid");svg.setAttribute("aria-hidden","true");svg.setAttribute("focusable","false");paper.appendChild(svg);}
+ svg.setAttribute("viewBox","0 0 "+box.width+" "+box.height);
+ var lines=new Map(),snap=function(n){return Math.round(n*100)/100;};
+ function segment(axis,k,a,b){k=snap(k);a=snap(a);b=snap(b);var key=axis+":"+k;if(!lines.has(key))lines.set(key,{axis:axis,k:k,parts:[]});lines.get(key).parts.push([a,b]);}
+ paper.querySelectorAll("table th:not(.address-gap),table td:not(.address-gap)").forEach(function(cell){
+  var r=cell.getBoundingClientRect(),l=r.left-box.left,t=r.top-box.top,x=r.right-box.left,y=r.bottom-box.top;
+  segment("h",t,l,x);segment("h",y,l,x);segment("v",l,t,y);segment("v",x,t,y);
+ });
+ var d="";
+ lines.forEach(function(line){var parts=line.parts.sort(function(a,b){return a[0]-b[0];}),start=parts[0][0],end=parts[0][1];
+  function emit(){d+=line.axis==="h"?"M"+start+" "+line.k+"H"+end:"M"+line.k+" "+start+"V"+end;}
+  for(var i=1;i<parts.length;i++){if(parts[i][0]<=end+.1)end=Math.max(end,parts[i][1]);else{emit();start=parts[i][0];end=parts[i][1];}}emit();
+ });
+ var path=svg.firstChild;if(!path){path=document.createElementNS(ns,"path");svg.appendChild(path);}path.setAttribute("d",d);
+ if(gridObserver&&svg!==gridObservedSvg){gridObserver.disconnect();gridObservedSvg=svg;gridObserver.observe(paper);paper.querySelectorAll("table").forEach(function(t){gridObserver.observe(t);});}
+}
 function fitOrderTextareas(){
- if(s.type!=="order"&&s.type!=="quote")return;
+ if(s.type!=="order"&&s.type!=="quote"){drawPaperGrid();return;}
  byId("paper").querySelectorAll('textarea[data-col]:not([data-col="deliveryDate"]),textarea[data-field="schoolAddress"]').forEach(function(el){
   el.style.height="auto";
   el.style.height=el.scrollHeight+"px";
  });
+ drawPaperGrid();
 }
 function fitPaper(){
  var paper=byId("paper"),wrap=byId("sheetWrap");
