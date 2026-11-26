@@ -85,7 +85,16 @@ async function main(){try{
   assert(bands.length>=7,type+" printed grid vertical strokes");
   assert(bands.every(b=>b.right-b.left+1<=3),type+" no thick doubled vertical borders: "+JSON.stringify(bands.filter(b=>b.right-b.left+1>3)));
   console.log("PASS "+type+" printed PDF raster vertical strokes: "+bands.length);
+  // Inspect horizontal strokes in the actual print raster as well.
+  const horizontal=[];for(let y=0;y<print.h;y++){let start=-1;for(let x=0;x<=print.w;x++){if(x<print.w&&print.dark(x,y)){if(start<0)start=x;}else if(start>=0){if(x-start>=250)horizontal.push({y,start,end:x});start=-1;}}}
+  const horizontalBands=[];for(const r of horizontal){let b=horizontalBands.find(b=>r.y===b.bottom+1&&Math.min(b.end,r.end)-Math.max(b.start,r.start)>=.8*Math.min(b.end-b.start,r.end-r.start));if(b){b.bottom=r.y;b.start=Math.max(b.start,r.start);b.end=Math.min(b.end,r.end);}else horizontalBands.push({top:r.y,bottom:r.y,start:r.start,end:r.end});}
+  // Exclude the intentionally thicker document-title rules, not part of any table.
+  const gridHorizontal=horizontalBands.filter(b=>b.top>print.h*.20);
+  assert(gridHorizontal.length>=5,type+" printed horizontal grid strokes");
+  assert(gridHorizontal.every(b=>b.bottom-b.top+1<=3),type+" doubled horizontal grid strokes: "+JSON.stringify(gridHorizontal.filter(b=>b.bottom-b.top+1>3)));
+  console.log("PASS "+type+" printed PDF horizontal strokes: "+gridHorizontal.length);
   await rasterEdges(type);
+  if(process.env.PRINT_REVIEW_DIR){fs.mkdirSync(process.env.PRINT_REVIEW_DIR,{recursive:true});for(const [src,dest] of [[pdf,type+".pdf"],[path.join(temp,type+"-print.png"),type+".png"]])fs.copyFileSync(src,path.join(process.env.PRINT_REVIEW_DIR,dest));}
   console.log("PASS "+type+" PDF"+" / A4 portrait single page"+(textExtract?" / product text and controls":" / text not checked"));
  }
 }finally{fs.rmSync(temp,{recursive:true,force:true});}}
