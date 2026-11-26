@@ -12,6 +12,10 @@ const ok=(v,m)=>{if(!v)throw Error(m)};
 let popup;
 const frame=document.getElementById("sales"),w=frame.contentWindow,d=w.document,$=id=>d.getElementById(id);
 await wait(()=>d.getElementById("rep")?.options.length===8,"sales load");
+const release="20261126-5";
+const checkRelease=(win,label)=>{ok(win.document.querySelector('meta[name="tanaka-release"]')?.content===release,label+" release marker");ok(new URL(win.location.href).searchParams.get("v")===release,label+" URL version");};
+checkRelease(w,"root to sales");
+ok(new URL(w.location.href).searchParams.get("utm_source")==="test","root preserves query");
 ok($("rep").value===""&&$("salesWorkspace").hidden,"no default rep");
 $("rep").value="大田";$("rep").dispatchEvent(new w.Event("change",{bubbles:true}));
 ok(w.history.state?.tanakaSelection==="大田","history records selected rep");
@@ -32,6 +36,7 @@ function field(key,v){const e=d.querySelector('[data-work="'+key+'"]');ok(e,"mis
 async function draft(type,rep,school,qty,number,expectedLines,expectedMaker){
  click("#nextWork");ok(popup,"popup opened");
  await wait(()=>!!popup&&!popup.closed&&popup.document.querySelector(".notice")?.textContent.includes("下書きを読み込みました"),"handoff not loaded: "+type);
+ checkRelease(popup,type);
  const pd=popup.document;
  ok(!pd.querySelector(".order-page"),"common template only "+type);
  ok([...pd.querySelectorAll("#paper .order-row-no")].every(el=>/^\d+$/.test(el.textContent.trim())&&!el.querySelector("button")),"number cells contain no delete controls "+type);
@@ -97,6 +102,7 @@ click("#nextWork");ok($("workPanel").textContent.includes("この案件は完了
 set("rep","大田");
 click('[data-workspace="document"]');ok(popup,"manual workspace opens");
 await wait(()=>popup.document.getElementById("workspaceSave")&&!popup.document.getElementById("workspaceSave").classList.contains("hidden"),"manual workspace ready");
+checkRelease(popup,"manual workspace");
 let pd=popup.document;popup.confirm=()=>true;
 function pset(id,v,event="change"){const el=pd.getElementById(id);ok(el,"missing "+id);el.value=v;el.dispatchEvent(new popup.Event(event,{bubbles:true}));}
 pset("workspaceSchool","0");pset("workspaceMaker","0");
@@ -122,6 +128,7 @@ click('[data-tab="home"]');
 // OCR認識そのものは実画像を使う別検査が必要。
 click('[data-workspace="ocr"]');
 await wait(()=>popup?.document.getElementById("schoolMasterBox")&&!popup.document.getElementById("schoolMasterBox").hidden,"ocr workspace ready");
+checkRelease(popup,"OCR workspace");
 pd=popup.document;popup.confirm=()=>true;pd.getElementById("manualCreateBtn").click();
 pset("schoolMasterChoice","0");
 pset("teacherName","架空担当者","input");pset("schoolPostal","000-0000","input");
@@ -129,6 +136,7 @@ const fields=[...pd.querySelector("#rowsBody tr").querySelectorAll("input,select
 for(const [i,v] of [[0,"1年"],[1,"美術"],[3,"131801"],[4,"イエロー"],[5,"12"]]){fields[i].value=v;fields[i].dispatchEvent(new popup.Event("input",{bubbles:true}));fields[i].dispatchEvent(new popup.Event("change",{bubbles:true}));}
 pd.getElementById("makeBtn").click();
 await wait(()=>popup?.document.getElementById("workspaceSave")&&!popup.document.getElementById("workspaceSave").classList.contains("hidden"),"OCR converted to common document");
+checkRelease(popup,"OCR converted form");
 pd=popup.document;popup.confirm=()=>true;
 ok(pd.getElementById("type").value==="order"&&pd.querySelector(".order-form"),"OCR uses the common order template");
 ok(!pd.querySelector(".order-page")&&pd.querySelector("#paper .order-row-no").textContent==="1","no old template or row cross");
@@ -189,17 +197,24 @@ ok(converted.length===expected.size&&converted.reduce((n,p)=>n+p.qty,0)===total,
 ok(converted.every(p=>expected.get(p.sku)===p.qty),"same SKU totals");
 ok(converted.some(p=>p.note.includes("1年")&&p.note.includes("2年")&&p.note.includes("3年")),"grade breakdown retained");
 popup.close();popup=null;
-out.textContent="PASS: all common documents, archive restore and unified OCR line totals";
+const staff=document.createElement("iframe");staff.src=d.querySelector('a[href^="staff.html"]').href;document.body.appendChild(staff);
+await wait(()=>staff.contentDocument?.querySelector('a[href^="index.html"]'),"legacy staff link");checkRelease(staff.contentWindow,"staff");
+const back=document.createElement("iframe");back.src=staff.contentDocument.querySelector('a[href^="index.html"]').href;document.body.appendChild(back);
+await wait(()=>back.contentDocument?.getElementById("paper"),"legacy staff to forms");checkRelease(back.contentWindow,"staff to forms");
+back.src=back.contentDocument.getElementById("salesHomeLink").href;
+await wait(()=>back.contentDocument?.getElementById("rep")?.options.length===8,"form to sales return");checkRelease(back.contentWindow,"form to sales");
+out.textContent="PASS: release identity, root navigation, all common documents, archive restore and unified OCR line totals";
 })().catch(e=>{document.getElementById("result").textContent="FAIL "+String(e.stack||e);});
 `;
-const harness='<!doctype html><meta charset="utf-8"><pre id="result">PENDING</pre><iframe id="sales" src="/sales.html" width="1280" height="900"></iframe><script>const f=document.getElementById("sales");f.addEventListener("load",()=>{'+browserTest+'});<\/script>';
+const harness='<!doctype html><meta charset="utf-8"><pre id="result">PENDING</pre><iframe id="sales" src="/tanaka-offce/?v=old&utm_source=test" width="1280" height="900"></iframe><script>const f=document.getElementById("sales");f.addEventListener("load",()=>{'+browserTest+'});<\/script>';
 const root=path.resolve(".");
 const server=http.createServer((req,res)=>{
  const pathname=new URL(req.url,"http://127.0.0.1").pathname;
  if(pathname==="/test"){res.setHeader("Content-Type","text/html; charset=utf-8");res.end(harness);return;}
- const files={"/sales.html":"sales.html","/index.html":"index.html","/assets/logo.webp":"assets/logo.webp","/ocr.html":"ocr.html"};
- if(!files[pathname]){res.writeHead(404);res.end();return;}
- res.setHeader("Content-Type",pathname.endsWith(".webp")?"image/webp":"text/html; charset=utf-8");if(pathname==="/ocr.html"){res.end(fs.readFileSync(path.join(root,files[pathname]),"utf8").replace(/<script src="https:[^"]+"[^>]*><\/script>/g,""));return;}res.end(fs.readFileSync(path.join(root,files[pathname])));
+ const relative=pathname.replace(/^\/tanaka-offce(?=\/)/,"");
+ const files={"/":"index.html","/sales.html":"sales.html","/index.html":"index.html","/assets/logo.webp":"assets/logo.webp","/ocr.html":"ocr.html","/staff.html":"staff.html"};
+ if(!files[relative]){res.writeHead(404);res.end();return;}
+ res.setHeader("Content-Type",relative.endsWith(".webp")?"image/webp":"text/html; charset=utf-8");if(relative==="/ocr.html"){res.end(fs.readFileSync(path.join(root,files[relative]),"utf8").replace(/<script src="https:[^"]+"[^>]*><\/script>/g,""));return;}res.end(fs.readFileSync(path.join(root,files[relative])));
 });
 (async()=>{
  try{
