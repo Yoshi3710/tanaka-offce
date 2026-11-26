@@ -18,6 +18,8 @@ async function main(){try{
  fs.mkdirSync(path.join(temp,"assets"));fs.copyFileSync("assets/logo.webp",path.join(temp,"assets/logo.webp"));
  const pdfInfo=spawnSync("pdfinfo",["-v"],{encoding:"utf8"}).status===0;
  const textExtract=spawnSync("pdftotext",["-v"],{encoding:"utf8"}).status===0;
+ const rasterPDF=spawnSync("pdftoppm",["-v"],{encoding:"utf8"}).status===0;
+ assert(pdfInfo&&textExtract&&rasterPDF,"Poppler PDF inspection utilities required");
  // Check actual rendered right edge with reduced zoom (not merely computed CSS).
  function decodePNG(bytes){
   let p=8,w,h,channels,parts=[];
@@ -75,6 +77,14 @@ async function main(){try{
    assert(!/PRINT-EDITOR-NOT-SHOW|PRINT-ROW-CONTROL-NOT-SHOW/.test(txt.stdout),type+" print controls excluded");
    assert(!/学校提出用|ご確認をお願いいたします|試作帳票|正式な見積には使用しないでください|正式な注文|（未入力）/.test(txt.stdout),type+" print omits old trial messages");
   }
+  const raster=spawnSync("pdftoppm",["-f","1","-l","1","-r","192","-png","-singlefile",pdf,path.join(temp,type+"-print")],{encoding:"utf8"});assert.equal(raster.status,0,raster.stderr);
+  const print=decodePNG(fs.readFileSync(path.join(temp,type+"-print.png")));
+  // Long vertical strokes in the actual printed page: locate runs and compare their thickness.
+  const runs=[];for(let x=0;x<print.w;x++){let start=-1;for(let y=0;y<=print.h;y++){if(y<print.h&&print.dark(x,y)){if(start<0)start=y;}else if(start>=0){if(y-start>=80)runs.push({x,start,end:y});start=-1;}}}
+  const bands=[];for(const r of runs){let b=bands.find(b=>r.x===b.right+1&&Math.min(b.end,r.end)-Math.max(b.start,r.start)>=.8*Math.min(b.end-b.start,r.end-r.start));if(b){b.right=r.x;b.start=Math.max(b.start,r.start);b.end=Math.min(b.end,r.end);}else bands.push({left:r.x,right:r.x,start:r.start,end:r.end});}
+  assert(bands.length>=7,type+" printed grid vertical strokes");
+  assert(bands.every(b=>b.right-b.left+1<=3),type+" no thick doubled vertical borders: "+JSON.stringify(bands.filter(b=>b.right-b.left+1>3)));
+  console.log("PASS "+type+" printed PDF raster vertical strokes: "+bands.length);
   await rasterEdges(type);
   console.log("PASS "+type+" PDF"+" / A4 portrait single page"+(textExtract?" / product text and controls":" / text not checked"));
  }
