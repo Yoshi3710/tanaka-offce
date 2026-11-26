@@ -16,6 +16,8 @@ on:
       - docs/CURRENT_SPEC.md
       - docs/DATA_MODEL_DRAFT.md
       - docs/SALES_REP_WORKFLOW.md
+      - scripts/build-preview.cjs
+      - assets/logo.webp
       - .github/workflows/verify.yml
   pull_request:
     paths:
@@ -32,6 +34,8 @@ on:
       - docs/CURRENT_SPEC.md
       - docs/DATA_MODEL_DRAFT.md
       - docs/SALES_REP_WORKFLOW.md
+      - scripts/build-preview.cjs
+      - assets/logo.webp
       - .github/workflows/verify.yml
   workflow_dispatch:
 
@@ -57,3 +61,12 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y poppler-utils
       - name: Check PDF printing of all four common forms
         run: node tests/check-forms-print.cjs
+      - name: Build verified static preview package
+        run: node scripts/build-preview.cjs
+      - name: Upload static preview package
+        uses: actions/upload-artifact@v4
+        with:
+          name: tanaka-xserver-preview
+          path: dist/
+          if-no-files-found: error
+          retention-days: 30
