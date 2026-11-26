@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ja">
 <head>
-<meta name="tanaka-release" content="20261126-7">
+<meta name="tanaka-release" content="20261126-8">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#124f80">
@@ -78,7 +78,7 @@ label{display:block;font-size:13px;font-weight:700;min-width:0}input,select,text
 <label>次の作業<select id="detailStage"></select></label><label>次回確認日<input id="detailDue" type="date"></label>
 <label class="full">対応内容（任意）<textarea id="detailNote" maxlength="400" placeholder="架空の対応記録"></textarea></label>
 </div><div class="actions" style="margin-top:10px"><button type="submit">対応内容を反映</button></div></form></details></div></section>
-<div class="footer">株式会社タナカ｜担当営業ホーム試作　・　<a href="staff.html?v=20261126-7" target="_blank" rel="noopener">従来の本部・社員管理画面（比較用）</a><p>正式なログイン・権限・サーバー保存・発注送信は未実装です。帳票の仮保管は架空データによる試作です。</p></div>
+<div class="footer">株式会社タナカ｜担当営業ホーム試作　・　<a href="staff.html?v=20261126-8" target="_blank" rel="noopener">従来の本部・社員管理画面（比較用）</a><p>正式なログイン・権限・サーバー保存・発注送信は未実装です。帳票の仮保管は架空データによる試作です。</p></div>
 </div>
 </main>
 <script>
@@ -224,7 +224,7 @@ function openWorkspace(kind,archiveId){
   if(workspace.rep===rep&&workspace.kind===kind&&workspace.id===(archiveId||null)){workspace.win.focus();return;}
   announce("別の作成画面が開いています。先に仮保管して閉じてください。");return;
  }
- const win=window.open(kind==="ocr"?"ocr.html?fromSales=1&v=20261126-7":"index.html?workspace=1&v=20261126-7","_blank");
+ const win=window.open(kind==="ocr"?"ocr.html?fromSales=1&v=20261126-8":"index.html?workspace=1&v=20261126-8","_blank");
  if(!win){announce("別タブが開けません。ポップアップの許可を確認してください。");return;}
  workspace={win,kind,rep,id:archiveId||null,data:record?.data||null,token:Date.now()+"-"+Math.random(),loaded:false};
  announce("作成画面を開きました。作成後に営業画面へ仮保管できます。");
@@ -238,7 +238,7 @@ window.addEventListener("message",e=>{
  if(m.type==="tanaka-workspace-convert"&&p.kind==="ocr"&&p.loaded){
   try{
    const data=ocrToDocument(m.data,p.rep);
-   p.win.location.replace(new URL("index.html?workspace=1&v=20261126-7",window.location.href).href);
+   p.win.location.replace(new URL("index.html?workspace=1&v=20261126-8",window.location.href).href);
    p.kind="document";p.data=data;p.loaded=false;
   }catch(err){p.win.postMessage({type:"tanaka-workspace-error",token:p.token,message:String(err.message)},e.origin);}
   return;
@@ -381,7 +381,7 @@ function openDocument(c,kind){
  const number=c.id.replace("DEMO-",""),maker=kind==="order"?g.maker:gs.length===1?gs[0].maker:"複数（明細参照）";
  const supplier=suppliers.find(x=>x.name===maker);
  const pack={type:kind,rep:c.rep,school:s.name,schoolAddress:s.address,schoolTel:s.phone,maker,makerTel:supplier?.phone||"",makerFax:supplier?.fax||"",makerCode:supplier?.code||"",date:day(),operator:c.rep,reference:"DEMO-O-"+number,quoteNumber:kind==="quote"?"DEMO-Q-"+number:"",number:kind==="order"?"DEMO-PO-"+number+(gs.length>1?"-"+(g.index+1):""):kind==="delivery"?"DEMO-D-"+number+"-"+c.batch:kind==="invoice"?"DEMO-I-"+number:"",serviceDate:kind==="delivery"?c.shipDate||"":"",items:rows.map(p=>({sku:p.sku,name:p.name,spec:p.spec||"",qty:String(kind==="delivery"?p.pending:kind==="invoice"?p.delivered:Number(p.qty)),unit:"個",price:kind==="order"?"":p.price,note:[p.note||"",kind==="quote"&&gs.length>1?"発売元："+p.maker:""].filter(Boolean).join("／"),deliveryDate:""})),memo:"試作案件 "+c.id};
- const win=window.open("index.html?fromSales=1&v=20261126-7","_blank");
+ const win=window.open("index.html?fromSales=1&v=20261126-8","_blank");
  if(!win){workMsg("別タブが開けません。ポップアップの許可を確認してください。");return;}
  pendingWindow={win,caseId:c.id,rep:c.rep,stage:c.stage,maker:kind==="order"?g.maker:"",pack,token:Date.now()+"-"+Math.random()};
  workMsg("別タブで帳票を開いています。下書きの読み込み完了を確認してください。");
