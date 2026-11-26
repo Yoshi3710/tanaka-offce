@@ -12,19 +12,19 @@ const entry=index.match(/<script id="home-entry">([\s\S]*?)<\/script>/);
 assert(entry,"トップ入口の振り分け");
 function entryTarget(pathname,search="",hash=""){
  let target=null;
- vm.runInNewContext(entry[1],{location:{pathname,search,hash,replace(v){target=v;}},URLSearchParams,document:{querySelector(){return {content:"20261126-7"};}}});
+ vm.runInNewContext(entry[1],{location:{pathname,search,hash,replace(v){target=v;}},URLSearchParams,document:{querySelector(){return {content:"20261126-8"};}}});
  return target;
 }
-assert.equal(entryTarget("/tanaka-offce/"),"sales.html?v=20261126-7");
-assert.equal(entryTarget("/tanaka-offce/","?utm_source=test","#top"),"sales.html?utm_source=test&v=20261126-7#top");
+assert.equal(entryTarget("/tanaka-offce/"),"sales.html?v=20261126-8");
+assert.equal(entryTarget("/tanaka-offce/","?utm_source=test","#top"),"sales.html?utm_source=test&v=20261126-8#top");
 assert.equal(entryTarget("/tanaka-offce/index.html"),null);
 assert.equal(entryTarget("/tanaka-offce/index.html","?workspace=1"),null);
 assert.equal(entryTarget("/tanaka-offce/","?fromSales=1"),null);
 assert.equal(entryTarget("/tanaka-offce/","?workspace=1"),null);
 for(const file of ["index.html","sales.html","staff.html","ocr.html"]){
  const html=require("node:fs").readFileSync(file,"utf8");
- assert(html.includes('name="tanaka-release" content="20261126-7"'),file+" release marker");
- for(const m of html.matchAll(/(?:href="|window\.open\("|new URL\(")(index|sales|staff|ocr)\.html([^"<>]*)"/g))assert(m[2].includes("v=20261126-7"),file+" stale link "+m[0]);
+ assert(html.includes('name="tanaka-release" content="20261126-8"'),file+" release marker");
+ for(const m of html.matchAll(/(?:href="|window\.open\("|new URL\(")(index|sales|staff|ocr)\.html([^"<>]*)"/g))assert(m[2].includes("v=20261126-8"),file+" stale link "+m[0]);
 }
 const reps=["大田","會野","藤井","長谷","恩田","田中壮一"];
 function scriptFrom(html,name){
@@ -37,7 +37,7 @@ function widgetModel(isStaff){
  const tabs=viewIds.map(id=>({dataset:{view:id},setAttribute(){},addEventListener(ev,fn){events.set("tab:"+id+":"+ev,fn);}}));
  function el(id){
   if(!elements.has(id))elements.set(id,{id,style:{},className:"",innerHTML:"",textContent:"",value:"",hidden:false,files:[],clientWidth:900,scrollHeight:90,dataset:{},
-   classList:{toggle(k,v){this[k]=v;}},querySelectorAll(){return[]},addEventListener(ev,fn){events.set(id+":"+ev,fn);},click(){},reset(){},setAttribute(){}});
+   getBoundingClientRect(){return {width:0,height:0};},classList:{toggle(k,v){this[k]=v;}},querySelectorAll(){return[]},addEventListener(ev,fn){events.set(id+":"+ev,fn);},click(){},reset(){},setAttribute(){}});
   return elements.get(id);
  }
  const generic=new Map(),d={getElementById:el,createElement:el,
