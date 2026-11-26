@@ -37,7 +37,7 @@ function widgetModel(isStaff){
  const tabs=viewIds.map(id=>({dataset:{view:id},setAttribute(){},addEventListener(ev,fn){events.set("tab:"+id+":"+ev,fn);}}));
  function el(id){
   if(!elements.has(id))elements.set(id,{id,style:{},className:"",innerHTML:"",textContent:"",value:"",hidden:false,files:[],clientWidth:900,scrollHeight:90,dataset:{},
-   classList:{toggle(k,v){this[k]=v;}},querySelectorAll(){return[]},addEventListener(ev,fn){events.set(id+":"+ev,fn);},click(){},reset(){},setAttribute(){}});
+   getBoundingClientRect(){return {width:0,height:0};},classList:{toggle(k,v){this[k]=v;}},querySelectorAll(){return[]},addEventListener(ev,fn){events.set(id+":"+ev,fn);},click(){},reset(){},setAttribute(){}});
   return elements.get(id);
  }
  const generic=new Map(),d={getElementById:el,createElement:el,
