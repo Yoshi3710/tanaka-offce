@@ -65,6 +65,7 @@ async function main(){try{
    const output=path.join(evidence,type+".pdf");fs.writeFileSync(output,Buffer.from(printed.data,"base64"));
    const result=spawnSync("pdftoppm",["-r","300","-png","-singlefile",output,path.join(evidence,type+"-300dpi")],{encoding:"utf8"});assert.equal(result.status,0,result.stderr);
    const image=decodePNG(fs.readFileSync(path.join(evidence,type+"-300dpi.png")));
+   const extracted=spawnSync("pdftotext",[output,"-"],{encoding:"utf8"});assert(extracted.status===0&&extracted.stdout.includes("株式会社タナカ"),type+" Japanese text rendered in PDF");
    // CSS @page 10mm margin, 96 CSS px per inch, 300 raster px per inch.
    const scale=300/96,offset=300*10/25.4;
    for(const rect of printGeometry.result.value){const [l,t,r,b]=rect.map(v=>v*scale+offset);for(const vertical of [true,false])for(const edge of vertical?[l,r]:[t,b]){let hits=0,total=0;for(let p=Math.ceil(vertical?t:l)+8;p<Math.floor(vertical?b:r)-8;p++){total++;if([-4,-3,-2,-1,0,1,2,3,4].some(d=>vertical?image.dark(Math.round(edge)+d,p):image.dark(p,Math.round(edge)+d)))hits++;}if(total)assert(hits/total>.9,type+" PDF expected cell edge "+edge+" coverage "+hits+"/"+total);}}
