@@ -1,0 +1,38 @@
+name: Verify deployed Pages files
+on:
+  push:
+    branches: [verify/live-pages-20261126]
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["pages build and deployment"]
+    types: [completed]
+permissions:
+  contents: read
+jobs:
+  published:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+      - name: Verify deployed bytes, normal URLs and versioned URLs
+        shell: bash
+        run: |
+          set -euo pipefail
+          base=https://yoshi3710.github.io/tanaka-offce
+          version=$(sed -n 's/.*name="tanaka-release" content="\([^"]*\)".*/\1/p' index.html | head -1)
+          test -n "$version"
+          for f in index.html sales.html staff.html ocr.html assets/logo.webp; do
+            for mode in plain release; do
+              url="$base/$f"
+              if [[ "$mode" == release ]]; then url="$url?v=$version"; fi
+              curl --fail --silent --show-error --location --max-time 20 -H 'Cache-Control: no-cache' "$url" -o "/tmp/live-$(basename "$f")"
+              cmp "$f" "/tmp/live-$(basename "$f")"
+              echo "PASS deployed $mode $f $version"
+            done
+          done
+          curl --fail --silent --show-error --location --max-time 20 "$base/?v=$version" -o /tmp/live-root.html
+          cmp index.html /tmp/live-root.html
+          echo "PASS deployed root"
