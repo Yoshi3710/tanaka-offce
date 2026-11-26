@@ -7,8 +7,9 @@ assert(chrome,"Chrome required");
 const temp=fs.mkdtempSync(path.join(os.tmpdir(),"tanaka-print-"));
 async function main(){try{
  const source=fs.readFileSync("index.html","utf8");
- assert(source.includes(".print-meta td{overflow-wrap:normal;white-space:nowrap}"),"document date single line");
- assert(source.includes(".print-meta,.info-table,.doc-items,.totals,.order-address-table{border:var(--form-line,1px) solid #333;border-collapse:separate;border-spacing:0;outline:var(--form-line,1px) solid #333;"),"table border uniform");
+ assert(source.includes(".print-meta tr:last-child td{white-space:nowrap;font-size:11px}"),"document date single line");
+ assert(source.includes(".paper table{border-collapse:separate;border-spacing:0;table-layout:fixed;border:1px solid #333;max-width:100%}"),"table border uniform");
+ assert(!source.includes("--form-line"),"no variable border compensation");
  assert(!source.includes("vertical-align:middle"),"all table text top-aligned");
  assert(source.includes("登録番号　T2120001158559"),"company registration number");
  assert(!/大阪信用金庫|振込先|お支払い日/.test(source),"bank details not added");
@@ -17,6 +18,8 @@ async function main(){try{
  fs.mkdirSync(path.join(temp,"assets"));fs.copyFileSync("assets/logo.webp",path.join(temp,"assets/logo.webp"));
  const pdfInfo=spawnSync("pdfinfo",["-v"],{encoding:"utf8"}).status===0;
  const textExtract=spawnSync("pdftotext",["-v"],{encoding:"utf8"}).status===0;
+ const rasterPDF=spawnSync("pdftoppm",["-v"],{encoding:"utf8"}).status===0;
+ assert(pdfInfo&&textExtract&&rasterPDF,"Poppler PDF inspection utilities required");
  // Check actual rendered right edge with reduced zoom (not merely computed CSS).
  function decodePNG(bytes){
   let p=8,w,h,channels,parts=[];
@@ -45,7 +48,7 @@ async function main(){try{
    await send("Page.navigate",{url:pathToFileURL(path.resolve("index.html")).href});
    let ready=false;for(let i=0;i<100&&!ready;i++){let v=await send("Runtime.evaluate",{expression:'document.readyState==="complete"&&!!document.getElementById("sample")'});ready=v.result.value===true;if(!ready)await delay(100);}
    assert(ready,"form ready");
-   const expression=`(async()=>{window.confirm=()=>true;document.getElementById("sample").click();let t=document.getElementById("type");t.value=${JSON.stringify(type)};t.dispatchEvent(new Event("change",{bubbles:true}));let st=document.createElement("style");st.textContent=".head,.notice,.editor,.sheet-top{display:none!important}.layout{display:block!important;margin:0!important;padding:0!important}.sheet-panel,.sheet-wrap{padding:0!important;border:0!important;background:white!important}.paper{margin:20px!important;zoom:.65!important;--form-line:2px!important}";document.head.append(st);await document.fonts.ready;await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));return [...document.querySelectorAll("#paper table,#paper .order-address-heading")].map(e=>{let r=e.getBoundingClientRect();return [r.left,r.top,r.right,r.bottom]});})()`;
+   const expression=`(async()=>{window.confirm=()=>true;document.getElementById("sample").click();let t=document.getElementById("type");t.value=${JSON.stringify(type)};t.dispatchEvent(new Event("change",{bubbles:true}));let st=document.createElement("style");st.textContent=".head,.notice,.editor,.sheet-top{display:none!important}.layout{display:block!important;margin:0!important;padding:0!important}.sheet-panel,.sheet-wrap{padding:0!important;border:0!important;background:white!important}.paper{margin:20px!important;zoom:.65!important}";document.head.append(st);await document.fonts.ready;await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));return [...document.querySelectorAll("#paper table:not(.order-address-table),#paper .order-address-block")].map(e=>{let r=e.getBoundingClientRect();return [r.left,r.top,r.right,r.bottom]});})()`;
    const geometry=await send("Runtime.evaluate",{expression,awaitPromise:true,returnByValue:true});assert(!geometry.exceptionDetails,JSON.stringify(geometry.exceptionDetails));let rects=geometry.result.value;
    const shot=await send("Page.captureScreenshot",{format:"png",fromSurface:true,captureBeyondViewport:false});let img=decodePNG(Buffer.from(shot.data,"base64"));
    assert(rects.length>0);
@@ -74,6 +77,14 @@ async function main(){try{
    assert(!/PRINT-EDITOR-NOT-SHOW|PRINT-ROW-CONTROL-NOT-SHOW/.test(txt.stdout),type+" print controls excluded");
    assert(!/学校提出用|ご確認をお願いいたします|試作帳票|正式な見積には使用しないでください|正式な注文|（未入力）/.test(txt.stdout),type+" print omits old trial messages");
   }
+  const raster=spawnSync("pdftoppm",["-f","1","-l","1","-r","192","-png","-singlefile",pdf,path.join(temp,type+"-print")],{encoding:"utf8"});assert.equal(raster.status,0,raster.stderr);
+  const print=decodePNG(fs.readFileSync(path.join(temp,type+"-print.png")));
+  // Long vertical strokes in the actual printed page: locate runs and compare their thickness.
+  const runs=[];for(let x=0;x<print.w;x++){let start=-1;for(let y=0;y<=print.h;y++){if(y<print.h&&print.dark(x,y)){if(start<0)start=y;}else if(start>=0){if(y-start>=80)runs.push({x,start,end:y});start=-1;}}}
+  const bands=[];for(const r of runs){let b=bands.find(b=>r.x===b.right+1&&Math.min(b.end,r.end)-Math.max(b.start,r.start)>=.8*Math.min(b.end-b.start,r.end-r.start));if(b){b.right=r.x;b.start=Math.max(b.start,r.start);b.end=Math.min(b.end,r.end);}else bands.push({left:r.x,right:r.x,start:r.start,end:r.end});}
+  assert(bands.length>=7,type+" printed grid vertical strokes");
+  assert(bands.every(b=>b.right-b.left+1<=3),type+" no thick doubled vertical borders: "+JSON.stringify(bands.filter(b=>b.right-b.left+1>3)));
+  console.log("PASS "+type+" printed PDF raster vertical strokes: "+bands.length);
   await rasterEdges(type);
   console.log("PASS "+type+" PDF"+" / A4 portrait single page"+(textExtract?" / product text and controls":" / text not checked"));
  }
