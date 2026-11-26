@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ja">
 <head>
-<meta name="tanaka-release" content="20261126-8">
+<meta name="tanaka-release" content="20261126-9">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#0b5aa5">
@@ -101,6 +101,7 @@ if (location.pathname.endsWith("/")) {
 .order-address-table .order-address-title{width:auto;padding:0;background:#fff}
 .paper .order-address-table .address-gap{border:0;padding:0}
 .paper{position:relative}.paper-grid{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;z-index:2}.paper-grid path{fill:none;stroke:#333;stroke-width:1;vector-effect:non-scaling-stroke;shape-rendering:crispEdges}
+@media print{.paper-grid{display:none!important}.paper table th,.paper table td{border:1px solid #333}.paper .order-address-table .address-gap{border:0}}
 .company-sealed{position:relative;isolation:isolate}.company-sealed .seal-image{position:absolute;object-fit:contain;pointer-events:none;filter:grayscale(1);opacity:.25;z-index:-1;width:23mm;height:23mm;max-height:calc(100% - 5mm);top:1mm}.company-sealed .seal-square{right:17mm}.company-sealed .seal-round{right:0;top:5mm}.seal-controls{margin:10px 0}.seal-controls label{display:block;font-size:12px;margin:4px 0}.seal-controls input{max-width:100%;font-size:12px}
 </style>
 
@@ -109,7 +110,7 @@ if (location.pathname.endsWith("/")) {
 <header class="head">
 <img src="assets/logo.webp" alt="株式会社タナカ ロゴ">
 <div><h1>帳票作成プロトタイプ</h1><p>発注書・見積書・納品書・請求書／担当営業別入力・A4印刷</p></div>
-<span class="trial">確認用・発注／送信機能なし</span><a id="salesHomeLink" href="sales.html?v=20261126-8" style="font-size:13px;color:inherit">担当営業ホーム</a>
+<span class="trial">確認用・発注／送信機能なし</span><a id="salesHomeLink" href="sales.html?v=20261126-9" style="font-size:13px;color:inherit">担当営業ホーム</a>
 </header>
 <div class="notice" role="status">このページは帳票のレイアウト確認用です。実在の学校・児童生徒・取引先の個人情報を入力しないでください。入力内容の自動送信・サーバー保存は行いません。</div>
 <main class="layout" id="mainLayout">
@@ -389,11 +390,12 @@ function drawPaperGrid(){
  if(!box.width||!box.height)return;
  var svg=paper.querySelector(".paper-grid"),ns="http://www.w3.org/2000/svg";
  if(!svg){svg=document.createElementNS(ns,"svg");svg.setAttribute("class","paper-grid");svg.setAttribute("aria-hidden","true");svg.setAttribute("focusable","false");paper.appendChild(svg);}
- svg.setAttribute("viewBox","0 0 "+box.width+" "+box.height);
+ var viewport=svg.getBoundingClientRect();if(!viewport.width||!viewport.height)return;
+ svg.setAttribute("viewBox","0 0 "+viewport.width+" "+viewport.height);svg.setAttribute("preserveAspectRatio","none");
  var lines=new Map(),snap=function(n){return Math.round(n*100)/100;};
  function segment(axis,k,a,b){k=snap(k);a=snap(a);b=snap(b);var key=axis+":"+k;if(!lines.has(key))lines.set(key,{axis:axis,k:k,parts:[]});lines.get(key).parts.push([a,b]);}
  paper.querySelectorAll("table th:not(.address-gap),table td:not(.address-gap)").forEach(function(cell){
-  var r=cell.getBoundingClientRect(),l=r.left-box.left,t=r.top-box.top,x=r.right-box.left,y=r.bottom-box.top;
+  var r=cell.getBoundingClientRect(),l=r.left-viewport.left,t=r.top-viewport.top,x=r.right-viewport.left,y=r.bottom-viewport.top;
   segment("h",t,l,x);segment("h",y,l,x);segment("v",l,t,y);segment("v",x,t,y);
  });
  var d="";

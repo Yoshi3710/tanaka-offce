@@ -36,3 +36,16 @@ jobs:
           curl --fail --silent --show-error --location --max-time 20 "$base/?v=$version" -o /tmp/live-root.html
           cmp index.html /tmp/live-root.html
           echo "PASS deployed root"
+      - name: Install PDF inspection tools
+        run: sudo apt-get update && sudo apt-get install -y poppler-utils fonts-noto-cjk
+      - name: Run browser and PDF geometry checks against actual public URL
+        env:
+          TANAKA_LIVE_URL: https://yoshi3710.github.io/tanaka-offce/index.html?workspace=1
+        run: node tests/check-forms-print.cjs
+      - name: Preserve public PDF evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tanaka-live-pdf-evidence
+          path: pdf-evidence/
+          if-no-files-found: warn
