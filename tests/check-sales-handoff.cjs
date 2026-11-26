@@ -12,7 +12,7 @@ const ok=(v,m)=>{if(!v)throw Error(m)};
 let popup;
 const frame=document.getElementById("sales"),w=frame.contentWindow,d=w.document,$=id=>d.getElementById(id);
 await wait(()=>d.getElementById("rep")?.options.length===8,"sales load");
-const release="20261126-5";
+const release="20261126-6";
 const checkRelease=(win,label)=>{ok(win.document.querySelector('meta[name="tanaka-release"]')?.content===release,label+" release marker");ok(new URL(win.location.href).searchParams.get("v")===release,label+" URL version");};
 checkRelease(w,"root to sales");
 ok(new URL(w.location.href).searchParams.get("utm_source")==="test","root preserves query");
@@ -229,5 +229,5 @@ const server=http.createServer((req,res)=>{
   });
   assert.equal(result.code,0,result.stderr.slice(-1500));const match=result.stdout.match(/<pre id="result">([\s\S]*?)<\/pre>/);
   assert(match&&match[1].startsWith("PASS:"),match?.[1]||result.stdout.slice(0,1500));console.log(match[1]);
- }finally{server.close();fs.rmSync(dir,{recursive:true,force:true});}
+ }finally{server.close();fs.rmSync(dir,{recursive:true,force:true,maxRetries:8,retryDelay:150});}
 })().catch(e=>{console.error(e);process.exitCode=1;});

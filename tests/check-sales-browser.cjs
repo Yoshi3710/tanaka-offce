@@ -93,4 +93,4 @@ function checkForms(w,label){
  };
  run(1280,900);run(390,844);
  console.log("実ブラウザ（Linux Chrome）の幅別検査。実機Windows/スマホ・本番認証・PDF印刷は未検証。");
-}finally{fs.rmSync(temp,{recursive:true,force:true});}
+}finally{fs.rmSync(temp,{recursive:true,force:true,maxRetries:8,retryDelay:150});}

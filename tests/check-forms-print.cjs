@@ -88,5 +88,5 @@ async function main(){try{
   await rasterEdges(type);
   console.log("PASS "+type+" PDF"+" / A4 portrait single page"+(textExtract?" / product text and controls":" / text not checked"));
  }
-}finally{fs.rmSync(temp,{recursive:true,force:true});}}
+}finally{fs.rmSync(temp,{recursive:true,force:true,maxRetries:8,retryDelay:150});}}
 main().catch(e=>{console.error(e);process.exitCode=1;});
