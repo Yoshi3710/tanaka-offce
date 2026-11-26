@@ -109,7 +109,7 @@ footer{max-width:1480px;margin:0 auto;padding:0 18px 22px;color:#6c797f;font-siz
       <div class="field"><label>配送先表記</label><input id="delivery" value="学校直送"></div>
     </div>
     <p class="muted">公開試作では設定を端末に記憶しません。</p>
-    <div class="row"><button id="saveSettings" hidden>設定を保存</button><button id="resetSettings">初期値に戻す</button></div>
+    <div class="row"><button id="resetSettings">初期値に戻す</button></div>
   </section>
 
 </main>
@@ -646,7 +646,6 @@ function loadSample(){
 }
 function dedupe(){const rows=collectRows();const map=new Map();for(const r of rows){const k=[r.grade,r.subject,r.code].join('|');if(map.has(k)){const x=map.get(k);x.qty+=r.qty;x.manual=x.manual||r.manual;x.needsReview=x.needsReview||r.needsReview}else map.set(k,{...r});}renderRows([...map.values()]);updateWarnings()}
 function getSettings(){return {year:$('year').value.trim(),orderDate:$('orderDate').value,schoolCode:$('schoolCode').value.trim(),vendorName:$('vendorName').value.trim(),vendorCode:$('vendorCode').value.trim(),orderer:$('orderer').value.trim(),tel:$('tel').value.trim(),fax:$('fax').value.trim(),delivery:$('delivery').value.trim()}}
-function saveSettings(){setStatus('統合試作では端末への設定保存は行いません。')}
 function resetSettings(){$('year').value='2026';$('orderDate').value=todayStr();$('schoolCode').value='DEMO-SCHOOL';$('vendorName').value='(株)タナカ';$('vendorCode').value='DEMO-VENDOR';$('orderer').value='大田';$('tel').value='06-6997-6030';$('fax').value='06-6997-6035';$('delivery').value='学校直送'}
 
 ['schoolName','teacherName','schoolOffice','schoolPostal','schoolAddress','schoolTel'].forEach(id=>$(id).addEventListener('input',updateWarnings));$('schoolName').addEventListener('change',()=>{applySchoolMaster();updateWarnings()});
