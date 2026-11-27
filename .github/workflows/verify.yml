@@ -2,6 +2,7 @@ name: Tanaka prototype regression checks
 
 on:
   push:
+    branches: [main]
     paths:
       - index.html
       - staff.html
@@ -20,6 +21,8 @@ on:
       - assets/logo.webp
       - .github/workflows/verify.yml
   pull_request:
+    branches: [main]
+    types: [opened, reopened, ready_for_review]
     paths:
       - index.html
       - staff.html
@@ -44,6 +47,7 @@ permissions:
 
 jobs:
   regression:
+    if: github.event_name != 'pull_request' || !github.event.pull_request.draft
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
