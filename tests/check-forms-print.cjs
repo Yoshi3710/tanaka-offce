@@ -28,7 +28,7 @@ async function main(){try{
   while(p+12<=bytes.length){let n=bytes.readUInt32BE(p),type=bytes.toString("ascii",p+4,p+8),d=bytes.subarray(p+8,p+8+n);if(type==="IHDR"){w=d.readUInt32BE(0);h=d.readUInt32BE(4);assert.equal(d[8],8);channels=d[9]===2?3:d[9]===6?4:0;assert(channels,"RGB PNG");}if(type==="IDAT")parts.push(d);p+=12+n;}
   let raw=require("node:zlib").inflateSync(Buffer.concat(parts)),stride=w*channels,out=Buffer.alloc(stride*h),pos=0;
   for(let y=0;y<h;y++){let filter=raw[pos++];for(let x=0;x<stride;x++){let i=y*stride+x,a=x>=channels?out[i-channels]:0,b=y?out[i-stride]:0,c=y&&x>=channels?out[i-stride-channels]:0,v=a+b-c,pa=Math.abs(v-a),pb=Math.abs(v-b),pc=Math.abs(v-c);out[i]=(raw[pos++]+(filter===1?a:filter===2?b:filter===3?Math.floor((a+b)/2):filter===4?(pa<=pb&&pa<=pc?a:pb<=pc?b:c):0))&255;}}
-  return {w,h,dark(x,y){if(x<0||x>=w||y<0||y>=h)return false;let i=(y*w+x)*channels;return out[i]<150&&out[i+1]<150&&out[i+2]<150;}};
+  return {w,h,dark(x,y,limit=150){if(x<0||x>=w||y<0||y>=h)return false;let i=(y*w+x)*channels;return out[i]<limit&&out[i+1]<limit&&out[i+2]<limit;}};
  }
 
  async function rasterEdges(type,sparse=false,blank=false){
@@ -62,7 +62,7 @@ async function main(){try{
    await send("Emulation.setEmulatedMedia",{media:"print"});
    const alignment=await send("Runtime.evaluate",{expression:`(()=>{const p=document.querySelector("#paper");const spec=p.querySelector(".doc-items [data-col=spec]")||p.querySelector(".doc-items tbody tr td:nth-child(4)");const note=p.querySelector(".doc-items [data-col=note]")||p.querySelector(".doc-items tbody tr td:last-child");return [getComputedStyle(spec).textAlign,getComputedStyle(note).textAlign]})()`,returnByValue:true});assert.deepEqual(alignment.result.value,["center","left"],type+" printed spec and remarks alignment");
    const footer=await send("Runtime.evaluate",{expression:`(()=>{const f=document.querySelector(".order-contact,.footnote");return f&&f.textContent})()`,returnByValue:true});assert(footer.result.value&&!/担当|作成者/.test(footer.result.value),type+" no redundant footer staff");
-   const printGeometry=await send("Runtime.evaluate",{expression:`(async()=>{await document.fonts.ready;window.dispatchEvent(new Event("beforeprint"));await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));const p=document.getElementById("paper"),r=p.getBoundingClientRect();return [...p.querySelectorAll("table th,table td:not(.address-gap)")].map(e=>{let b=e.getBoundingClientRect();return [b.left-r.left,b.top-r.top,b.right-r.left,b.bottom-r.top]});})()`,awaitPromise:true,returnByValue:true});
+   const printGeometry=await send("Runtime.evaluate",{expression:`(async()=>{await document.fonts.ready;window.dispatchEvent(new Event("beforeprint"));await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));const p=document.querySelector(".print-copy"),r=p.getBoundingClientRect();if(!r.width||p.querySelector("input,select,textarea"))throw Error("invalid static print copy");return [...p.querySelectorAll("table th,table td:not(.address-gap)")].map(e=>{let b=e.getBoundingClientRect();return [b.left-r.left,b.top-r.top,b.right-r.left,b.bottom-r.top]});})()`,awaitPromise:true,returnByValue:true});
    assert(!printGeometry.exceptionDetails,JSON.stringify(printGeometry.exceptionDetails));
    const printed=await send("Page.printToPDF",{preferCSSPageSize:true,printBackground:true,displayHeaderFooter:false});
    const output=path.join(evidence,label+".pdf");fs.writeFileSync(output,Buffer.from(printed.data,"base64"));
@@ -72,7 +72,32 @@ async function main(){try{
    // CSS @page 10mm margin, 96 CSS px per inch, 300 raster px per inch.
    const scale=300/96,offset=300*10/25.4;
    for(const rect of printGeometry.result.value){const [l,t,r,b]=rect.map(v=>v*scale+offset);for(const vertical of [true,false])for(const edge of vertical?[l,r]:[t,b]){let hits=0,total=0;for(let p=Math.ceil(vertical?t:l)+2;p<Math.floor(vertical?b:r)-2;p++){total++;const pixels=[-5,-4,-3,-2,-1,0,1,2,3,4,5].filter(d=>vertical?image.dark(Math.round(edge)+d,p):image.dark(p,Math.round(edge)+d));if(pixels.length)hits++;if(p%17===0&&p>Math.ceil(vertical?t:l)+10&&p<Math.floor(vertical?b:r)-10){const runs=[];for(const d of pixels){const last=runs.at(-1);if(last&&d===last.at(-1)+1)last.push(d);else runs.push([d]);}const distance=a=>Math.min(...a.map(Math.abs));runs.sort((a,b)=>distance(a)-distance(b));assert(runs[0]&&runs[0].length>=2&&runs[0].length<=4,type+" PDF physical line width "+JSON.stringify(runs)+" at "+edge+","+p);}}if(total)assert(hits===total,type+" PDF expected cell edge "+edge+" coverage "+hits+"/"+total);}}
+   const low=spawnSync("pdftoppm",["-r","75","-png","-singlefile",output,path.join(evidence,label+"-preview")],{encoding:"utf8"});assert.equal(low.status,0,low.stderr);
+   const preview=decodePNG(fs.readFileSync(path.join(evidence,label+"-preview.png")));
+   const lowScale=75/96,lowOffset=75*10/25.4;
+   for(const rect of printGeometry.result.value){
+    const [l,t,r,b]=rect.map(v=>v*lowScale+lowOffset);
+    for(const vertical of [true,false])for(const edge of vertical?[l,r]:[t,b]){
+     for(let p=Math.ceil(vertical?t:l)+1;p<Math.floor(vertical?b:r);p++)
+      assert([-1,0,1].some(d=>vertical?preview.dark(Math.round(edge)+d,p,220):preview.dark(p,Math.round(edge)+d,220)),label+" reduced PDF missing edge "+edge+","+p);
+     // Endpoint raster pixels can fall on either side of the CSS coordinate; inspect both corners independently.
+     for(const endpoint of vertical?[t,b]:[l,r])assert([-1,0,1].some(a=>[-1,0,1].some(d=>vertical?preview.dark(Math.round(edge)+d,Math.round(endpoint)+a,220):preview.dark(Math.round(endpoint)+a,Math.round(edge)+d,220))),label+" reduced PDF disconnected corner "+edge+","+endpoint);
+    }
+   }
+   console.log("PASS "+label+" PDF 75dpi reduced preview edge continuity");
    console.log("PASS "+type+" PDF 300dpi all expected horizontal and vertical cell positions after scaled preview");
+   if(!blank&&!sparse){
+    await send("Emulation.setEmulatedMedia",{media:"screen"});
+    const grown=await send("Runtime.evaluate",{expression:`(async()=>{window.dispatchEvent(new Event("afterprint"));for(const sheet of document.querySelectorAll("style"))if(sheet.textContent.includes("zoom:.65!important"))sheet.remove();window.dispatchEvent(new Event("resize"));const memo=document.querySelector("#paper textarea[data-field=memo]")||document.getElementById("memo");const before=memo.clientHeight;memo.value=Array.from({length:65},(_,i)=>"備考確認 "+(i+1)).join("\\n")+"\\n最終行確認";memo.dispatchEvent(new Event("input",{bubbles:true}));await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));return {before,after:memo.clientHeight,scroll:memo.scrollHeight,warn:!document.getElementById("pageWarning").classList.contains("hidden")}})()`,awaitPromise:true,returnByValue:true});
+    assert(!grown.exceptionDetails,JSON.stringify(grown.exceptionDetails));const g=grown.result.value;assert(g.after>g.before&&g.scroll<=g.after+1&&g.warn,type+" long memo fully visible and page warning "+JSON.stringify(g));
+    await send("Emulation.setEmulatedMedia",{media:"print"});
+    const printReady=await send("Runtime.evaluate",{expression:`(async()=>{window.dispatchEvent(new Event("beforeprint"));await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));const c=document.querySelector(".print-copy");return !!c&&getComputedStyle(c).display!=="none"&&getComputedStyle(document.getElementById("paper")).display==="none"&&getComputedStyle(document.querySelector(".editor")).display==="none"})()`,awaitPromise:true,returnByValue:true});assert(printReady.result.value,type+" print-only layout for long PDF");
+    const long=await send("Page.printToPDF",{preferCSSPageSize:true,printBackground:true,displayHeaderFooter:false});
+    const longFile=path.join(evidence,type+"-long.pdf");fs.writeFileSync(longFile,Buffer.from(long.data,"base64"));
+    const longInfo=spawnSync("pdfinfo",[longFile],{encoding:"utf8"});assert(Number(longInfo.stdout.match(/Pages:\s+(\d+)/)?.[1])>=2,type+" long memo multi-page");
+    const longText=spawnSync("pdftotext",[longFile,"-"],{encoding:"utf8"});assert(longText.stdout.includes("最終行確認"),type+" final memo line printed");
+    console.log("PASS "+type+" long memo auto-grow, overflow warning and last line in multi-page PDF");
+   }
   }finally{if(ws)ws.close();child.kill();}
  }
 
