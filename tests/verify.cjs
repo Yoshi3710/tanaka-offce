@@ -12,19 +12,19 @@ const entry=index.match(/<script id="home-entry">([\s\S]*?)<\/script>/);
 assert(entry,"トップ入口の振り分け");
 function entryTarget(pathname,search="",hash=""){
  let target=null;
- vm.runInNewContext(entry[1],{location:{pathname,search,hash,replace(v){target=v;}},URLSearchParams,document:{querySelector(){return {content:"20261127-4"};}}});
+ vm.runInNewContext(entry[1],{location:{pathname,search,hash,replace(v){target=v;}},URLSearchParams,document:{querySelector(){return {content:"20261127-5"};}}});
  return target;
 }
-assert.equal(entryTarget("/tanaka-offce/"),"sales.html?v=20261127-4");
-assert.equal(entryTarget("/tanaka-offce/","?utm_source=test","#top"),"sales.html?utm_source=test&v=20261127-4#top");
+assert.equal(entryTarget("/tanaka-offce/"),"sales.html?v=20261127-5");
+assert.equal(entryTarget("/tanaka-offce/","?utm_source=test","#top"),"sales.html?utm_source=test&v=20261127-5#top");
 assert.equal(entryTarget("/tanaka-offce/index.html"),null);
 assert.equal(entryTarget("/tanaka-offce/index.html","?workspace=1"),null);
 assert.equal(entryTarget("/tanaka-offce/","?fromSales=1"),null);
 assert.equal(entryTarget("/tanaka-offce/","?workspace=1"),null);
 for(const file of ["index.html","sales.html","staff.html","ocr.html"]){
  const html=require("node:fs").readFileSync(file,"utf8");
- assert(html.includes('name="tanaka-release" content="20261127-4"'),file+" release marker");
- for(const m of html.matchAll(/(?:href="|window\.open\("|new URL\(")(index|sales|staff|ocr)\.html([^"<>]*)"/g))assert(m[2].includes("v=20261127-4"),file+" stale link "+m[0]);
+ assert(html.includes('name="tanaka-release" content="20261127-5"'),file+" release marker");
+ for(const m of html.matchAll(/(?:href="|window\.open\("|new URL\(")(index|sales|staff|ocr)\.html([^"<>]*)"/g))assert(m[2].includes("v=20261127-5"),file+" stale link "+m[0]);
 }
 const reps=["大田","會野","藤井","長谷","恩田","田中壮一"];
 function scriptFrom(html,name){
@@ -77,7 +77,7 @@ for(const label of ["見 積 書","メーカー名（発売元）","見積番号
 assert(!/class="order-row-no">[^<]*<button/.test(html),"行番号欄は数字のみ");
 assert.equal((html.match(/class="order-row-no"/g)||[]).length,5,"見積書初期5行");
 assert(!html.includes("[object Object]"),"見積書の明細ラベルは正常");
-assert.equal((require("node:fs").readFileSync("index.html","utf8").match(/@page\{size:A4 portrait;margin:10mm\}/g)||[]).length,1,"全帳票のA4縦設定は一箇所");
+assert.equal((require("node:fs").readFileSync("index.html","utf8").match(/@page\{size:A4 portrait;margin:15mm 10mm 20\.1mm\}/g)||[]).length,1,"全帳票のA4縦設定は一箇所");
 const input=(k,value)=>doc.events.get("paper:input")({target:{dataset:{field:k},value,style:{},tagName:"INPUT",scrollHeight:90}});
 const row=(i,k,value)=>doc.events.get("paper:input")({target:{dataset:{row:String(i),col:k},value,style:{},tagName:"TEXTAREA",scrollHeight:90}});
 input("quoteNumber","Q-TEST-1");input("maker","架空教材メーカー");

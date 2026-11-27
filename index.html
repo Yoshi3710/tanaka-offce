@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ja">
 <head>
-<meta name="tanaka-release" content="20261127-4">
+<meta name="tanaka-release" content="20261127-5">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#0b5aa5">
@@ -24,7 +24,7 @@ if (location.pathname.endsWith("/")) {
 .sheet-panel{padding:12px;min-width:0}.sheet-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 9px}.sheet-top h2{margin:0}.sheet-wrap{background:#dfe7ec;padding:12px;min-height:440px;overflow:hidden;border:1px solid #d0dce5;border-radius:6px;text-align:center}
 .paper{width:190mm;min-height:277mm;background:#fff;margin:0 auto;text-align:left;color:#000;box-shadow:0 3px 14px #20344125;padding:0;font-family:"Yu Gothic",Meiryo,sans-serif;display:block;overflow:visible}.paper-inner{padding:7mm 7mm 6mm}.print-h{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:2.5mm}.print-h>img{width:43mm;height:auto;object-fit:contain;object-position:left center;filter:grayscale(1)}.print-org{font-size:12px;text-align:right;line-height:1.45}.print-title{text-align:center;font-weight:700;letter-spacing:.3em;font-size:23px;border-top:1px solid #333;border-bottom:1px solid #333;padding:3px 0;margin:2mm 0 4mm}.print-head{display:grid;grid-template-columns:minmax(0,1fr) 53mm;gap:6mm;align-items:start}.print-head .dest{font-size:18px;font-weight:700;border-bottom:1px solid #333;min-height:12mm;padding:5px 0 2px;overflow-wrap:anywhere}.print-meta{width:100%;font-size:12.5px}.print-meta th,.print-meta td{padding:2.2mm;text-align:left;vertical-align:top}.print-meta th{background:#fff;font-weight:600;width:23mm;white-space:nowrap}.print-meta td{overflow-wrap:anywhere}.print-meta tr:last-child td{white-space:nowrap;font-size:11px}.intro{font-size:12.5px;margin:3mm 0 2mm}.info-table{width:100%;margin-top:3mm;font-size:12.5px;table-layout:fixed}.info-table th,.info-table td{padding:2mm 1.9mm;text-align:left;vertical-align:top;overflow-wrap:anywhere}.info-table th{background:#fff;font-weight:700;white-space:nowrap}.info-table td:nth-child(2n){line-height:1.3}.info-table .tight{padding:1.2mm 1.6mm}.table-title{font-size:12px;font-weight:700;margin:4mm 0 1mm}.doc-items{width:100%;font-size:13px;table-layout:fixed}.doc-items th,.doc-items td{padding:2mm 1.4mm;vertical-align:top;overflow-wrap:anywhere}.doc-items thead th{background:#fff;font-weight:700;white-space:nowrap;text-align:center}.doc-items td.num{text-align:right;font-variant-numeric:tabular-nums}.doc-items td.mid{text-align:center}.totals{margin:3mm 0 0 auto;width:68mm;font-size:13px}.totals th,.totals td{padding:2mm 2.5mm}.totals th{text-align:left;background:#fff}.totals td{text-align:right;font-variant-numeric:tabular-nums}.totals .grand{font-size:14px;font-weight:700}.note-print{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12.5px;line-height:1.55;margin-top:3mm;padding:2mm 0}.footnote{margin-top:4mm;border-top:1px solid #333;padding-top:2mm;display:flex;justify-content:space-between;gap:5mm;font-size:11px}.footnote b{font-weight:700}.muted{color:#5f7380}.help{font-size:12px;color:#476070;line-height:1.6}.hidden{display:none!important}
 @media(max-width:1040px){.layout{grid-template-columns:1fr}.editor{order:1}.sheet-panel{order:2}}@media(max-width:650px){.head{padding:9px 13px}.head img{width:110px}.head h1{font-size:17px}.trial{margin-left:0}.layout{padding:0 8px}.editor{padding:12px}.field-grid{gap:8px}.sheet-wrap{padding:6px;min-height:250px}.sheet-panel{padding:7px}.sheet-top{padding:5px}.actions button{padding:8px}.print-h>img{width:40mm}}
-@page{size:A4 portrait;margin:10mm}
+@page{size:A4 portrait;margin:15mm 10mm 20.1mm}
 @media print{html,body{background:#fff!important;margin:0!important;padding:0!important}.head,.notice,.editor,.sheet-top{display:none!important}.layout{display:block!important;max-width:none!important;margin:0!important;padding:0!important}.sheet-panel{display:block!important;border:0!important;padding:0!important;box-shadow:none!important}.sheet-wrap{background:#fff!important;margin:0!important;padding:0!important;overflow:visible!important;border:0!important;min-height:0!important}.paper{width:190mm!important;min-height:0!important;margin:0!important;padding:0!important;border:0!important;box-shadow:none!important;zoom:1!important}.paper-inner{padding:0!important}.print-title{print-color-adjust:exact;-webkit-print-color-adjust:exact}.info-table th,.doc-items th,.print-meta th,.totals th{print-color-adjust:exact;-webkit-print-color-adjust:exact}.doc-items tr{break-inside:avoid}button{display:none!important}}
 
 /* 発注書のみ：A4縦の帳票に直接入力 */
@@ -119,7 +119,7 @@ if (location.pathname.endsWith("/")) {
 <header class="head">
 <img src="assets/logo.webp" alt="株式会社タナカ ロゴ">
 <div><h1>帳票作成プロトタイプ</h1><p>発注書・見積書・納品書・請求書／担当営業別入力・A4印刷</p></div>
-<span class="trial">確認用・発注／送信機能なし</span><a id="salesHomeLink" href="sales.html?v=20261127-4" style="font-size:13px;color:inherit">担当営業ホーム</a>
+<span class="trial">確認用・発注／送信機能なし</span><a id="salesHomeLink" href="sales.html?v=20261127-5" style="font-size:13px;color:inherit">担当営業ホーム</a>
 </header>
 <div class="notice" role="status">このページは帳票のレイアウト確認用です。実在の学校・児童生徒・取引先の個人情報を入力しないでください。入力内容の自動送信・サーバー保存は行いません。</div>
 <main class="layout" id="mainLayout">
@@ -407,7 +407,7 @@ function checkPageLength(){
  var inner=paper.querySelector&&paper.querySelector(".paper-inner");
  if(!inner||!warning)return;
  var scale=paper.offsetWidth?paper.getBoundingClientRect().width/paper.offsetWidth:1;
- warning.classList.toggle("hidden",inner.getBoundingClientRect().height/scale<=277*96/25.4);
+ warning.classList.toggle("hidden",inner.getBoundingClientRect().height/scale<=261.9*96/25.4);
 }
 function preparePrint(){
  var paper=byId("paper"),wrap=byId("sheetWrap"),old=wrap.querySelector(".print-copy");
@@ -429,7 +429,7 @@ function preparePrint(){
  var header="株式会社タナカ　"+titles[s.type]+"　"+(number||"番号未入力")+"　"+(s.date||"");
  var dest=(s.type==="order"?s.maker:s.school)||"";
  function cssString(v){return '"'+String(v).replace(/[^a-zA-Z0-9]/gu,function(c){return "\\"+c.codePointAt(0).toString(16)+" ";})+'"';}
- identity.textContent="@page { @top-center { content: "+cssString(header)+"; color:#000; font:12px sans-serif; } @bottom-left { content: "+cssString(dest)+"; color:#000; font:12px sans-serif; } @bottom-right { content: counter(page) ' / ' counter(pages); color:#000; font:bold 12px sans-serif; } }";
+ identity.textContent="@page { @top-center { content: "+cssString(header)+"; color:#000; font:12px sans-serif; vertical-align:bottom; padding-bottom:1mm; } @bottom-left { content: "+cssString(dest)+"; color:#000; font:12px sans-serif; vertical-align:top; padding-top:1mm; } @bottom-right { content: counter(page) ' / ' counter(pages); color:#000; font:bold 12px sans-serif; vertical-align:top; padding-top:1mm; } }";
  document.head.appendChild(identity);
  wrap.appendChild(copy);wrap.classList.add("has-print-copy");
 }
