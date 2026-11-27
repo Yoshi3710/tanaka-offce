@@ -31,7 +31,20 @@ async function main(){try{
   return {w,h,dark(x,y,limit=150){if(x<0||x>=w||y<0||y>=h)return false;let i=(y*w+x)*channels;return out[i]<limit&&out[i+1]<limit&&out[i+2]<limit;}};
  }
 
+ function checkSafeMargins(file,type){
+  const bbox=spawnSync("pdftotext",["-bbox",file,"-"],{encoding:"utf8"});
+  assert.equal(bbox.status,0,bbox.stderr);
+  const pages=[...bbox.stdout.matchAll(/<page width="[^"]+" height="([^"]+)">([\s\S]*?)<\/page>/g)];
+  assert(pages.length,type+" PDF page geometry");
+  for(const [i,page] of pages.entries()){
+   const words=[...page[2].matchAll(/<word xMin="[^"]+" yMin="([^"]+)" xMax="[^"]+" yMax="([^"]+)">/g)];
+   assert(words.length,type+" printed page contains text");
+   const top=Math.min(...words.map(w=>Number(w[1])))*25.4/72,bottom=(Number(page[1])-Math.max(...words.map(w=>Number(w[2]))))*25.4/72;
+   assert(top>=9&&bottom>=13,type+" safe printed text margins page "+(i+1)+" "+top+"/"+bottom);
+  }
+ }
  function checkPageFrames(file,type,minPages){
+  checkSafeMargins(file,type);
   const info=spawnSync("pdfinfo",[file],{encoding:"utf8"}),pages=Number(info.stdout.match(/Pages:\s+(\d+)/)?.[1]);
   assert(pages>=minPages,type+" expected page count");
   const title={order:"発注書",quote:"見積書",delivery:"納品書",invoice:"請求書"}[type];
@@ -96,15 +109,16 @@ async function main(){try{
    const output=path.join(evidence,label+".pdf");fs.writeFileSync(output,Buffer.from(printed.data,"base64"));
    const result=spawnSync("pdftoppm",["-r","300","-png","-singlefile",output,path.join(evidence,label+"-300dpi")],{encoding:"utf8"});assert.equal(result.status,0,result.stderr);
    const image=decodePNG(fs.readFileSync(path.join(evidence,label+"-300dpi.png")));
+   checkSafeMargins(output,type);
    const extracted=spawnSync("pdftotext",[output,"-"],{encoding:"utf8"});assert(extracted.status===0&&extracted.stdout.includes("株式会社タナカ"),type+" Japanese text rendered in PDF");assert(!/担当\s*[:：]/.test(extracted.stdout),type+" redundant footer staff name removed");
-   // CSS @page 10mm margin, 96 CSS px per inch, 300 raster px per inch.
-   const scale=300/96,offset=300*10/25.4;
-   for(const rect of printGeometry.result.value){const [l,t,r,b]=rect.map(v=>v*scale+offset);for(const vertical of [true,false])for(const edge of vertical?[l,r]:[t,b]){let hits=0,total=0;for(let p=Math.ceil(vertical?t:l)+2;p<Math.floor(vertical?b:r)-2;p++){total++;const pixels=[-5,-4,-3,-2,-1,0,1,2,3,4,5].filter(d=>vertical?image.dark(Math.round(edge)+d,p):image.dark(p,Math.round(edge)+d));if(pixels.length)hits++;if(p%17===0&&p>Math.ceil(vertical?t:l)+10&&p<Math.floor(vertical?b:r)-10){const runs=[];for(const d of pixels){const last=runs.at(-1);if(last&&d===last.at(-1)+1)last.push(d);else runs.push([d]);}const distance=a=>Math.min(...a.map(Math.abs));runs.sort((a,b)=>distance(a)-distance(b));assert(runs[0]&&runs[0].length>=2&&runs[0].length<=4,type+" PDF physical line width "+JSON.stringify(runs)+" at "+edge+","+p);}}if(total)assert(hits===total,type+" PDF expected cell edge "+edge+" coverage "+hits+"/"+total);}}
+   // CSS @page 15mm top and 10mm side margins, 96 CSS px per inch, 300 raster px per inch.
+   const scale=300/96,offsetX=300*10/25.4,offsetY=300*15/25.4;
+   for(const rect of printGeometry.result.value){const [l,t,r,b]=rect.map((v,i)=>v*scale+(i%2?offsetY:offsetX));for(const vertical of [true,false])for(const edge of vertical?[l,r]:[t,b]){let hits=0,total=0;for(let p=Math.ceil(vertical?t:l)+2;p<Math.floor(vertical?b:r)-2;p++){total++;const pixels=[-5,-4,-3,-2,-1,0,1,2,3,4,5].filter(d=>vertical?image.dark(Math.round(edge)+d,p):image.dark(p,Math.round(edge)+d));if(pixels.length)hits++;if(p%17===0&&p>Math.ceil(vertical?t:l)+10&&p<Math.floor(vertical?b:r)-10){const runs=[];for(const d of pixels){const last=runs.at(-1);if(last&&d===last.at(-1)+1)last.push(d);else runs.push([d]);}const distance=a=>Math.min(...a.map(Math.abs));runs.sort((a,b)=>distance(a)-distance(b));assert(runs[0]&&runs[0].length>=2&&runs[0].length<=4,type+" PDF physical line width "+JSON.stringify(runs)+" at "+edge+","+p);}}if(total)assert(hits===total,type+" PDF expected cell edge "+edge+" coverage "+hits+"/"+total);}}
    const low=spawnSync("pdftoppm",["-r","75","-png","-singlefile",output,path.join(evidence,label+"-preview")],{encoding:"utf8"});assert.equal(low.status,0,low.stderr);
    const preview=decodePNG(fs.readFileSync(path.join(evidence,label+"-preview.png")));
-   const lowScale=75/96,lowOffset=75*10/25.4;
+   const lowScale=75/96,lowOffsetX=75*10/25.4,lowOffsetY=75*15/25.4;
    for(const rect of printGeometry.result.value){
-    const [l,t,r,b]=rect.map(v=>v*lowScale+lowOffset);
+    const [l,t,r,b]=rect.map((v,i)=>v*lowScale+(i%2?lowOffsetY:lowOffsetX));
     for(const vertical of [true,false])for(const edge of vertical?[l,r]:[t,b]){
      for(let p=Math.ceil(vertical?t:l)+1;p<Math.floor(vertical?b:r);p++)
       assert([-1,0,1].some(d=>vertical?preview.dark(Math.round(edge)+d,p,220):preview.dark(p,Math.round(edge)+d,220)),label+" reduced PDF missing edge "+edge+","+p);
