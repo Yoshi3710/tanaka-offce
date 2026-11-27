@@ -78,8 +78,10 @@ async function main(){try{
    for(const rect of printGeometry.result.value){
     const [l,t,r,b]=rect.map(v=>v*lowScale+lowOffset);
     for(const vertical of [true,false])for(const edge of vertical?[l,r]:[t,b]){
-     for(let p=Math.ceil(vertical?t:l);p<=Math.floor(vertical?b:r);p++)
+     for(let p=Math.ceil(vertical?t:l)+1;p<Math.floor(vertical?b:r);p++)
       assert([-1,0,1].some(d=>vertical?preview.dark(Math.round(edge)+d,p,220):preview.dark(p,Math.round(edge)+d,220)),label+" reduced PDF missing edge "+edge+","+p);
+     // Endpoint raster pixels can fall on either side of the CSS coordinate; inspect both corners independently.
+     for(const endpoint of vertical?[t,b]:[l,r])assert([-1,0,1].some(a=>[-1,0,1].some(d=>vertical?preview.dark(Math.round(edge)+d,Math.round(endpoint)+a,220):preview.dark(Math.round(endpoint)+a,Math.round(edge)+d,220))),label+" reduced PDF disconnected corner "+edge+","+endpoint);
     }
    }
    console.log("PASS "+label+" PDF 75dpi reduced preview edge continuity");
