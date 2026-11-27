@@ -403,7 +403,7 @@ function checkPageLength(){
  var paper=byId("paper"),warning=byId("pageWarning");
  var inner=paper.querySelector&&paper.querySelector(".paper-inner");
  if(!inner||!warning)return;
- var scale=Number(paper.style.zoom)||1;
+ var scale=paper.offsetWidth?paper.getBoundingClientRect().width/paper.offsetWidth:1;
  warning.classList.toggle("hidden",inner.getBoundingClientRect().height/scale<=277*96/25.4);
 }
 function preparePrint(){
