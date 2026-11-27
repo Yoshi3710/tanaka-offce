@@ -31,6 +31,34 @@ async function main(){try{
   return {w,h,dark(x,y,limit=150){if(x<0||x>=w||y<0||y>=h)return false;let i=(y*w+x)*channels;return out[i]<limit&&out[i+1]<limit&&out[i+2]<limit;}};
  }
 
+ function checkPageFrames(file,type,minPages){
+  const info=spawnSync("pdfinfo",[file],{encoding:"utf8"}),pages=Number(info.stdout.match(/Pages:\s+(\d+)/)?.[1]);
+  assert(pages>=minPages,type+" expected page count");
+  const title={order:"発注書",quote:"見積書",delivery:"納品書",invoice:"請求書"}[type];
+  for(let p=1;p<=pages;p++){
+   const args=["-f",String(p),"-l",String(p)];
+   const text=spawnSync("pdftotext",[...args,file,"-"],{encoding:"utf8"}).stdout;
+   assert(text.includes("株式会社タナカ")&&text.includes(title)&&new RegExp("\\b"+p+"\\s*/\\s*"+pages+"\\b").test(text),type+" isolated page identity "+p);
+   if(type!=="order"&&type!=="quote")continue;
+   const bbox=spawnSync("pdftotext",[...args,"-bbox",file,"-"],{encoding:"utf8"}).stdout;
+   const mids=[...bbox.matchAll(/<word xMin="[^"]+" yMin="([^"]+)" xMax="[^"]+" yMax="([^"]+)">(?:備考確認|最終行確認)<\/word>/g)].map(m=>(Number(m[1])+Number(m[2]))/2);
+   assert(mids.length,type+" expected memo content on page "+p);
+   for(const dpi of [300,75]){
+    const stem=file.replace(/\.pdf$/,"")+"-p"+p+"-"+dpi;
+    const raster=spawnSync("pdftoppm",[...args,"-r",String(dpi),"-png","-singlefile",file,stem],{encoding:"utf8"});assert.equal(raster.status,0,raster.stderr);
+    const im=decodePNG(fs.readFileSync(stem+".png")),tol=dpi===300?4:2,limit=dpi===300?150:220,l=Math.round(dpi*10/25.4),r=im.w-l-1,rails=[];
+    for(let y=l-tol;y<im.h-l+tol;y++){let x=l+tol;for(;x<r-tol&&im.dark(x,y,limit);x++);if(x===r-tol)rails.push(y);}
+    const top=rails.filter(y=>y<Math.min(...mids)*dpi/72).at(-1),bottom=rails.find(y=>y>Math.max(...mids)*dpi/72);
+    assert(top!==undefined&&bottom!==undefined,type+" memo top/bottom closure "+p+" "+dpi);
+    for(const x of [l,r])for(let y=top;y<=bottom;y++)assert(Array.from({length:2*tol+1},(_,j)=>j-tol).some(d=>im.dark(x+d,y,limit)),type+" memo side discontinuity page "+p+" "+dpi+" "+x+","+y);
+    if(dpi===300)for(const y of [top,bottom]){
+     const thickness=rails.filter(z=>Math.abs(z-y)<=3).length;
+     assert(thickness>=2&&thickness<=4,type+" memo horizontal physical width "+thickness);
+    }
+   }
+  }
+  console.log("PASS "+type+" all "+pages+" separated pages carry identity and closed memo frames at 300/75dpi");
+ }
  async function rasterEdges(type,sparse=false,blank=false){
   const label=type+(blank?"-blank":sparse?"-sparse":"");
   const profile=path.join(temp,"raster-profile-"+label);
@@ -86,16 +114,17 @@ async function main(){try{
    }
    console.log("PASS "+label+" PDF 75dpi reduced preview edge continuity");
    console.log("PASS "+type+" PDF 300dpi all expected horizontal and vertical cell positions after scaled preview");
-   if(!blank&&!sparse){
+   if(!blank&&!sparse)for(const lineCount of [65,145]){
     await send("Emulation.setEmulatedMedia",{media:"screen"});
-    const grown=await send("Runtime.evaluate",{expression:`(async()=>{window.dispatchEvent(new Event("afterprint"));for(const sheet of document.querySelectorAll("style"))if(sheet.textContent.includes("zoom:.65!important"))sheet.remove();window.dispatchEvent(new Event("resize"));const memo=document.querySelector("#paper textarea[data-field=memo]")||document.getElementById("memo");const before=memo.clientHeight;memo.value=Array.from({length:65},(_,i)=>"備考確認 "+(i+1)).join("\\n")+"\\n最終行確認";memo.dispatchEvent(new Event("input",{bubbles:true}));await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));return {before,after:memo.clientHeight,scroll:memo.scrollHeight,warn:!document.getElementById("pageWarning").classList.contains("hidden")}})()`,awaitPromise:true,returnByValue:true});
+    const grown=await send("Runtime.evaluate",{expression:`(async()=>{window.dispatchEvent(new Event("afterprint"));for(const sheet of document.querySelectorAll("style"))if(sheet.textContent.includes("zoom:.65!important"))sheet.remove();window.dispatchEvent(new Event("resize"));const memo=document.querySelector("#paper textarea[data-field=memo]")||document.getElementById("memo");const before=memo.clientHeight;memo.value=Array.from({length:${lineCount}},(_,i)=>"備考確認 "+(i+1)).join("\\n")+"\\n最終行確認";memo.dispatchEvent(new Event("input",{bubbles:true}));await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));return {before,after:memo.clientHeight,scroll:memo.scrollHeight,warn:!document.getElementById("pageWarning").classList.contains("hidden")}})()`,awaitPromise:true,returnByValue:true});
     assert(!grown.exceptionDetails,JSON.stringify(grown.exceptionDetails));const g=grown.result.value;assert(g.after>g.before&&g.scroll<=g.after+1&&g.warn,type+" long memo fully visible and page warning "+JSON.stringify(g));
     await send("Emulation.setEmulatedMedia",{media:"print"});
     const printReady=await send("Runtime.evaluate",{expression:`(async()=>{window.dispatchEvent(new Event("beforeprint"));await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));const c=document.querySelector(".print-copy");return !!c&&getComputedStyle(c).display!=="none"&&getComputedStyle(document.getElementById("paper")).display==="none"&&getComputedStyle(document.querySelector(".editor")).display==="none"})()`,awaitPromise:true,returnByValue:true});assert(printReady.result.value,type+" print-only layout for long PDF");
     const long=await send("Page.printToPDF",{preferCSSPageSize:true,printBackground:true,displayHeaderFooter:false});
-    const longFile=path.join(evidence,type+"-long.pdf");fs.writeFileSync(longFile,Buffer.from(long.data,"base64"));
+    const longFile=path.join(evidence,type+(lineCount===65?"-long":"-long3")+".pdf");fs.writeFileSync(longFile,Buffer.from(long.data,"base64"));
     const longInfo=spawnSync("pdfinfo",[longFile],{encoding:"utf8"});assert(Number(longInfo.stdout.match(/Pages:\s+(\d+)/)?.[1])>=2,type+" long memo multi-page");
     const longText=spawnSync("pdftotext",[longFile,"-"],{encoding:"utf8"});assert(longText.stdout.includes("最終行確認"),type+" final memo line printed");
+    checkPageFrames(longFile,type,lineCount===65?2:3);
     console.log("PASS "+type+" long memo auto-grow, overflow warning and last line in multi-page PDF");
    }
   }finally{if(ws)ws.close();child.kill();}

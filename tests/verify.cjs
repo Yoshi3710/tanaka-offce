@@ -12,19 +12,19 @@ const entry=index.match(/<script id="home-entry">([\s\S]*?)<\/script>/);
 assert(entry,"トップ入口の振り分け");
 function entryTarget(pathname,search="",hash=""){
  let target=null;
- vm.runInNewContext(entry[1],{location:{pathname,search,hash,replace(v){target=v;}},URLSearchParams,document:{querySelector(){return {content:"20261127-3"};}}});
+ vm.runInNewContext(entry[1],{location:{pathname,search,hash,replace(v){target=v;}},URLSearchParams,document:{querySelector(){return {content:"20261127-4"};}}});
  return target;
 }
-assert.equal(entryTarget("/tanaka-offce/"),"sales.html?v=20261127-3");
-assert.equal(entryTarget("/tanaka-offce/","?utm_source=test","#top"),"sales.html?utm_source=test&v=20261127-3#top");
+assert.equal(entryTarget("/tanaka-offce/"),"sales.html?v=20261127-4");
+assert.equal(entryTarget("/tanaka-offce/","?utm_source=test","#top"),"sales.html?utm_source=test&v=20261127-4#top");
 assert.equal(entryTarget("/tanaka-offce/index.html"),null);
 assert.equal(entryTarget("/tanaka-offce/index.html","?workspace=1"),null);
 assert.equal(entryTarget("/tanaka-offce/","?fromSales=1"),null);
 assert.equal(entryTarget("/tanaka-offce/","?workspace=1"),null);
 for(const file of ["index.html","sales.html","staff.html","ocr.html"]){
  const html=require("node:fs").readFileSync(file,"utf8");
- assert(html.includes('name="tanaka-release" content="20261127-3"'),file+" release marker");
- for(const m of html.matchAll(/(?:href="|window\.open\("|new URL\(")(index|sales|staff|ocr)\.html([^"<>]*)"/g))assert(m[2].includes("v=20261127-3"),file+" stale link "+m[0]);
+ assert(html.includes('name="tanaka-release" content="20261127-4"'),file+" release marker");
+ for(const m of html.matchAll(/(?:href="|window\.open\("|new URL\(")(index|sales|staff|ocr)\.html([^"<>]*)"/g))assert(m[2].includes("v=20261127-4"),file+" stale link "+m[0]);
 }
 const reps=["大田","會野","藤井","長谷","恩田","田中壮一"];
 function scriptFrom(html,name){

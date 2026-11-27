@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ja">
 <head>
-<meta name="tanaka-release" content="20261127-3">
+<meta name="tanaka-release" content="20261127-4">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#11548a">
@@ -65,7 +65,7 @@ table thead{display:none}table,tbody,tr,td{display:block;width:100%}table tr{bor
 <button type="button" data-view="listView" aria-selected="true">案件一覧</button>
 <button type="button" data-view="entryView" aria-selected="false">手動受付（試作）</button>
 <button type="button" data-view="masterView" aria-selected="false">学校・発注先マスター</button>
-<a href="index.html?v=20261127-3">帳票作成（仮承認版）</a>
+<a href="index.html?v=20261127-4">帳票作成（仮承認版）</a>
 <a href="https://yoshi3710.github.io/tanaka-school-shop/" target="_blank" rel="noopener noreferrer">学校向けサイト</a>
 </nav>
 <section id="listView" class="view">
@@ -187,7 +187,7 @@ function showDetail(id){
  '<div class="actions"><button type="button" class="primary" id="addHistory">対応履歴を追加</button>'+
  '<button type="button" class="primary" id="applyStatus">状態を変更</button>'+
  '<button type="button" class="secondary" id="closeDetail">閉じる</button>'+
- '<a href="index.html?v=20261127-3">帳票作成（データ連動は未実装）</a></div>';
+ '<a href="index.html?v=20261127-4">帳票作成（データ連動は未実装）</a></div>';
  $("addHistory").addEventListener("click",function(){
   var note=$("historyText").value.trim();
   if(!note){alert("対応内容を入力してください。");return;}
