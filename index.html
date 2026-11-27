@@ -101,7 +101,17 @@ if (location.pathname.endsWith("/")) {
 .order-address-table .order-address-title{width:auto;padding:0;background:#fff}
 .paper .order-address-table .address-gap{border:0;padding:0}
 .paper{position:relative}.paper-grid{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;z-index:2}.paper-grid path{fill:none;stroke:#333;stroke-width:1;vector-effect:non-scaling-stroke;shape-rendering:crispEdges}
-@media print{.paper-grid{display:none!important}.paper table th,.paper table td{border:1px solid #333}.paper .order-address-table .address-gap{border:0}}
+@media print{
+ .paper-grid{display:none!important}
+ .paper table{border-collapse:separate;border-spacing:0;border:0}
+ .paper table th,.paper table td{border:0;border-left:.75pt solid #333;border-top:.75pt solid #333;background:#fff;color:#000}
+ .paper table tr>:last-child{border-right:.75pt solid #333}
+ .paper table tbody:last-child tr:last-child>*{border-bottom:.75pt solid #333}
+ .paper .order-address-table .address-gap{border:0;padding:0}
+ .paper .order-address-table tr>:nth-child(2):not(.order-address-title):not(.address-gap),.paper .order-address-table tr:first-child>.order-address-title:first-child{border-right:.75pt solid #333}
+ .paper .order-address-table tr:last-child>.address-gap{border:0}
+ .order-form .order-memo textarea{border:.75pt solid #333!important;resize:none}
+}
 .company-sealed{position:relative;isolation:isolate}.company-sealed .seal-image{position:absolute;object-fit:contain;pointer-events:none;filter:grayscale(1);opacity:.25;z-index:-1;width:23mm;height:23mm;max-height:calc(100% - 5mm);top:1mm}.company-sealed .seal-square{right:17mm}.company-sealed .seal-round{right:0;top:5mm}.seal-controls{margin:10px 0}.seal-controls label{display:block;font-size:12px;margin:4px 0}.seal-controls input{max-width:100%;font-size:12px}
 </style>
 
