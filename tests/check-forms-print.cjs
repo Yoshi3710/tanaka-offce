@@ -32,15 +32,19 @@ async function main(){try{
  }
 
  function checkSafeMargins(file,type){
-  const bbox=spawnSync("pdftotext",["-bbox",file,"-"],{encoding:"utf8"});
-  assert.equal(bbox.status,0,bbox.stderr);
-  const pages=[...bbox.stdout.matchAll(/<page width="[^"]+" height="([^"]+)">([\s\S]*?)<\/page>/g)];
-  assert(pages.length,type+" PDF page geometry");
-  for(const [i,page] of pages.entries()){
-   const words=[...page[2].matchAll(/<word xMin="[^"]+" yMin="([^"]+)" xMax="[^"]+" yMax="([^"]+)">/g)];
-   assert(words.length,type+" printed page contains text");
-   const top=Math.min(...words.map(w=>Number(w[1])))*25.4/72,bottom=(Number(page[1])-Math.max(...words.map(w=>Number(w[2]))))*25.4/72;
-   assert(top>=9&&bottom>=13,type+" safe printed text margins page "+(i+1)+" "+top+"/"+bottom);
+  const info=spawnSync("pdfinfo",[file],{encoding:"utf8"});
+  assert.equal(info.status,0,info.stderr);
+  const pages=Number(info.stdout.match(/Pages:\s+(\d+)/)?.[1]);
+  assert(pages>=1,type+" PDF page geometry");
+  // Font bounding boxes include blank ascender/descender space. Measure actual printed ink, not font boxes.
+  for(let p=1;p<=pages;p++){
+   const stem=path.join(temp,"safe-margin");
+   const raster=spawnSync("pdftoppm",["-f",String(p),"-l",String(p),"-r","300","-png","-singlefile",file,stem],{encoding:"utf8"});assert.equal(raster.status,0,raster.stderr);
+   const im=decodePNG(fs.readFileSync(stem+".png")),top=Math.ceil(9*300/25.4),bottom=Math.ceil(13*300/25.4);
+   for(let y=0;y<im.h;y++){
+    if(y>=top&&y<im.h-bottom){y=im.h-bottom-1;continue;}
+    for(let x=0;x<im.w;x++)assert(!im.dark(x,y,230),type+" printed ink outside safe margin page "+p+" "+x+","+y);
+   }
   }
  }
  function checkPageFrames(file,type,minPages){
