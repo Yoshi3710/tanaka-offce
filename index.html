@@ -65,9 +65,9 @@ if (location.pathname.endsWith("/")) {
 .order-form .doc-items td input{min-height:9mm;font-size:12px;padding:1mm}
 .order-form .doc-items td textarea{display:block;width:100%;min-height:9mm;height:9mm;overflow:hidden;resize:none;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.4;padding:1mm;font-size:12px}
 .order-form .doc-items td textarea[data-col="sku"],
-.order-form .doc-items td textarea[data-col="note"]{text-align:center}
+.order-form .doc-items td textarea[data-col="spec"]{text-align:center}
 .order-form .doc-items td textarea[data-col="name"],
-.order-form .doc-items td textarea[data-col="spec"]{text-align:left}
+.order-form .doc-items td textarea[data-col="note"]{text-align:left}
 .order-form .doc-items td textarea[data-col="qty"]{text-align:right}
 .order-form .doc-items td textarea[data-col="deliveryDate"]{height:9mm;min-height:9mm;max-height:9mm;border:0;border-radius:0;font-size:12px;text-align:center;white-space:nowrap}
 .order-form .doc-items .order-row-no{padding:1mm!important;font-size:12px;line-height:1.4;text-align:center;white-space:nowrap}
@@ -196,7 +196,7 @@ function renderRows(){
 function lineItems(){
  return s.items.map(function(it,i){
  var qty=number(it.qty),amount=qty*number(it.price);
- var cells='<td class="mid">'+(i+1)+'</td><td>'+escapeText(it.sku)+'</td><td>'+escapeText(it.name)+'</td><td>'+escapeText(it.spec)+'</td><td class="num">'+(it.qty===""?"":escapeText(it.qty))+'</td><td class="mid">'+escapeText(it.unit)+'</td>';
+ var cells='<td class="mid">'+(i+1)+'</td><td>'+escapeText(it.sku)+'</td><td>'+escapeText(it.name)+'</td><td class="mid">'+escapeText(it.spec)+'</td><td class="num">'+(it.qty===""?"":escapeText(it.qty))+'</td><td class="mid">'+escapeText(it.unit)+'</td>';
  cells+='<td class="num">'+(it.price===""?"":yen(number(it.price)))+'</td><td class="num">'+(it.qty===""||it.price===""?"":yen(amount))+'</td>';
  cells+='<td>'+escapeText(it.note)+'</td>';
  return '<tr>'+cells+'</tr>';
