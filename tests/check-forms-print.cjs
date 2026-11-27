@@ -62,7 +62,7 @@ async function main(){try{
    await send("Emulation.setEmulatedMedia",{media:"print"});
    const alignment=await send("Runtime.evaluate",{expression:`(()=>{const p=document.querySelector("#paper");const spec=p.querySelector(".doc-items [data-col=spec]")||p.querySelector(".doc-items tbody tr td:nth-child(4)");const note=p.querySelector(".doc-items [data-col=note]")||p.querySelector(".doc-items tbody tr td:last-child");return [getComputedStyle(spec).textAlign,getComputedStyle(note).textAlign]})()`,returnByValue:true});assert.deepEqual(alignment.result.value,["center","left"],type+" printed spec and remarks alignment");
    const footer=await send("Runtime.evaluate",{expression:`(()=>{const f=document.querySelector(".order-contact,.footnote");return f&&f.textContent})()`,returnByValue:true});assert(footer.result.value&&!/担当|作成者/.test(footer.result.value),type+" no redundant footer staff");
-   const printGeometry=await send("Runtime.evaluate",{expression:`(async()=>{await document.fonts.ready;window.dispatchEvent(new Event("beforeprint"));await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));const p=document.getElementById("paper"),r=p.getBoundingClientRect();return [...p.querySelectorAll("table th,table td:not(.address-gap)")].map(e=>{let b=e.getBoundingClientRect();return [b.left-r.left,b.top-r.top,b.right-r.left,b.bottom-r.top]});})()`,awaitPromise:true,returnByValue:true});
+   const printGeometry=await send("Runtime.evaluate",{expression:`(async()=>{await document.fonts.ready;window.dispatchEvent(new Event("beforeprint"));await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));const p=document.querySelector(".print-copy"),r=p.getBoundingClientRect();if(!r.width||p.querySelector("input,select,textarea"))throw Error("invalid static print copy");return [...p.querySelectorAll("table th,table td:not(.address-gap)")].map(e=>{let b=e.getBoundingClientRect();return [b.left-r.left,b.top-r.top,b.right-r.left,b.bottom-r.top]});})()`,awaitPromise:true,returnByValue:true});
    assert(!printGeometry.exceptionDetails,JSON.stringify(printGeometry.exceptionDetails));
    const printed=await send("Page.printToPDF",{preferCSSPageSize:true,printBackground:true,displayHeaderFooter:false});
    const output=path.join(evidence,label+".pdf");fs.writeFileSync(output,Buffer.from(printed.data,"base64"));
@@ -73,6 +73,16 @@ async function main(){try{
    const scale=300/96,offset=300*10/25.4;
    for(const rect of printGeometry.result.value){const [l,t,r,b]=rect.map(v=>v*scale+offset);for(const vertical of [true,false])for(const edge of vertical?[l,r]:[t,b]){let hits=0,total=0;for(let p=Math.ceil(vertical?t:l)+2;p<Math.floor(vertical?b:r)-2;p++){total++;const pixels=[-5,-4,-3,-2,-1,0,1,2,3,4,5].filter(d=>vertical?image.dark(Math.round(edge)+d,p):image.dark(p,Math.round(edge)+d));if(pixels.length)hits++;if(p%17===0&&p>Math.ceil(vertical?t:l)+10&&p<Math.floor(vertical?b:r)-10){const runs=[];for(const d of pixels){const last=runs.at(-1);if(last&&d===last.at(-1)+1)last.push(d);else runs.push([d]);}const distance=a=>Math.min(...a.map(Math.abs));runs.sort((a,b)=>distance(a)-distance(b));assert(runs[0]&&runs[0].length>=2&&runs[0].length<=4,type+" PDF physical line width "+JSON.stringify(runs)+" at "+edge+","+p);}}if(total)assert(hits===total,type+" PDF expected cell edge "+edge+" coverage "+hits+"/"+total);}}
    console.log("PASS "+type+" PDF 300dpi all expected horizontal and vertical cell positions after scaled preview");
+   if(!blank&&!sparse){
+    await send("Emulation.setEmulatedMedia",{media:"screen"});
+    const grown=await send("Runtime.evaluate",{expression:`(async()=>{window.dispatchEvent(new Event("afterprint"));const memo=document.querySelector("#paper textarea[data-field=memo]")||document.getElementById("memo");const before=memo.clientHeight;memo.value=Array.from({length:65},(_,i)=>"備考確認 "+(i+1)).join("\\n")+"\\n最終行確認";memo.dispatchEvent(new Event("input",{bubbles:true}));await new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)));return {before,after:memo.clientHeight,scroll:memo.scrollHeight,warn:!document.getElementById("pageWarning").classList.contains("hidden")}})()`,awaitPromise:true,returnByValue:true});
+    assert(!grown.exceptionDetails,JSON.stringify(grown.exceptionDetails));const g=grown.result.value;assert(g.after>g.before&&g.scroll<=g.after+1&&g.warn,type+" long memo fully visible and page warning "+JSON.stringify(g));
+    const long=await send("Page.printToPDF",{preferCSSPageSize:true,printBackground:true,displayHeaderFooter:false});
+    const longFile=path.join(evidence,type+"-long.pdf");fs.writeFileSync(longFile,Buffer.from(long.data,"base64"));
+    const longInfo=spawnSync("pdfinfo",[longFile],{encoding:"utf8"});assert(Number(longInfo.stdout.match(/Pages:\\s+(\\d+)/)?.[1])>=2,type+" long memo multi-page");
+    const longText=spawnSync("pdftotext",[longFile,"-"],{encoding:"utf8"});assert(longText.stdout.includes("最終行確認"),type+" final memo line printed");
+    console.log("PASS "+type+" long memo auto-grow, overflow warning and last line in multi-page PDF");
+   }
   }finally{if(ws)ws.close();child.kill();}
  }
 
