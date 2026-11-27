@@ -12,7 +12,7 @@ const ok=(v,m)=>{if(!v)throw Error(m)};
 let popup;
 const frame=document.getElementById("sales"),w=frame.contentWindow,d=w.document,$=id=>d.getElementById(id);
 await wait(()=>d.getElementById("rep")?.options.length===8,"sales load");
-const release="20261127-2";
+const release="20261127-3";
 const checkRelease=(win,label)=>{ok(win.document.querySelector('meta[name="tanaka-release"]')?.content===release,label+" release marker");ok(new URL(win.location.href).searchParams.get("v")===release,label+" URL version");};
 checkRelease(w,"root to sales");
 ok(new URL(w.location.href).searchParams.get("utm_source")==="test","root preserves query");
