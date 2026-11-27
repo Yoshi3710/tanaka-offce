@@ -79,7 +79,7 @@ async function main(){try{
     assert(!grown.exceptionDetails,JSON.stringify(grown.exceptionDetails));const g=grown.result.value;assert(g.after>g.before&&g.scroll<=g.after+1&&g.warn,type+" long memo fully visible and page warning "+JSON.stringify(g));
     const long=await send("Page.printToPDF",{preferCSSPageSize:true,printBackground:true,displayHeaderFooter:false});
     const longFile=path.join(evidence,type+"-long.pdf");fs.writeFileSync(longFile,Buffer.from(long.data,"base64"));
-    const longInfo=spawnSync("pdfinfo",[longFile],{encoding:"utf8"});assert(Number(longInfo.stdout.match(/Pages:\\s+(\\d+)/)?.[1])>=2,type+" long memo multi-page");
+    const longInfo=spawnSync("pdfinfo",[longFile],{encoding:"utf8"});assert(Number(longInfo.stdout.match(/Pages:\s+(\d+)/)?.[1])>=2,type+" long memo multi-page");
     const longText=spawnSync("pdftotext",[longFile,"-"],{encoding:"utf8"});assert(longText.stdout.includes("最終行確認"),type+" final memo line printed");
     console.log("PASS "+type+" long memo auto-grow, overflow warning and last line in multi-page PDF");
    }
