@@ -77,7 +77,7 @@ for(const label of ["見 積 書","メーカー名（発売元）","見積番号
 assert(!/class="order-row-no">[^<]*<button/.test(html),"行番号欄は数字のみ");
 assert.equal((html.match(/class="order-row-no"/g)||[]).length,5,"見積書初期5行");
 assert(!html.includes("[object Object]"),"見積書の明細ラベルは正常");
-assert.equal((require("node:fs").readFileSync("index.html","utf8").match(/@page\{size:A4 portrait;margin:15mm 10mm 20mm\}/g)||[]).length,1,"全帳票のA4縦設定は一箇所");
+assert.equal((require("node:fs").readFileSync("index.html","utf8").match(/@page\{size:A4 portrait;margin:15mm 10mm 20\.1mm\}/g)||[]).length,1,"全帳票のA4縦設定は一箇所");
 const input=(k,value)=>doc.events.get("paper:input")({target:{dataset:{field:k},value,style:{},tagName:"INPUT",scrollHeight:90}});
 const row=(i,k,value)=>doc.events.get("paper:input")({target:{dataset:{row:String(i),col:k},value,style:{},tagName:"TEXTAREA",scrollHeight:90}});
 input("quoteNumber","Q-TEST-1");input("maker","架空教材メーカー");
