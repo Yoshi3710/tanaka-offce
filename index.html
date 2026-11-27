@@ -105,7 +105,7 @@ if (location.pathname.endsWith("/")) {
  .sheet-wrap.has-print-copy>#paper{display:none!important}
  .sheet-wrap>.print-copy{display:block!important}
  .print-copy .print-value{display:block;min-width:0;white-space:pre-wrap;overflow-wrap:anywhere;color:#000;background:transparent;font:inherit}
- .print-copy .print-inline{flex:1}
+ .print-copy .print-inline{flex:1;white-space:normal}
  .print-copy .print-memo{min-height:15mm;border:1px solid #333;padding:1mm;font-size:12px;line-height:1.4}
 }
 .company-sealed{position:relative;isolation:isolate}.company-sealed .seal-image{position:absolute;object-fit:contain;pointer-events:none;filter:grayscale(1);opacity:.25;z-index:-1;width:23mm;height:23mm;max-height:calc(100% - 5mm);top:1mm}.company-sealed .seal-square{right:17mm}.company-sealed .seal-round{right:0;top:5mm}.seal-controls{margin:10px 0}.seal-controls label{display:block;font-size:12px;margin:4px 0}.seal-controls input{max-width:100%;font-size:12px}
@@ -158,7 +158,7 @@ if (location.pathname.endsWith("/")) {
 <p class="help">PDF保存は印刷画面で「PDFに保存」を選択してください。JSONは利用者が自分の端末に保存する試作用データです。サイトには保存されません。共用PCでは個人情報を残さないようにしてください。</p>
 </section>
 <section class="panel sheet-panel" aria-label="帳票プレビュー">
-<div class="sheet-top"><h2>印刷プレビュー</h2><span id="formatLabel" class="muted">発注書／A4縦</span><span id="pageWarning" class="help hidden" role="status">内容がA4用紙1枚を超えています。印刷前に全ページの内容と改ページ位置を確認してください。</span></div>
+<div class="sheet-top"><h2>印刷プレビュー</h2><span id="formatLabel" class="muted">発注書／A4縦</span><span id="pageWarning" class="help hidden" role="status">内容がA4用紙1枚を超える可能性があります。印刷前に全ページの内容と改ページ位置を確認してください。</span></div>
 <div class="sheet-wrap" id="sheetWrap"><article id="paper" class="paper order-form" aria-label="A4帳票"></article></div>
 </section>
 </main>
@@ -393,7 +393,7 @@ var sealUrls={square:"",round:""};
 function growTextarea(el){
  if(!el)return;
  el.style.height="auto";
- el.style.height=(el.scrollHeight+el.offsetHeight-el.clientHeight)+"px";
+ el.style.height=(el.scrollHeight+(el.offsetHeight||0)-(el.clientHeight||0))+"px";
 }
 function fitOrderTextareas(){
  growTextarea(byId("memo"));
@@ -408,7 +408,7 @@ function checkPageLength(){
 }
 function preparePrint(){
  var paper=byId("paper"),wrap=byId("sheetWrap"),old=wrap.querySelector(".print-copy");
- if(old)old.remove();
+ if(old)return;
  var copy=paper.cloneNode(true);
  copy.removeAttribute("id");copy.classList.add("print-copy");copy.style.removeProperty("zoom");
  copy.querySelectorAll("[id]").forEach(function(e){e.removeAttribute("id");});
